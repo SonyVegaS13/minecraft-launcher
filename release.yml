@@ -1,0 +1,93 @@
+name: Solaris Launcher Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, for example v1.0.0'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Determine version
+        id: version
+        shell: pwsh
+        run: |
+          if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
+            $tag = '${{ inputs.version }}'
+          } else {
+            $tag = '${{ github.ref_name }}'
+          }
+          if ($tag -notmatch '^v\d+\.\d+\.\d+$') {
+            throw "Version must look like v1.0.0"
+          }
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "version=$($tag.TrimStart('v'))" >> $env:GITHUB_OUTPUT
+
+      - name: Restore
+        run: dotnet restore SolarisLauncher/SolarisLauncher.csproj
+
+      - name: Build
+        run: dotnet build SolarisLauncher/SolarisLauncher.csproj -c Release --no-restore
+
+      - name: Publish self-contained single-file EXE
+        shell: pwsh
+        run: |
+          if (Test-Path artifacts) { Remove-Item artifacts -Recurse -Force }
+          New-Item -ItemType Directory -Path artifacts/publish | Out-Null
+          dotnet publish SolarisLauncher/SolarisLauncher.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:PublishTrimmed=false `
+            -p:Version=${{ steps.version.outputs.version }} `
+            -p:AssemblyVersion=${{ steps.version.outputs.version }}.0 `
+            -p:FileVersion=${{ steps.version.outputs.version }}.0 `
+            -o artifacts/publish
+          if (-not (Test-Path artifacts/publish/SolarisLauncher.exe)) {
+            throw 'SolarisLauncher.exe was not produced.'
+          }
+
+      - name: Create release ZIP
+        shell: pwsh
+        run: |
+          $tag = '${{ steps.version.outputs.tag }}'
+          $zip = "artifacts/SolarisLauncher-$tag-win-x64.zip"
+          Compress-Archive -Path artifacts/publish/SolarisLauncher.exe -DestinationPath $zip -Force
+
+      - name: Create SHA256 checksum
+        shell: pwsh
+        run: |
+          $file = "artifacts/SolarisLauncher-${{ steps.version.outputs.tag }}-win-x64.zip"
+          (Get-FileHash $file -Algorithm SHA256).Hash + "  " + (Split-Path $file -Leaf) | Set-Content artifacts/SHA256SUMS.txt
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $tag = '${{ steps.version.outputs.tag }}'
+          gh release create $tag `
+            "artifacts/SolarisLauncher-$tag-win-x64.zip" `
+            artifacts/SHA256SUMS.txt `
+            --title "Solaris Launcher $tag" `
+            --generate-notes

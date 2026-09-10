@@ -8,8 +8,18 @@
     <AssemblyName>SolarisLauncher</AssemblyName>
     <RootNamespace>SolarisLauncher</RootNamespace>
     <Platforms>AnyCPU</Platforms>
-    <PublishSingleFile>false</PublishSingleFile>
-    <SelfContained>false</SelfContained>
+
+    <!-- Release defaults: standalone Windows x64 executable. -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <DebugType>none</DebugType>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

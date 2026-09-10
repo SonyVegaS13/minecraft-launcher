@@ -1,52 +1,310 @@
 <Window x:Class="SolarisLauncher.MainWindow"
- xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
- xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
- Title="SolarisLauncher" Width="900" Height="560"
- WindowStartupLocation="CenterScreen" Background="#10131A">
- <Grid Margin="28">
-  <Grid.RowDefinitions>
-   <RowDefinition Height="Auto"/>
-   <RowDefinition Height="*"/>
-   <RowDefinition Height="Auto"/>
-  </Grid.RowDefinitions>
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Solaris Launcher"
+        Width="960"
+        Height="600"
+        MinWidth="820"
+        MinHeight="520"
+        WindowStartupLocation="CenterScreen"
+        Background="#0B0E14"
+        Foreground="#F4F7FB"
+        FontFamily="Segoe UI">
 
-  <StackPanel>
-   <TextBlock Text="SOLARIS" FontSize="34" FontWeight="Bold" Foreground="White"/>
-   <TextBlock Text="Launcher • Minecraft 1.20.1 • Forge 47.4.20" FontSize="14" Foreground="#AAB3C2"/>
-  </StackPanel>
+    <Window.Resources>
+        <SolidColorBrush x:Key="PanelBrush" Color="#121722"/>
+        <SolidColorBrush x:Key="Panel2Brush" Color="#171D2A"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#252D3B"/>
+        <SolidColorBrush x:Key="MutedBrush" Color="#8E99AA"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#8B5CF6"/>
+        <SolidColorBrush x:Key="AccentHoverBrush" Color="#9F75F8"/>
 
-  <Border Grid.Row="1" Margin="0,30,0,20" CornerRadius="18" Background="#171C26" Padding="28">
-   <Grid>
-    <Grid.ColumnDefinitions>
-     <ColumnDefinition Width="*"/>
-     <ColumnDefinition Width="280"/>
-    </Grid.ColumnDefinitions>
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="Padding" Value="24,0"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentHoverBrush}"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.55"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
-    <StackPanel VerticalAlignment="Center">
-     <TextBlock Text="Добро пожаловать" FontSize="28" FontWeight="SemiBold" Foreground="White"/>
-     <TextBlock Text="Solaris сам установит Forge и загрузит актуальную сборку с GitHub."
-                Margin="0,8,0,24" Foreground="#AAB3C2" FontSize="15" TextWrapping="Wrap"/>
-     <TextBlock Text="Ник" Foreground="#AAB3C2"/>
-     <TextBox x:Name="NickBox" Width="330" Height="38" HorizontalAlignment="Left"
-              Margin="0,6,0,18" Padding="10" FontSize="15"/>
-     <Button x:Name="PlayButton" Content="ИГРАТЬ" Width="220" Height="52"
-             HorizontalAlignment="Left" Click="PlayButton_Click"
-             FontSize="17" FontWeight="Bold"/>
-    </StackPanel>
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="{StaticResource Panel2Brush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        </Style>
 
-    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-     <TextBlock Text="Сборка GitHub" Foreground="#AAB3C2"/>
-     <TextBlock x:Name="VersionText" Text="—" Foreground="White"
-                FontSize="25" FontWeight="Bold" Margin="0,3,0,20"/>
-     <TextBlock Text="Статус" Foreground="#AAB3C2"/>
-     <TextBlock x:Name="StatusText" Text="Готов к запуску"
-                Foreground="#DDE3EC" FontSize="16" Margin="0,3,0,20" TextWrapping="Wrap"/>
-     <ProgressBar x:Name="Progress" Height="8" Minimum="0" Maximum="100" Value="0"/>
-    </StackPanel>
-   </Grid>
-  </Border>
+        <Style x:Key="InputBox" TargetType="TextBox">
+            <Setter Property="Height" Value="46"/>
+            <Setter Property="Padding" Value="13,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Background" Value="#0E131C"/>
+            <Setter Property="Foreground" Value="#F4F7FB"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
 
-  <TextBlock Grid.Row="2" Text="SolarisLauncher 2.0 • GitHub updater"
-             Foreground="#6F7888" HorizontalAlignment="Right"/>
- </Grid>
+        <Style x:Key="PasswordBoxStyle" TargetType="PasswordBox">
+            <Setter Property="Height" Value="46"/>
+            <Setter Property="Padding" Value="13,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Background" Value="#0E131C"/>
+            <Setter Property="Foreground" Value="#F4F7FB"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="26">
+        <!-- AUTH SCREEN -->
+        <Grid x:Name="AuthView">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel VerticalAlignment="Center" Margin="25,0,70,0">
+                <TextBlock Text="SOLARIS"
+                           FontSize="42"
+                           FontWeight="Bold"
+                <TextBlock Text="Minecraft launcher"
+                           Margin="2,2,0,0"
+                           FontSize="15"
+                           Foreground="{StaticResource MutedBrush}"/>
+
+                <Border Margin="0,40,0,0"
+                        Padding="20"
+                        Background="#10151F"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="14">
+                    <StackPanel>
+                        <TextBlock Text="1.20.1 • Forge 47.4.20"
+                                   FontSize="14"
+                                   Foreground="#C6CEDB"/>
+                        <TextBlock Text="Клиентская сборка обновляется автоматически"
+                                   Margin="0,8,0,0"
+                                   TextWrapping="Wrap"
+                                   Foreground="{StaticResource MutedBrush}"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <Border Grid.Column="1"
+                    Background="{StaticResource PanelBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="18"
+                    Padding="34"
+                    VerticalAlignment="Center">
+                <StackPanel>
+                    <TextBlock x:Name="AuthTitle"
+                               Text="Вход в аккаунт"
+                               FontSize="26"
+                               FontWeight="SemiBold"/>
+
+                    <TextBlock Text="Логин"
+                               Margin="0,28,0,8"
+                               Foreground="{StaticResource MutedBrush}"/>
+                    <TextBox x:Name="LoginBox" Style="{StaticResource InputBox}"/>
+
+                    <TextBlock Text="Пароль"
+                               Margin="0,16,0,8"
+                               Foreground="{StaticResource MutedBrush}"/>
+                    <PasswordBox x:Name="PasswordBox" Style="{StaticResource PasswordBoxStyle}"/>
+
+                    <TextBlock x:Name="AuthStatus"
+                               Margin="0,12,0,0"
+                               TextWrapping="Wrap"
+                               Foreground="#E98C8C"/>
+
+                    <Button x:Name="AuthActionButton"
+                            Content="ВОЙТИ"
+                            Style="{StaticResource PrimaryButton}"
+                            Margin="0,18,0,0"
+                            Click="AuthActionButton_Click"/>
+
+                    <Button x:Name="SwitchAuthButton"
+                            Content="Создать аккаунт"
+                            Style="{StaticResource SecondaryButton}"
+                            Margin="0,10,0,0"
+                            Click="SwitchAuthButton_Click"/>
+
+                    <TextBlock Text="В этой версии аккаунт хранится локально на ПК."
+                               Margin="0,18,0,0"
+                               TextWrapping="Wrap"
+                               FontSize="12"
+                               Foreground="{StaticResource MutedBrush}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- MAIN SCREEN -->
+        <Grid x:Name="MainView" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Left">
+                    <TextBlock Text="SOLARIS" FontSize="27" FontWeight="Bold"/>
+                    <TextBlock Text="Launcher" FontSize="12" Foreground="{StaticResource MutedBrush}"/>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
+                    <TextBlock x:Name="WelcomeText"
+                               HorizontalAlignment="Right"
+                               FontSize="14"
+                               FontWeight="SemiBold"/>
+                    <Button Content="Выйти"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="{StaticResource MutedBrush}"
+                            Padding="0"
+                            HorizontalAlignment="Right"
+                            Click="LogoutButton_Click"/>
+                </StackPanel>
+            </DockPanel>
+
+            <Grid Grid.Row="1" Margin="0,35,0,25">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.5*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Background="{StaticResource PanelBrush}"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="18"
+                        Padding="30"
+                        Margin="0,0,14,0">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="SOLARIS CLIENT"
+                                   FontSize="30"
+                                   FontWeight="Bold"/>
+                        <TextBlock Text="Minecraft 1.20.1"
+                                   Margin="0,8,0,0"
+                                   FontSize="16"
+                                   Foreground="#C6CEDB"/>
+                        <TextBlock Text="Forge 47.4.20"
+                                   Margin="0,2,0,0"
+                                   FontSize="14"
+                                   Foreground="{StaticResource MutedBrush}"/>
+
+                        <TextBlock x:Name="VersionText"
+                                   Text="Сборка: проверка..."
+                                   Margin="0,25,0,0"
+                                   Foreground="#C6CEDB"/>
+
+                        <Button x:Name="PlayButton"
+                                Content="ИГРАТЬ"
+                                Style="{StaticResource PrimaryButton}"
+                                Width="220"
+                                HorizontalAlignment="Left"
+                                Margin="0,25,0,0"
+                                Click="PlayButton_Click"/>
+
+                        <ProgressBar x:Name="Progress"
+                                     Height="7"
+                                     Minimum="0"
+                                     Maximum="100"
+                                     Margin="0,18,0,0"
+                                     Background="#202736"
+                                     BorderThickness="0"/>
+
+                        <TextBlock x:Name="StatusText"
+                                   Text="Готов к запуску"
+                                   Margin="0,9,0,0"
+                                   Foreground="{StaticResource MutedBrush}"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Column="1">
+                    <Border Background="{StaticResource PanelBrush}"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="18"
+                            Padding="24">
+                        <StackPanel>
+                            <TextBlock Text="Настройки"
+                                       FontSize="20"
+                                       FontWeight="SemiBold"/>
+
+                            <TextBlock Text="Оперативная память"
+                                       Margin="0,24,0,7"
+                                       Foreground="{StaticResource MutedBrush}"/>
+
+                            <DockPanel>
+                                <Slider x:Name="RamSlider"
+                                        Minimum="2048"
+                                        Maximum="4096"
+                                        TickFrequency="512"
+                                        IsSnapToTickEnabled="True"
+                                        Value="3072"
+                                        VerticalAlignment="Center"
+                                        ValueChanged="RamSlider_ValueChanged"/>
+                                <TextBlock x:Name="RamText"
+                                           Text="3072 MB"
+                                           Width="75"
+                                           Margin="12,0,0,0"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Right"/>
+                            </DockPanel>
+
+                            <TextBlock Text="Для ПК с 8 ГБ ОЗУ лучше начать с 3072 МБ."
+                                       Margin="0,10,0,0"
+                                       FontSize="12"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="{StaticResource PanelBrush}"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="18"
+                            Padding="24"
+                            Margin="0,14,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Профиль"
+                                       FontSize="20"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock x:Name="ProfileText"
+                                       Margin="0,15,0,0"
+                                       Foreground="#C6CEDB"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <TextBlock Grid.Row="2"
+                       Text="Solaris Launcher • Minecraft 1.20.1"
+                       Foreground="{StaticResource MutedBrush}"
+                       FontSize="12"/>
+        </Grid>
+    </Grid>
 </Window>
