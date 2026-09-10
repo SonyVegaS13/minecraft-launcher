@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
 using CmlLib.Core.Installer.Forge;
+using CmlLib.Core.ProcessBuilder;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
