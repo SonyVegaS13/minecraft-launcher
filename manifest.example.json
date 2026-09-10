@@ -1,0 +1,12 @@
+{
+  "version": "1.0.0",
+  "minecraft": "1.20.1",
+  "forge": "47.4.20",
+  "files": [
+    {
+      "path": "mods/example.jar",
+      "url": "https://example.com/example.jar",
+      "sha256": "PUT_SHA256_HERE"
+    }
+  ]
+}
