@@ -1,4 +1,4 @@
-# Solaris Launcher v1
+# Solaris Launcher v2
 
 Первая готовая версия лаунчера на базе исходного проекта SolarisLauncher.
 
