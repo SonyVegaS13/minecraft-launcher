@@ -555,8 +555,33 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task<string> EnsureForgeAsync()
+private async Task<string> EnsureForgeAsync()
+{
+    var path = new MinecraftPath(_gameDir);
+    var launcher = new MinecraftLauncher(path);
+
+    string versionName = $"1.20.1-forge-47.4.20";
+
+    var forgeInstaller = new ForgeInstaller(launcher);
+
+    var options = new ForgeInstallOptions
     {
+        SkipIfAlreadyInstalled = true
+    };
+
+    string installedVersion = await forgeInstaller.Install(
+        MinecraftVersion,
+        ForgeVersion,
+        options);
+
+    versionName = installedVersion;
+
+    // Автоматически устанавливает Minecraft,
+    // Forge-зависимости и Java Runtime.
+    await launcher.InstallAsync(versionName);
+
+    return versionName;
+}
         var path = new MinecraftPath(_gameDir);
         var launcher = new MinecraftLauncher(path);
 
@@ -590,41 +615,159 @@ public partial class MainWindow : Window
         return versionName;
     }
 
-    private async Task LaunchMinecraftAsync(
-        string versionName,
-        string nick)
+private async Task LaunchMinecraftAsync(
+    string versionName,
+    string nick)
+{
+    var path = new MinecraftPath(_gameDir);
+    var launcher = new MinecraftLauncher(path);
+
+    string javaPath = FindBundledJava();
+
+    if (!File.Exists(javaPath))
     {
-        var path = new MinecraftPath(_gameDir);
-        var launcher = new MinecraftLauncher(path);
-
-        int ram = (int)RamSlider.Value;
-
-        var options = new MLaunchOption
-        {
-            // Пока используем offline session.
-            // Microsoft/Solaris server authentication добавим следующим этапом.
-            Session = MSession.CreateOfflineSession(nick),
-
-            MaximumRamMb = ram,
-            MinimumRamMb = Math.Min(2048, ram),
-
-            GameLauncherName = "SolarisLauncher",
-            GameLauncherVersion = "3.0"
-        };
-
-        if (!string.IsNullOrWhiteSpace(ServerHost))
-        {
-            options.ServerIp = ServerHost;
-            options.ServerPort = ServerPort;
-        }
-
-        var process =
-            await launcher.BuildProcessAsync(
-                versionName,
-                options);
-
-        process.Start();
+        throw new FileNotFoundException(
+            $"Java executable not found: {javaPath}");
     }
+
+    int ram = (int)RamSlider.Value;
+
+    var options = new MLaunchOption
+    {
+        Session = MSession.CreateOfflineSession(nick),
+
+        JavaPath = javaPath,
+
+        MaximumRamMb = ram,
+        MinimumRamMb = Math.Min(2048, ram),
+
+        GameLauncherName = "SolarisLauncher",
+        GameLauncherVersion = "3.0"
+    };
+
+    if (!string.IsNullOrWhiteSpace(ServerHost))
+    {
+        options.ServerIp = ServerHost;
+        options.ServerPort = ServerPort;
+    }
+
+    var process = await launcher.BuildProcessAsync(
+        versionName,
+        options);
+
+    process.Start();
+}
+private string FindBundledJava()
+{
+    string runtimeDirectory = Path.Combine(
+        _gameDir,
+        "runtime");
+
+    if (!Directory.Exists(runtimeDirectory))
+    {
+        throw new DirectoryNotFoundException(
+            $"Java runtime directory not found: {runtimeDirectory}");
+    }
+
+    string[] javaCandidates = Directory.GetFiles(
+        runtimeDirectory,
+        "javaw.exe",
+        SearchOption.AllDirectories);
+
+    if (javaCandidates.Length == 0)
+    {
+        javaCandidates = Directory.GetFiles(
+            runtimeDirectory,
+            "java.exe",
+            SearchOption.AllDirectories);
+    }
+
+    if (javaCandidates.Length == 0)
+    {
+        throw new FileNotFoundException(
+            "Java Runtime was not installed correctly.");
+    }
+
+    return javaCandidates[0];
+}
+    int ram = (int)RamSlider.Value;
+
+    var options = new MLaunchOption
+    {
+        // Пока используем offline session.
+        // Microsoft/Solaris server authentication добавим следующим этапом.
+        Session = MSession.CreateOfflineSession(nick),
+
+        // Используем Java, которую скачал сам Solaris.
+        JavaPath = javaPath,
+
+        MaximumRamMb = ram,
+        MinimumRamMb = Math.Min(2048, ram),
+
+        GameLauncherName = "SolarisLauncher",
+        GameLauncherVersion = "3.0"
+    };
+
+    if (!string.IsNullOrWhiteSpace(ServerHost))
+    {
+        options.ServerIp = ServerHost;
+        options.ServerPort = ServerPort;
+    }
+
+    var process =
+        await launcher.BuildProcessAsync(
+            versionName,
+            options);
+
+    process.Start();
+}private async Task LaunchMinecraftAsync(
+    string versionName,
+    string nick)
+{
+    var path = new MinecraftPath(_gameDir);
+    var launcher = new MinecraftLauncher(path);
+
+    // Java Runtime устанавливается автоматически
+    // во время launcher.InstallAsync(versionName).
+    string javaPath = FindBundledJava();
+
+    if (!File.Exists(javaPath))
+    {
+        throw new FileNotFoundException(
+            $"Java executable not found: {javaPath}");
+    }
+
+    int ram = (int)RamSlider.Value;
+
+    var options = new MLaunchOption
+    {
+        // Пока используем offline session.
+        // Microsoft/Solaris server authentication добавим следующим этапом.
+        Session = MSession.CreateOfflineSession(nick),
+
+        // Используем Java, которую скачал сам Solaris.
+        JavaPath = javaPath,
+
+        MaximumRamMb = ram,
+        MinimumRamMb = Math.Min(2048, ram),
+
+        GameLauncherName = "SolarisLauncher",
+        GameLauncherVersion = "3.0"
+    };
+
+    if (!string.IsNullOrWhiteSpace(ServerHost))
+    {
+        options.ServerIp = ServerHost;
+        options.ServerPort = ServerPort;
+    }
+
+    var process =
+        await launcher.BuildProcessAsync(
+            versionName,
+            options);
+
+    process.Start();
+}
 
     // -------------------------
     // ВСПОМОГАТЕЛЬНОЕ
