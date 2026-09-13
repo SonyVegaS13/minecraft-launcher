@@ -395,7 +395,10 @@ public partial class MainWindow : Window
             int ram = (int)RamSlider.Value;
             var options = new MLaunchOption { Session = MSession.CreateOfflineSession(account.Username), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), ServerIp = ServerHost, ServerPort = ServerPort, GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
             token.ThrowIfCancellationRequested();
-            var process = await launcher.BuildProcessAsync(VanillaVersion, options); token.ThrowIfCancellationRequested(); process.Start(); Progress.Value = 100; StatusText.Text = "Minecraft Vanilla запущен."; Application.Current.Shutdown();
+            var process = await launcher.BuildProcessAsync(VanillaVersion, options); token.ThrowIfCancellationRequested(); process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+            process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            process.Start(); Progress.Value = 100; StatusText.Text = "Minecraft Vanilla запущен."; Application.Current.Shutdown();
         }
         catch (OperationCanceledException)
         {
@@ -461,7 +464,10 @@ public partial class MainWindow : Window
         var options = new MLaunchOption { Session = MSession.CreateOfflineSession(nick), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
         if (!string.IsNullOrWhiteSpace(serverHost)) { options.ServerIp = serverHost; options.ServerPort = ServerPort; }
         token.ThrowIfCancellationRequested();
-        var process = await launcher.BuildProcessAsync(versionName, options); token.ThrowIfCancellationRequested(); process.Start();
+        var process = await launcher.BuildProcessAsync(versionName, options); token.ThrowIfCancellationRequested(); process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+            process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            process.Start();
         Application.Current.Shutdown();
     }
 
