@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -40,6 +41,8 @@ public partial class MainWindow : Window
     private readonly string _accountFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Solaris", "account.json");
     private readonly HttpClient _http = new();
     private bool _registerMode;
+    private CancellationTokenSource? _launchCancellation;
+    private Button? _activeLaunchButton;
 
     public MainWindow()
     {
@@ -213,97 +216,174 @@ public partial class MainWindow : Window
         panel.Children.Insert(panel.Children.IndexOf(button) + 1, serverText);
     }
 
+    private bool TryBeginLaunch(Button button, string playText, out CancellationTokenSource? cancellation, out CancellationToken token)
+    {
+        if (_launchCancellation is not null)
+        {
+            if (ReferenceEquals(_activeLaunchButton, button))
+            {
+                _launchCancellation.Cancel();
+                button.Content = "ОТМЕНА...";
+                button.IsEnabled = false;
+                StatusText.Text = "Отменяем запуск...";
+                cancellation = null;
+                token = CancellationToken.None;
+                return false;
+            }
+
+            StatusText.Text = "Сначала отмените текущий запуск.";
+            cancellation = null;
+            token = CancellationToken.None;
+            return false;
+        }
+
+        cancellation = new CancellationTokenSource();
+        token = cancellation.Token;
+        _launchCancellation = cancellation;
+        _activeLaunchButton = button;
+        button.Content = "ОТМЕНА";
+        button.IsEnabled = true;
+        return true;
+    }
+
+    private void EndLaunch(Button button, string playText, CancellationTokenSource cancellation)
+    {
+        if (ReferenceEquals(_launchCancellation, cancellation))
+        {
+            _launchCancellation = null;
+            _activeLaunchButton = null;
+        }
+
+        button.Content = playText;
+        button.IsEnabled = true;
+        cancellation.Dispose();
+    }
+
     private async void VanillaPlayButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button vanillaButton) vanillaButton.IsEnabled = false;
+        if (sender is not Button vanillaButton) return;
+        if (!TryBeginLaunch(vanillaButton, "SOLARIS VANILLA", out CancellationTokenSource? cancellation, out CancellationToken token)) return;
+
         try
         {
             Directory.CreateDirectory(_stateDir); string vanillaDir = Path.Combine(_stateDir, "vanilla"); Directory.CreateDirectory(vanillaDir);
             StatusText.Text = $"Устанавливаем Minecraft {VanillaVersion}..."; Progress.Value = 10;
-            LocalAccount? account = await ReadAccountAsync(); if (account is null || string.IsNullOrWhiteSpace(account.Username)) throw new InvalidOperationException("Аккаунт не найден.");
+            LocalAccount? account = await ReadAccountAsync();
+            token.ThrowIfCancellationRequested();
+            if (account is null || string.IsNullOrWhiteSpace(account.Username)) throw new InvalidOperationException("Аккаунт не найден.");
             var path = new MinecraftPath(vanillaDir); var launcher = new MinecraftLauncher(path);
             StatusText.Text = $"Скачиваем Minecraft {VanillaVersion} и Java..."; Progress.Value = 25;
-            await launcher.InstallAsync(VanillaVersion); Progress.Value = 85;
+            await launcher.InstallAsync(VanillaVersion);
+            token.ThrowIfCancellationRequested();
+            Progress.Value = 85;
             string javaPath = FindBundledJava(vanillaDir); if (!File.Exists(javaPath)) throw new FileNotFoundException($"Java Runtime не найден: {javaPath}");
             int ram = (int)RamSlider.Value;
             var options = new MLaunchOption { Session = MSession.CreateOfflineSession(account.Username), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), ServerIp = ServerHost, ServerPort = ServerPort, GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
-            var process = await launcher.BuildProcessAsync(VanillaVersion, options); process.Start(); Progress.Value = 100; StatusText.Text = "Minecraft Vanilla запущен."; Application.Current.Shutdown();
+            token.ThrowIfCancellationRequested();
+            var process = await launcher.BuildProcessAsync(VanillaVersion, options); token.ThrowIfCancellationRequested(); process.Start(); Progress.Value = 100; StatusText.Text = "Minecraft Vanilla запущен."; Application.Current.Shutdown();
+        }
+        catch (OperationCanceledException)
+        {
+            Progress.Value = 0;
+            StatusText.Text = "Запуск Vanilla отменён.";
         }
         catch (Exception ex) { StatusText.Text = "Ошибка запуска Vanilla"; MessageBox.Show(ex.ToString(), "Solaris Launcher — Vanilla", MessageBoxButton.OK, MessageBoxImage.Error); }
-        finally { if (sender is Button vanillaButtonFinal) vanillaButtonFinal.IsEnabled = true; }
+        finally
+        {
+            if (cancellation is not null) EndLaunch(vanillaButton, "SOLARIS VANILLA", cancellation);
+        }
     }
 
     private async void PlayButton_Click(object sender, RoutedEventArgs e)
     {
-        PlayButton.IsEnabled = false;
+        if (!TryBeginLaunch(PlayButton, "SOLARIS MODDED", out CancellationTokenSource? cancellation, out CancellationToken token)) return;
+
         try
         {
             Directory.CreateDirectory(_stateDir); Directory.CreateDirectory(_gameDir);
             StatusText.Text = "Проверяем обновление сборки на GitHub..."; Progress.Value = 5;
-            await UpdateClientPackAsync(); StatusText.Text = "Устанавливаем Minecraft 1.20.1 и Forge..."; Progress.Value = 45;
-            string versionName = await EnsureForgeAsync(); LocalAccount? account = await ReadAccountAsync();
+            await UpdateClientPackAsync(token); token.ThrowIfCancellationRequested();
+            StatusText.Text = "Устанавливаем Minecraft 1.20.1 и Forge..."; Progress.Value = 45;
+            string versionName = await EnsureForgeAsync(token); token.ThrowIfCancellationRequested();
+            LocalAccount? account = await ReadAccountAsync(); token.ThrowIfCancellationRequested();
             if (account is null || string.IsNullOrWhiteSpace(account.Username)) throw new Exception("Аккаунт не найден.");
             StatusText.Text = "Запускаем Minecraft..."; Progress.Value = 100;
-            await LaunchMinecraftAsync(versionName, account.Username, ModdedServerHost); StatusText.Text = "Minecraft запущен.";
+            await LaunchMinecraftAsync(versionName, account.Username, ModdedServerHost, token);
+            StatusText.Text = "Minecraft запущен.";
+        }
+        catch (OperationCanceledException)
+        {
+            Progress.Value = 0;
+            StatusText.Text = "Запуск Modded отменён.";
         }
         catch (Exception ex) { StatusText.Text = "Ошибка"; MessageBox.Show(ex.ToString(), "Solaris Launcher — ошибка", MessageBoxButton.OK, MessageBoxImage.Error); }
-        finally { PlayButton.IsEnabled = true; }
+        finally
+        {
+            if (cancellation is not null) EndLaunch(PlayButton, "SOLARIS MODDED", cancellation);
+        }
     }
 
-    private async Task<string> EnsureForgeAsync()
+    private async Task<string> EnsureForgeAsync(CancellationToken token)
     {
+        token.ThrowIfCancellationRequested();
         var path = new MinecraftPath(_gameDir);
         var launcher = new MinecraftLauncher(path);
         var installer = new ForgeInstaller(launcher);
-        string forgeVersion = await installer.Install(MinecraftVersion, ForgeVersion, new ForgeInstallOptions());
+        string forgeVersion = await installer.Install(MinecraftVersion, ForgeVersion, new ForgeInstallOptions { CancellationToken = token });
+        token.ThrowIfCancellationRequested();
         await launcher.InstallAsync(forgeVersion);
+        token.ThrowIfCancellationRequested();
         return forgeVersion;
     }
 
-    private async Task LaunchMinecraftAsync(string versionName, string nick, string serverHost)
+    private async Task LaunchMinecraftAsync(string versionName, string nick, string serverHost, CancellationToken token)
     {
+        token.ThrowIfCancellationRequested();
         var launcher = new MinecraftLauncher(new MinecraftPath(_gameDir));
         string javaPath = FindBundledJava(_gameDir);
         if (!File.Exists(javaPath)) throw new FileNotFoundException($"Java Runtime не найден: {javaPath}");
         int ram = (int)RamSlider.Value;
         var options = new MLaunchOption { Session = MSession.CreateOfflineSession(nick), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
         if (!string.IsNullOrWhiteSpace(serverHost)) { options.ServerIp = serverHost; options.ServerPort = ServerPort; }
-        var process = await launcher.BuildProcessAsync(versionName, options); process.Start();
+        token.ThrowIfCancellationRequested();
+        var process = await launcher.BuildProcessAsync(versionName, options); token.ThrowIfCancellationRequested(); process.Start();
         Application.Current.Shutdown();
     }
 
-    private async Task UpdateClientPackAsync()
+    private async Task UpdateClientPackAsync(CancellationToken token)
     {
-        var release = await GetLatestReleaseAsync(); string tag = release.TagName;
-        string stateFile = Path.Combine(_stateDir, "client-release.txt"); string installedTag = File.Exists(stateFile) ? (await File.ReadAllTextAsync(stateFile)).Trim() : "";
+        token.ThrowIfCancellationRequested();
+        var release = await GetLatestReleaseAsync(token); string tag = release.TagName;
+        string stateFile = Path.Combine(_stateDir, "client-release.txt"); string installedTag = File.Exists(stateFile) ? (await File.ReadAllTextAsync(stateFile, token)).Trim() : "";
         string packUrl = release.Assets.FirstOrDefault(a => string.Equals(a.Name, ClientPackAssetName, StringComparison.OrdinalIgnoreCase))?.BrowserDownloadUrl ?? throw new InvalidOperationException($"В GitHub Release {tag} не найден файл {ClientPackAssetName}.");
         VersionText.Text = $"Сборка: {tag}";
         if (string.Equals(installedTag, tag, StringComparison.OrdinalIgnoreCase) && Directory.Exists(Path.Combine(_gameDir, "mods"))) { StatusText.Text = $"Сборка {tag} уже установлена."; Progress.Value = 40; return; }
         string tempZip = Path.Combine(Path.GetTempPath(), $"SolarisClient-{Guid.NewGuid():N}.zip"); string tempExtract = Path.Combine(Path.GetTempPath(), $"SolarisClient-{Guid.NewGuid():N}");
-        try { StatusText.Text = $"Скачиваем сборку {tag} с GitHub..."; await DownloadFileWithProgressAsync(packUrl, tempZip, 5, 35); StatusText.Text = "Распаковываем сборку..."; Progress.Value = 36; Directory.CreateDirectory(tempExtract); ExtractZipSafely(tempZip, tempExtract); string sourceRoot = FindPackRoot(tempExtract); InstallManagedPack(sourceRoot); await File.WriteAllTextAsync(stateFile, tag); Progress.Value = 40; }
+        try { StatusText.Text = $"Скачиваем сборку {tag} с GitHub..."; await DownloadFileWithProgressAsync(packUrl, tempZip, 5, 35, token); token.ThrowIfCancellationRequested(); StatusText.Text = "Распаковываем сборку..."; Progress.Value = 36; Directory.CreateDirectory(tempExtract); ExtractZipSafely(tempZip, tempExtract, token); string sourceRoot = FindPackRoot(tempExtract); InstallManagedPack(sourceRoot, token); await File.WriteAllTextAsync(stateFile, tag, token); Progress.Value = 40; }
         finally { TryDeleteFile(tempZip); TryDeleteDirectory(tempExtract); }
     }
 
-    private async Task<GitHubRelease> GetLatestReleaseAsync()
+    private async Task<GitHubRelease> GetLatestReleaseAsync(CancellationToken token)
     {
-        string url = $"https://api.github.com/repos/{GitHubOwner}/{GitHubRepo}/releases/latest"; using HttpResponseMessage response = await _http.GetAsync(url);
+        string url = $"https://api.github.com/repos/{GitHubOwner}/{GitHubRepo}/releases/latest"; using HttpResponseMessage response = await _http.GetAsync(url, token);
         if (!response.IsSuccessStatusCode) throw new InvalidOperationException($"GitHub не вернул последнюю версию сборки. HTTP {(int)response.StatusCode} {response.StatusCode}.");
-        await using Stream stream = await response.Content.ReadAsStreamAsync(); return await JsonSerializer.DeserializeAsync<GitHubRelease>(stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? throw new InvalidOperationException("GitHub вернул пустой ответ о Release.");
+        await using Stream stream = await response.Content.ReadAsStreamAsync(token); return await JsonSerializer.DeserializeAsync<GitHubRelease>(stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }, token) ?? throw new InvalidOperationException("GitHub вернул пустой ответ о Release.");
     }
 
-    private async Task DownloadFileWithProgressAsync(string url, string destination, double min, double max)
+    private async Task DownloadFileWithProgressAsync(string url, string destination, double min, double max, CancellationToken token)
     {
-        using HttpResponseMessage response = await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead); response.EnsureSuccessStatusCode(); long? total = response.Content.Headers.ContentLength;
-        await using Stream input = await response.Content.ReadAsStreamAsync(); await using FileStream output = new(destination, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 64, true);
+        using HttpResponseMessage response = await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token); response.EnsureSuccessStatusCode(); long? total = response.Content.Headers.ContentLength;
+        await using Stream input = await response.Content.ReadAsStreamAsync(token); await using FileStream output = new(destination, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 64, true);
         byte[] buffer = new byte[1024 * 128]; long readTotal = 0; int read;
-        while ((read = await input.ReadAsync(buffer)) > 0) { await output.WriteAsync(buffer.AsMemory(0, read)); readTotal += read; if (total is > 0) Progress.Value = min + (max - min) * Math.Clamp((double)readTotal / total.Value, 0, 1); }
+        while ((read = await input.ReadAsync(buffer.AsMemory(0, buffer.Length), token)) > 0) { await output.WriteAsync(buffer.AsMemory(0, read), token); readTotal += read; if (total is > 0) Progress.Value = min + (max - min) * Math.Clamp((double)readTotal / total.Value, 0, 1); }
     }
 
-    private static void ExtractZipSafely(string zipFile, string destination)
+    private static void ExtractZipSafely(string zipFile, string destination, CancellationToken token)
     {
         string fullDestination = Path.GetFullPath(destination) + Path.DirectorySeparatorChar; using ZipArchive archive = ZipFile.OpenRead(zipFile);
         foreach (ZipArchiveEntry entry in archive.Entries)
         {
+            token.ThrowIfCancellationRequested();
             string target = Path.GetFullPath(Path.Combine(destination, entry.FullName)); if (!target.StartsWith(fullDestination, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Архив содержит небезопасный путь: " + entry.FullName);
             if (string.IsNullOrEmpty(entry.Name)) { Directory.CreateDirectory(target); continue; }
             Directory.CreateDirectory(Path.GetDirectoryName(target)!); entry.ExtractToFile(target, true);
@@ -318,27 +398,30 @@ public partial class MainWindow : Window
         throw new InvalidOperationException("Не удалось найти клиентскую сборку в SolarisClient.zip.");
     }
 
-    private void InstallManagedPack(string sourceRoot)
+    private void InstallManagedPack(string sourceRoot, CancellationToken token)
     {
         string[] managedDirectories = { "mods", "config", "defaultconfigs", "resourcepacks", "shaderpacks", "kubejs", "journeymap", "tacz", "xaero", "patchouli_books", "scripts" };
         foreach (string relative in managedDirectories)
         {
+            token.ThrowIfCancellationRequested();
             string source = Path.Combine(sourceRoot, relative); if (!Directory.Exists(source)) continue;
-            string destination = Path.Combine(_gameDir, relative); TryDeleteDirectory(destination); CopyDirectory(source, destination);
+            string destination = Path.Combine(_gameDir, relative); TryDeleteDirectory(destination); CopyDirectory(source, destination, token);
         }
         string[] managedFiles = { "options.txt", "optionsof.txt", "servers.dat", "servers.dat_old" };
         foreach (string file in managedFiles)
         {
+            token.ThrowIfCancellationRequested();
             string source = Path.Combine(sourceRoot, file); if (!File.Exists(source)) continue;
             File.Copy(source, Path.Combine(_gameDir, file), true);
         }
     }
 
-    private static void CopyDirectory(string sourceDir, string destinationDir)
+    private static void CopyDirectory(string sourceDir, string destinationDir, CancellationToken token)
     {
+        token.ThrowIfCancellationRequested();
         Directory.CreateDirectory(destinationDir);
-        foreach (string file in Directory.GetFiles(sourceDir)) File.Copy(file, Path.Combine(destinationDir, Path.GetFileName(file)), true);
-        foreach (string dir in Directory.GetDirectories(sourceDir)) CopyDirectory(dir, Path.Combine(destinationDir, Path.GetFileName(dir)));
+        foreach (string file in Directory.GetFiles(sourceDir)) { token.ThrowIfCancellationRequested(); File.Copy(file, Path.Combine(destinationDir, Path.GetFileName(file)), true); }
+        foreach (string dir in Directory.GetDirectories(sourceDir)) { token.ThrowIfCancellationRequested(); CopyDirectory(dir, Path.Combine(destinationDir, Path.GetFileName(dir)), token); }
     }
 
     private static string FindBundledJava(string gameDir)
