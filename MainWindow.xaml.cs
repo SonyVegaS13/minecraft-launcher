@@ -1,5 +1,7 @@
 using System.IO.Compression;
+using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -14,6 +16,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
 
 namespace SolarisLauncher;
 
@@ -45,6 +49,7 @@ public partial class MainWindow : Window
         RamText.Text = $"{(int)RamSlider.Value} MB";
         TryRestoreAccount();
         SetupServerButtons();
+        _ = UpdateServerStatusAsync();
     }
 
     private async void AuthActionButton_Click(object sender, RoutedEventArgs e)
@@ -107,6 +112,7 @@ public partial class MainWindow : Window
         WelcomeText.Text = username;
         ProfileText.Text = $"Игрок: {username}\nВерсия клиента: Minecraft {MinecraftVersion}";
         StatusText.Text = "Готов к запуску."; Progress.Value = 0;
+        _ = UpdateServerStatusAsync();
     }
 
     private async void LogoutButton_Click(object sender, RoutedEventArgs e)
@@ -142,16 +148,68 @@ public partial class MainWindow : Window
 
     private void RamSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) { if (RamText is not null) RamText.Text = $"{(int)e.NewValue} MB"; }
 
+    private async Task UpdateServerStatusAsync()
+    {
+        if (MainView is null) return;
+        TextBlock? status = FindTextBlock(MainView, " Сервер готов");
+        Ellipse? dot = FindElement<Ellipse>(MainView);
+        if (status is null) return;
+
+        status.Text = " Проверяем сервер...";
+        if (dot is not null) dot.Fill = new SolidColorBrush(Color.FromRgb(250, 204, 21));
+
+        try
+        {
+            using TcpClient client = new();
+            await client.ConnectAsync(ServerHost, ServerPort).WaitAsync(TimeSpan.FromSeconds(3));
+            status.Text = " Сервер онлайн";
+            if (dot is not null) dot.Fill = new SolidColorBrush(Color.FromRgb(74, 222, 128));
+        }
+        catch
+        {
+            status.Text = " Сервер офлайн";
+            if (dot is not null) dot.Fill = new SolidColorBrush(Color.FromRgb(248, 113, 113));
+        }
+    }
+
+    private static TextBlock? FindTextBlock(DependencyObject root, string text)
+    {
+        foreach (object child in LogicalTreeHelper.GetChildren(root))
+        {
+            if (child is TextBlock textBlock && string.Equals(textBlock.Text, text, StringComparison.Ordinal)) return textBlock;
+            if (child is DependencyObject dependencyChild)
+            {
+                TextBlock? result = FindTextBlock(dependencyChild, text);
+                if (result is not null) return result;
+            }
+        }
+        return null;
+    }
+
+    private static T? FindElement<T>(DependencyObject root) where T : DependencyObject
+    {
+        foreach (object child in LogicalTreeHelper.GetChildren(root))
+        {
+            if (child is T match) return match;
+            if (child is DependencyObject dependencyChild)
+            {
+                T? result = FindElement<T>(dependencyChild);
+                if (result is not null) return result;
+            }
+        }
+        return null;
+    }
+
     private void SetupServerButtons()
     {
         if (PlayButton.Parent is not StackPanel panel) return;
         PlayButton.Content = "SOLARIS MODDED"; PlayButton.Width = 220;
         if (panel.Children.OfType<Button>().Any(b => b.Name == "VanillaPlayButton")) return;
-        var moddedText = new TextBlock { Text = $"Minecraft {MinecraftVersion} • Forge {ForgeVersion}", Margin = new Thickness(0, 8, 0, 0), Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(142, 153, 170)), FontSize = 12 };
+        var moddedText = new TextBlock { Text = $"Minecraft {MinecraftVersion} • Forge {ForgeVersion}", Margin = new Thickness(0, 8, 0, 0), Foreground = new SolidColorBrush(Color.FromRgb(142, 153, 170)), FontSize = 12 };
         int moddedIndex = panel.Children.IndexOf(PlayButton); panel.Children.Insert(moddedIndex + 1, moddedText);
         var button = new Button { Name = "VanillaPlayButton", Content = "SOLARIS VANILLA", Width = 220, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 18, 0, 0), Style = FindResource("SecondaryButton") as Style };
         button.Click += VanillaPlayButton_Click; panel.Children.Insert(panel.Children.IndexOf(PlayButton) + 2, button);
-        var serverText = new TextBlock { Text = $"Minecraft {VanillaVersion} • {ServerHost}:{ServerPort}", Margin = new Thickness(0, 8, 0, 0), Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(142, 153, 170)), FontSize = 12 };
+        var serverText = new TextBlock { Text = $"Minecraft {VanillaVersion} • {ServerHost}:{ServerPort}", Margin = new Thickness(0, 8, 0, 0), Foreground = new SolidColorBrush(Color.FromRgb(142, 153, 170)), FontSize = 12 };
         panel.Children.Insert(panel.Children.IndexOf(button) + 1, serverText);
     }
 
