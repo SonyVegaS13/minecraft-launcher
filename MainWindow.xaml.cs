@@ -321,11 +321,11 @@ public partial class MainWindow : Window
     private void SetupServerButtons()
     {
         if (PlayButton.Parent is not StackPanel panel) return;
-        PlayButton.Content = "SOLARIS MODDED"; PlayButton.Width = 220;
+        PlayButton.Content = "ИГРАТЬ"; PlayButton.Width = 220;
         if (panel.Children.OfType<Button>().Any(b => b.Name == "VanillaPlayButton")) return;
         var moddedText = new TextBlock { Text = $"Minecraft {MinecraftVersion} • Forge {ForgeVersion}", Margin = new Thickness(0, 8, 0, 0), Foreground = new SolidColorBrush(Color.FromRgb(142, 153, 170)), FontSize = 12 };
         int moddedIndex = panel.Children.IndexOf(PlayButton); panel.Children.Insert(moddedIndex + 1, moddedText);
-        var button = new Button { Name = "VanillaPlayButton", Content = "SOLARIS VANILLA", Width = 220, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 18, 0, 0), Style = FindResource("SecondaryButton") as Style };
+        var button = new Button { Name = "VanillaPlayButton", Content = "ИГРАТЬ", Width = 220, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 18, 0, 0), Style = FindResource("SecondaryButton") as Style };
         button.Click += VanillaPlayButton_Click; panel.Children.Insert(panel.Children.IndexOf(PlayButton) + 2, button);
         var serverText = new TextBlock { Text = $"Minecraft {VanillaVersion} • {ServerHost}:{ServerPort}", Margin = new Thickness(0, 8, 0, 0), Foreground = new SolidColorBrush(Color.FromRgb(142, 153, 170)), FontSize = 12 };
         panel.Children.Insert(panel.Children.IndexOf(button) + 1, serverText);
@@ -377,7 +377,7 @@ public partial class MainWindow : Window
     private async void VanillaPlayButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button vanillaButton) return;
-        if (!TryBeginLaunch(vanillaButton, "SOLARIS VANILLA", out CancellationTokenSource? cancellation, out CancellationToken token)) return;
+        if (!TryBeginLaunch(vanillaButton, "ИГРАТЬ", out CancellationTokenSource? cancellation, out CancellationToken token)) return;
 
         try
         {
@@ -405,13 +405,13 @@ public partial class MainWindow : Window
         catch (Exception ex) { StatusText.Text = "Ошибка запуска Vanilla"; MessageBox.Show(ex.ToString(), "Solaris Launcher — Vanilla", MessageBoxButton.OK, MessageBoxImage.Error); }
         finally
         {
-            if (cancellation is not null) EndLaunch(vanillaButton, "SOLARIS VANILLA", cancellation);
+            if (cancellation is not null) EndLaunch(vanillaButton, "ИГРАТЬ", cancellation);
         }
     }
 
     private async void PlayButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!TryBeginLaunch(PlayButton, "SOLARIS MODDED", out CancellationTokenSource? cancellation, out CancellationToken token)) return;
+        if (!TryBeginLaunch(PlayButton, "ИГРАТЬ", out CancellationTokenSource? cancellation, out CancellationToken token)) return;
 
         try
         {
@@ -434,7 +434,7 @@ public partial class MainWindow : Window
         catch (Exception ex) { StatusText.Text = "Ошибка"; MessageBox.Show(ex.ToString(), "Solaris Launcher — ошибка", MessageBoxButton.OK, MessageBoxImage.Error); }
         finally
         {
-            if (cancellation is not null) EndLaunch(PlayButton, "SOLARIS MODDED", cancellation);
+            if (cancellation is not null) EndLaunch(PlayButton, "ИГРАТЬ", cancellation);
         }
     }
 
@@ -519,32 +519,37 @@ public partial class MainWindow : Window
         foreach (string relative in managedDirectories)
         {
             token.ThrowIfCancellationRequested();
-            string source = Path.Combine(sourceRoot, relative); if (!Directory.Exists(source)) continue;
-            string destination = Path.Combine(_gameDir, relative); TryDeleteDirectory(destination); CopyDirectory(source, destination, token);
+            string source = Path.Combine(sourceRoot, relative); string destination = Path.Combine(_gameDir, relative);
+            if (!Directory.Exists(source)) continue;
+            Directory.CreateDirectory(destination);
+            CopyDirectory(source, destination, token);
         }
-        string[] managedFiles = { "options.txt", "optionsof.txt", "servers.dat", "servers.dat_old" };
-        foreach (string file in managedFiles)
+    }
+
+    private static void CopyDirectory(string source, string destination, CancellationToken token)
+    {
+        foreach (string directory in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
         {
             token.ThrowIfCancellationRequested();
-            string source = Path.Combine(sourceRoot, file); if (!File.Exists(source)) continue;
-            File.Copy(source, Path.Combine(_gameDir, file), true);
+            string relative = Path.GetRelativePath(source, directory); Directory.CreateDirectory(Path.Combine(destination, relative));
+        }
+        foreach (string file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+        {
+            token.ThrowIfCancellationRequested();
+            string relative = Path.GetRelativePath(source, file); string target = Path.Combine(destination, relative); Directory.CreateDirectory(Path.GetDirectoryName(target)!); File.Copy(file, target, true);
         }
     }
 
-    private static void CopyDirectory(string sourceDir, string destinationDir, CancellationToken token)
+    private string FindBundledJava(string rootDir)
     {
-        token.ThrowIfCancellationRequested();
-        Directory.CreateDirectory(destinationDir);
-        foreach (string file in Directory.GetFiles(sourceDir)) { token.ThrowIfCancellationRequested(); File.Copy(file, Path.Combine(destinationDir, Path.GetFileName(file)), true); }
-        foreach (string dir in Directory.GetDirectories(sourceDir)) { token.ThrowIfCancellationRequested(); CopyDirectory(dir, Path.Combine(destinationDir, Path.GetFileName(dir)), token); }
-    }
-
-    private static string FindBundledJava(string gameDir)
-    {
-        string runtimeRoot = Path.Combine(gameDir, "runtime");
-        if (!Directory.Exists(runtimeRoot)) return "";
-        string? java = Directory.EnumerateFiles(runtimeRoot, "java.exe", SearchOption.AllDirectories).FirstOrDefault();
-        return java ?? "";
+        string[] candidates = {
+            Path.Combine(rootDir, "runtime", "windows-x64", "java-runtime-delta", "bin", "java.exe"),
+            Path.Combine(rootDir, "runtime", "windows-x64", "java-runtime-gamma", "bin", "java.exe"),
+            Path.Combine(rootDir, "runtime", "windows-x64", "java-runtime-alpha", "bin", "java.exe"),
+            Path.Combine(rootDir, "runtime", "windows-x64", "java-runtime-beta", "bin", "java.exe"),
+            Path.Combine(rootDir, "runtime", "windows-x64", "java-runtime-epison", "bin", "java.exe")
+        };
+        return candidates.FirstOrDefault(File.Exists) ?? Directory.GetFiles(Path.Combine(rootDir, "runtime"), "java.exe", SearchOption.AllDirectories).FirstOrDefault() ?? "";
     }
 
     private static void TryDeleteFile(string path) { try { if (File.Exists(path)) File.Delete(path); } catch { } }
