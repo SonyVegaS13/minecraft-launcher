@@ -196,8 +196,9 @@ public partial class MainWindow : Window
     {
         var path = new MinecraftPath(_gameDir);
         var launcher = new MinecraftLauncher(path);
-        var installer = new ForgeInstaller(path, new MinecraftLauncher(path));
-        string forgeVersion = await installer.Install(MinecraftVersion, ForgeVersion, new ForgeInstallOptions { IsSilent = true });
+        var installer = new ForgeInstaller(launcher);
+        string forgeVersion = await installer.Install(MinecraftVersion, ForgeVersion, new ForgeInstallOptions());
+        await launcher.InstallAsync(forgeVersion);
         return forgeVersion;
     }
 
@@ -262,20 +263,32 @@ public partial class MainWindow : Window
     private void InstallManagedPack(string sourceRoot)
     {
         string[] managedDirectories = { "mods", "config", "defaultconfigs", "resourcepacks", "shaderpacks", "kubejs", "journeymap", "tacz", "xaero", "patchouli_books", "scripts" };
-        foreach (string relative in managedDirectories) { string source = Path.Combine(sourceRoot, relative); if (!Directory.Exists(source)) continue; string destination = Path.Combine(_gameDir, relative); TryDeleteDirectory(destination); CopyDirectory(source, destination); }
+        foreach (string relative in managedDirectories)
+        {
+            string source = Path.Combine(sourceRoot, relative); if (!Directory.Exists(source)) continue;
+            string destination = Path.Combine(_gameDir, relative); TryDeleteDirectory(destination); CopyDirectory(source, destination);
+        }
         string[] managedFiles = { "options.txt", "optionsof.txt", "servers.dat", "servers.dat_old" };
-        foreach (string file in managedFiles) { string source = Path.Combine(sourceRoot, file); if (File.Exists(source)) File.Copy(source, Path.Combine(_gameDir, file), true); }
+        foreach (string file in managedFiles)
+        {
+            string source = Path.Combine(sourceRoot, file); if (!File.Exists(source)) continue;
+            File.Copy(source, Path.Combine(_gameDir, file), true);
+        }
     }
 
     private static void CopyDirectory(string sourceDir, string destinationDir)
     {
-        Directory.CreateDirectory(destinationDir); foreach (string file in Directory.GetFiles(sourceDir)) File.Copy(file, Path.Combine(destinationDir, Path.GetFileName(file)), true); foreach (string dir in Directory.GetDirectories(sourceDir)) CopyDirectory(dir, Path.Combine(destinationDir, Path.GetFileName(dir)));
+        Directory.CreateDirectory(destinationDir);
+        foreach (string file in Directory.GetFiles(sourceDir)) File.Copy(file, Path.Combine(destinationDir, Path.GetFileName(file)), true);
+        foreach (string dir in Directory.GetDirectories(sourceDir)) CopyDirectory(dir, Path.Combine(destinationDir, Path.GetFileName(dir)));
     }
 
-    private string FindBundledJava(string gameDir)
+    private static string FindBundledJava(string gameDir)
     {
-        string runtime = Path.Combine(gameDir, "runtime"); if (!Directory.Exists(runtime)) return "";
-        string[] candidates = Directory.GetFiles(runtime, "javaw.exe", SearchOption.AllDirectories); if (candidates.Length == 0) candidates = Directory.GetFiles(runtime, "java.exe", SearchOption.AllDirectories); return candidates.FirstOrDefault() ?? "";
+        string runtimeRoot = Path.Combine(gameDir, "runtime");
+        if (!Directory.Exists(runtimeRoot)) return "";
+        string? java = Directory.EnumerateFiles(runtimeRoot, "java.exe", SearchOption.AllDirectories).FirstOrDefault();
+        return java ?? "";
     }
 
     private static void TryDeleteFile(string path) { try { if (File.Exists(path)) File.Delete(path); } catch { } }
