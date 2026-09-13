@@ -1,32 +1,40 @@
-# Solaris Launcher v2
+# Solaris Launcher
 
-Первая готовая версия лаунчера на базе исходного проекта SolarisLauncher.
+Современный WPF-лаунчер Solaris для Minecraft.
 
-## Что есть
+## Что уже есть
 
-- Экран входа и регистрации.
-- Локальный аккаунт на ПК.
-- Пароль хранится не в открытом виде: используется PBKDF2-SHA256 + случайная соль.
-- Сохранение аккаунта между запусками.
-- Выход из аккаунта.
-- Основной экран Solaris.
-- Ползунок RAM: 2048–4096 MB, по умолчанию 3072 MB.
-- Скачивание SolarisClient.zip из GitHub Releases.
-- Установка Minecraft 1.20.1 + Forge 47.4.20.
-- Автоматическая установка библиотек/ресурсов/Java через CmlLib.
-- Запуск Minecraft через offline session.
+- Локальная регистрация и вход.
+- Пароль хранится как PBKDF2-SHA256 hash + случайная salt.
+- Профиль игрока и ник из логина.
+- Minecraft 1.20.1 + Forge 47.4.20 для модового режима.
+- Minecraft Vanilla 26.2 в отдельной папке.
+- Автоматическая установка Minecraft, библиотек и Java через CmlLib.
+- Автоподключение Vanilla 26.2 к `solarisplay.millida.host:25565`.
+- Автоматическое обновление клиентской модовой сборки через `SolarisClient.zip` из GitHub Releases.
+- Настройка RAM: 2048–4096 MB.
+
+## Режимы
+
+- **SOLARIS MODDED** — Minecraft 1.20.1 + Forge 47.4.20.
+- **SOLARIS VANILLA** — Minecraft 26.2 + автоматическое подключение к Solaris Vanilla серверу.
 
 ## Важно
 
-Локальная регистрация — это пока интерфейс и локальное хранение аккаунта. Она НЕ является серверной авторизацией.
+Локальная регистрация аккаунта пока работает только на конкретном ПК и не является серверной авторизацией.
 
-Для настоящих аккаунтов, синхронизации между ПК и защиты Minecraft-сервера следующим этапом нужно подключить API из ранее подготовленного Solaris Auth Backend Starter, а затем передавать серверу подтверждённую сессию.
+Серверные файлы, мир и серверная конфигурация хранятся на хостинге Millida и не входят в репозиторий лаунчера.
 
 ## Сборка
 
-Открыть SolarisLauncher.csproj в Visual Studio 2022 с .NET 8 Desktop Development и выполнить Build.
+Требуется .NET 8 SDK.
 
-Можно также выполнить:
+```powershell
+dotnet clean
+Remove-Item -Recurse -Force .\bin, .\obj -ErrorAction SilentlyContinue
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+```
 
-dotnet restore
-dotnet build -c Release
+Готовый EXE:
+
+`bin\Release\net8.0-windows\win-x64\publish\SolarisLauncher.exe`
