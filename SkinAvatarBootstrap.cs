@@ -67,8 +67,19 @@ internal static class SkinAvatarBootstrap
                 solarisRadio.IsHitTestVisible = false;
             }
 
+            // The skin selector is now a clean avatar-only tile: keep the internal
+            // label for compatibility with the existing bootstrap logic, but don't render it.
             if (skinRadio is null)
                 return;
+
+            foreach (ContentPresenter presenter in FindVisualChildren<ContentPresenter>(skinRadio))
+                presenter.Visibility = Visibility.Collapsed;
+
+            foreach (TextBlock textBlock in FindVisualChildren<TextBlock>(window))
+            {
+                if (string.Equals(textBlock.Text, "Голова Minecraft-скина", StringComparison.Ordinal))
+                    textBlock.Visibility = Visibility.Collapsed;
+            }
 
             skinRadio.IsChecked = true;
             skinRadio.IsHitTestVisible = false;
@@ -80,6 +91,11 @@ internal static class SkinAvatarBootstrap
 
             if (avatarBorder is null)
                 return;
+
+            const double avatarSize = 70;
+            avatarBorder.Width = avatarSize;
+            avatarBorder.Height = avatarSize;
+            avatarBorder.CornerRadius = new CornerRadius(35);
 
             string nickname = window.WelcomeText.Text.Trim();
             if (string.IsNullOrWhiteSpace(nickname))
@@ -101,15 +117,15 @@ internal static class SkinAvatarBootstrap
 
             Image image = new()
             {
-                Width = 54,
-                Height = 54,
+                Width = avatarSize,
+                Height = avatarSize,
                 Source = bitmap,
                 Stretch = Stretch.Fill,
                 SnapsToDevicePixels = true,
                 ToolTip = $"Скин игрока {nickname}"
             };
 
-            image.Clip = new EllipseGeometry(new Rect(0, 0, 54, 54));
+            image.Clip = new EllipseGeometry(new Rect(0, 0, avatarSize, avatarSize));
             avatarBorder.Child = image;
         }
         catch
