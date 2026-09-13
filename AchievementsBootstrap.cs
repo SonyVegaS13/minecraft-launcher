@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,7 +31,8 @@ internal static class AchievementsBootstrap
         catch { }
     }
 
-    public static void Initialize()
+    [ModuleInitializer]
+    internal static void Initialize()
     {
         EventManager.RegisterClassHandler(
             typeof(MainWindow),
@@ -67,13 +69,22 @@ internal static class AchievementsBootstrap
         if (string.Equals(button.Name, "VanillaPlayButton", StringComparison.Ordinal))
         {
             Unlock("first_launch");
-            UpdateUi(window);
+            Unlock("vanilla");
         }
         else if (string.Equals(button.Name, "PlayButton", StringComparison.Ordinal))
         {
             Unlock("first_launch");
-            UpdateUi(window);
+            Unlock("modded");
         }
+        else
+        {
+            return;
+        }
+
+        if (Unlocked.Contains("vanilla") && Unlocked.Contains("modded"))
+            Unlock("explorer");
+
+        UpdateUi(window);
     }
 
     private static void Unlock(string id)
@@ -82,14 +93,22 @@ internal static class AchievementsBootstrap
         try
         {
             Directory.CreateDirectory(StateDir);
-            File.WriteAllText(AchievementsFile, JsonSerializer.Serialize(Unlocked.OrderBy(x => x).ToArray(), new JsonSerializerOptions { WriteIndented = true }));
+            string[] saved = Unlocked
+                .Where(x => x is "welcome" or "first_launch" or "explorer")
+                .OrderBy(x => x)
+                .ToArray();
+            File.WriteAllText(AchievementsFile, JsonSerializer.Serialize(saved, new JsonSerializerOptions { WriteIndented = true }));
         }
         catch { }
     }
 
     private static void UpdateUi(MainWindow window)
     {
-        int count = Unlocked.Count;
+        int count = 0;
+        if (Unlocked.Contains("welcome")) count++;
+        if (Unlocked.Contains("first_launch")) count++;
+        if (Unlocked.Contains("explorer")) count++;
+
         window.AchievementsCount.Text = $"{count} / 3";
         SetAchievement(window.AchievementWelcome, Unlocked.Contains("welcome"), "Добро пожаловать — аккаунт создан");
         SetAchievement(window.AchievementFirstLaunch, Unlocked.Contains("first_launch"), "Первый запуск — запусти Minecraft");
