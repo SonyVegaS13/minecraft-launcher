@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using CmlLib.Core;
@@ -163,16 +164,130 @@ public partial class MainWindow : Window
 
         try
         {
-            using TcpClient client = new();
-            await client.ConnectAsync(ServerHost, ServerPort).WaitAsync(TimeSpan.FromSeconds(3));
-            status.Text = " Сервер онлайн";
-            if (dot is not null) dot.Fill = new SolidColorBrush(Color.FromRgb(74, 222, 128));
+            bool online = await PingMinecraftServerAsync(ServerHost, ServerPort, CancellationToken.None);
+            status.Text = online ? " Сервер онлайн" : " Сервер офлайн";
+            if (dot is not null) dot.Fill = new SolidColorBrush(online ? Color.FromRgb(74, 222, 128) : Color.FromRgb(248, 113, 113));
         }
         catch
         {
             status.Text = " Сервер офлайн";
             if (dot is not null) dot.Fill = new SolidColorBrush(Color.FromRgb(248, 113, 113));
         }
+    }
+
+    private static async Task<bool> PingMinecraftServerAsync(string host, int port, CancellationToken token)
+    {
+        using TcpClient client = new();
+        await client.ConnectAsync(host, port).WaitAsync(TimeSpan.FromSeconds(4), token);
+        using NetworkStream stream = client.GetStream();
+
+        using MemoryStream handshake = new();
+        WriteVarInt(handshake, 0);
+        WriteVarInt(handshake, -1);
+        WriteString(handshake, host);
+        handshake.WriteByte((byte)(port >> 8));
+        handshake.WriteByte((byte)(port & 0xFF));
+        WriteVarInt(handshake, 1);
+        await WritePacketAsync(stream, handshake.ToArray(), token);
+
+        await WritePacketAsync(stream, new byte[] { 0 }, token);
+
+        int packetLength = await ReadVarIntAsync(stream, token);
+        if (packetLength <= 0 || packetLength > 1_000_000) return false;
+        byte[] packet = await ReadExactAsync(stream, packetLength, token);
+        using MemoryStream response = new(packet, writable: false);
+        int packetId = ReadVarInt(response);
+        if (packetId != 0) return false;
+        int jsonLength = ReadVarInt(response);
+        if (jsonLength <= 0 || jsonLength > response.Length - response.Position) return false;
+        byte[] json = new byte[jsonLength];
+        int read = 0;
+        while (read < json.Length)
+        {
+            int chunk = await response.ReadAsync(json.AsMemory(read, json.Length - read), token);
+            if (chunk == 0) return false;
+            read += chunk;
+        }
+
+        string statusJson = Encoding.UTF8.GetString(json);
+        return !string.IsNullOrWhiteSpace(statusJson);
+    }
+
+    private static async Task WritePacketAsync(Stream stream, byte[] payload, CancellationToken token)
+    {
+        using MemoryStream packet = new();
+        WriteVarInt(packet, payload.Length);
+        byte[] header = packet.ToArray();
+        await stream.WriteAsync(header.AsMemory(), token);
+        await stream.WriteAsync(payload.AsMemory(), token);
+    }
+
+    private static void WriteVarInt(Stream stream, int value)
+    {
+        uint unsigned = unchecked((uint)value);
+        while ((unsigned & ~0x7Fu) != 0)
+        {
+            stream.WriteByte((byte)((unsigned & 0x7F) | 0x80));
+            unsigned >>= 7;
+        }
+        stream.WriteByte((byte)unsigned);
+    }
+
+    private static void WriteString(Stream stream, string value)
+    {
+        byte[] bytes = Encoding.UTF8.GetBytes(value);
+        WriteVarInt(stream, bytes.Length);
+        stream.Write(bytes, 0, bytes.Length);
+    }
+
+    private static async Task<int> ReadVarIntAsync(Stream stream, CancellationToken token)
+    {
+        int result = 0;
+        int shift = 0;
+        for (int i = 0; i < 5; i++)
+        {
+            int value = await ReadByteAsync(stream, token);
+            result |= (value & 0x7F) << shift;
+            if ((value & 0x80) == 0) return result;
+            shift += 7;
+        }
+        throw new InvalidOperationException("Некорректный Minecraft VarInt.");
+    }
+
+    private static int ReadVarInt(Stream stream)
+    {
+        int result = 0;
+        int shift = 0;
+        for (int i = 0; i < 5; i++)
+        {
+            int value = stream.ReadByte();
+            if (value < 0) throw new EndOfStreamException();
+            result |= (value & 0x7F) << shift;
+            if ((value & 0x80) == 0) return result;
+            shift += 7;
+        }
+        throw new InvalidOperationException("Некорректный Minecraft VarInt.");
+    }
+
+    private static async Task<int> ReadByteAsync(Stream stream, CancellationToken token)
+    {
+        byte[] buffer = new byte[1];
+        int read = await stream.ReadAsync(buffer.AsMemory(), token);
+        if (read == 0) throw new EndOfStreamException();
+        return buffer[0];
+    }
+
+    private static async Task<byte[]> ReadExactAsync(Stream stream, int length, CancellationToken token)
+    {
+        byte[] buffer = new byte[length];
+        int read = 0;
+        while (read < length)
+        {
+            int chunk = await stream.ReadAsync(buffer.AsMemory(read, length - read), token);
+            if (chunk == 0) throw new EndOfStreamException();
+            read += chunk;
+        }
+        return buffer;
     }
 
     private static TextBlock? FindTextBlock(DependencyObject root, string text)
