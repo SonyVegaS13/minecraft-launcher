@@ -172,7 +172,7 @@ public partial class MainWindow : Window
             var process = await launcher.BuildProcessAsync(VanillaVersion, options); process.Start(); Progress.Value = 100; StatusText.Text = "Minecraft Vanilla запущен."; Application.Current.Shutdown();
         }
         catch (Exception ex) { StatusText.Text = "Ошибка запуска Vanilla"; MessageBox.Show(ex.ToString(), "Solaris Launcher — Vanilla", MessageBoxButton.OK, MessageBoxImage.Error); }
-        finally { if (sender is Button vanillaButton) vanillaButton.IsEnabled = true; }
+        finally { if (sender is Button vanillaButtonFinal) vanillaButtonFinal.IsEnabled = true; }
     }
 
     private async void PlayButton_Click(object sender, RoutedEventArgs e)
