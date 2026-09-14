@@ -57,38 +57,26 @@ internal static class SkinAvatarBootstrap
                 solarisRadio.Visibility = Visibility.Collapsed;
                 solarisRadio.IsHitTestVisible = false;
             }
-
             TextBlock? profileTitle = FindVisualChildren<TextBlock>(window).FirstOrDefault(t => string.Equals(t.Text, "ПРОФИЛЬ", StringComparison.Ordinal));
             if (profileTitle is null) return;
             Border? profileBorder = FindParent<Border>(profileTitle);
             if (profileBorder is null) return;
             Border? profileAvatar = FindVisualChildren<Border>(profileBorder).FirstOrDefault(b => Math.Abs(b.Width - 66) < 0.1 && Math.Abs(b.Height - 66) < 0.1);
             if (profileAvatar is null) return;
-
             string nickname = window.WelcomeText.Text.Trim();
             if (string.IsNullOrWhiteSpace(nickname)) nickname = DefaultNickname;
             byte[] imageBytes = await Http.GetByteArrayAsync($"https://mc-heads.net/avatar/{Uri.EscapeDataString(nickname)}/64.png");
             BitmapImage bitmap = new();
             using (var stream = new System.IO.MemoryStream(imageBytes))
             {
-                bitmap.BeginInit();
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.StreamSource = stream;
-                bitmap.EndInit();
-                bitmap.Freeze();
+                bitmap.BeginInit(); bitmap.CacheOption = BitmapCacheOption.OnLoad; bitmap.StreamSource = stream; bitmap.EndInit(); bitmap.Freeze();
             }
-
             const double skinSize = 58;
             Image image = new()
             {
-                Width = skinSize,
-                Height = skinSize,
-                Source = bitmap,
-                Stretch = Stretch.Uniform,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                SnapsToDevicePixels = true,
-                ToolTip = $"Скин игрока {nickname}"
+                Width = skinSize, Height = skinSize, Source = bitmap, Stretch = Stretch.Uniform,
+                HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+                SnapsToDevicePixels = true, ToolTip = $"Скин игрока {nickname}"
             };
             image.Clip = new EllipseGeometry(new Rect(0, 0, skinSize, skinSize));
             profileAvatar.Child = image;
