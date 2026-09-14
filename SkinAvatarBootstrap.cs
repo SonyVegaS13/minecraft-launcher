@@ -122,18 +122,24 @@ internal static class SkinAvatarBootstrap
                 bitmap.Freeze();
             }
 
-            const double avatarSize = 66;
+            // The avatar ring stays 66x66; the skin itself is intentionally inset
+            // to 58x58 so the circle remains visible around it. Stretch.Uniform
+            // preserves the skin's proportions.
+            const double avatarRingSize = 66;
+            const double skinSize = 58;
             Image image = new()
             {
-                Width = avatarSize,
-                Height = avatarSize,
+                Width = skinSize,
+                Height = skinSize,
                 Source = bitmap,
-                Stretch = Stretch.Fill,
+                Stretch = Stretch.Uniform,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
                 SnapsToDevicePixels = true,
                 ToolTip = $"Скин игрока {nickname}"
             };
 
-            image.Clip = new EllipseGeometry(new Rect(0, 0, avatarSize, avatarSize));
+            image.Clip = new EllipseGeometry(new Rect(0, 0, skinSize, skinSize));
             profileAvatar.Child = image;
         }
         catch
