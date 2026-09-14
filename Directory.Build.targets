@@ -1,0 +1,5 @@
+<Project>
+  <ItemGroup>
+    <Resource Include="Assets\vanilla-server.jpg" />
+  </ItemGroup>
+</Project>
