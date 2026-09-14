@@ -3,7 +3,7 @@ using System.Windows.Controls;
 namespace SolarisLauncher;
 
 // Keeps older non-visual helpers compatible with the new server-selector UI.
-internal partial class MainWindow
+public partial class MainWindow
 {
     internal TextBlock ProfileText { get; } = new();
     internal TextBlock AchievementsCount { get; } = new();
