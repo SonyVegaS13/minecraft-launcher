@@ -44,16 +44,11 @@ internal static class SkinAvatarBootstrap
             RadioButton[] radios = FindVisualChildren<RadioButton>(window).ToArray();
             RadioButton? skinRadio = radios.FirstOrDefault(r => string.Equals(r.Content?.ToString(), "Голова скина", StringComparison.Ordinal));
             RadioButton? solarisRadio = radios.FirstOrDefault(r => string.Equals(r.Content?.ToString(), "Аватар Solaris", StringComparison.Ordinal));
-
             if (skinRadio is not null)
             {
                 DependencyObject? avatarSection = skinRadio;
                 while (avatarSection is not null && avatarSection is not Border) avatarSection = VisualTreeHelper.GetParent(avatarSection);
-                if (avatarSection is Border sectionBorder)
-                {
-                    DependencyObject? sectionParent = VisualTreeHelper.GetParent(sectionBorder);
-                    if (sectionParent is StackPanel) sectionBorder.Visibility = Visibility.Collapsed;
-                }
+                if (avatarSection is Border sectionBorder && VisualTreeHelper.GetParent(sectionBorder) is StackPanel) sectionBorder.Visibility = Visibility.Collapsed;
                 else skinRadio.Visibility = Visibility.Collapsed;
             }
             if (solarisRadio is not null)
