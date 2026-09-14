@@ -48,8 +48,7 @@ internal static class SkinAvatarBootstrap
             if (skinRadio is not null)
             {
                 DependencyObject? avatarSection = skinRadio;
-                while (avatarSection is not null && avatarSection is not Border)
-                    avatarSection = VisualTreeHelper.GetParent(avatarSection);
+                while (avatarSection is not null && avatarSection is not Border) avatarSection = VisualTreeHelper.GetParent(avatarSection);
                 if (avatarSection is Border sectionBorder)
                 {
                     DependencyObject? sectionParent = VisualTreeHelper.GetParent(sectionBorder);
@@ -57,7 +56,6 @@ internal static class SkinAvatarBootstrap
                 }
                 else skinRadio.Visibility = Visibility.Collapsed;
             }
-
             if (solarisRadio is not null)
             {
                 solarisRadio.IsChecked = false;
@@ -74,8 +72,7 @@ internal static class SkinAvatarBootstrap
 
             string nickname = window.WelcomeText.Text.Trim();
             if (string.IsNullOrWhiteSpace(nickname)) nickname = DefaultNickname;
-            string avatarUrl = $"https://mc-heads.net/avatar/{Uri.EscapeDataString(nickname)}/64.png";
-            byte[] imageBytes = await Http.GetByteArrayAsync(avatarUrl);
+            byte[] imageBytes = await Http.GetByteArrayAsync($"https://mc-heads.net/avatar/{Uri.EscapeDataString(nickname)}/64.png");
             BitmapImage bitmap = new();
             using (var stream = new System.IO.MemoryStream(imageBytes))
             {
@@ -86,7 +83,6 @@ internal static class SkinAvatarBootstrap
                 bitmap.Freeze();
             }
 
-            const double avatarSize = 66;
             const double skinSize = 58;
             Image image = new()
             {
