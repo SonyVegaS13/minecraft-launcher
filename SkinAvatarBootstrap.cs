@@ -18,38 +18,23 @@ internal static class SkinAvatarBootstrap
     [ModuleInitializer]
     internal static void Initialize()
     {
-        EventManager.RegisterClassHandler(
-            typeof(MainWindow),
-            FrameworkElement.LoadedEvent,
-            new RoutedEventHandler(OnMainWindowLoaded));
+        EventManager.RegisterClassHandler(typeof(MainWindow), FrameworkElement.LoadedEvent, new RoutedEventHandler(OnMainWindowLoaded));
     }
 
     private static void OnMainWindowLoaded(object sender, RoutedEventArgs e)
     {
-        if (sender is not MainWindow window)
-            return;
-
+        if (sender is not MainWindow window) return;
         Grid? mainView = FindNamedGrid(window, "MainView");
-        if (mainView is null)
-            return;
-
+        if (mainView is null) return;
         mainView.IsVisibleChanged -= MainView_IsVisibleChanged;
         mainView.IsVisibleChanged += MainView_IsVisibleChanged;
-
-        window.Dispatcher.BeginInvoke(
-            DispatcherPriority.ApplicationIdle,
-            new Action(() => ApplyAvatar(window)));
+        window.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() => ApplyAvatar(window)));
     }
 
     private static void MainView_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        if (sender is Grid mainView && e.NewValue is true && mainView.TemplatedParent is null)
-        {
-            if (Window.GetWindow(mainView) is MainWindow window)
-                window.Dispatcher.BeginInvoke(
-                    DispatcherPriority.ApplicationIdle,
-                    new Action(() => ApplyAvatar(window)));
-        }
+        if (sender is Grid mainView && e.NewValue is true && mainView.TemplatedParent is null && Window.GetWindow(mainView) is MainWindow window)
+            window.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() => ApplyAvatar(window)));
     }
 
     private static async void ApplyAvatar(MainWindow window)
@@ -60,24 +45,17 @@ internal static class SkinAvatarBootstrap
             RadioButton? skinRadio = radios.FirstOrDefault(r => string.Equals(r.Content?.ToString(), "Голова скина", StringComparison.Ordinal));
             RadioButton? solarisRadio = radios.FirstOrDefault(r => string.Equals(r.Content?.ToString(), "Аватар Solaris", StringComparison.Ordinal));
 
-            // Нижний блок выбора аватара больше не нужен — скин теперь показывается
-            // непосредственно в аватаре блока "ПРОФИЛЬ".
             if (skinRadio is not null)
             {
                 DependencyObject? avatarSection = skinRadio;
                 while (avatarSection is not null && avatarSection is not Border)
                     avatarSection = VisualTreeHelper.GetParent(avatarSection);
-
                 if (avatarSection is Border sectionBorder)
                 {
                     DependencyObject? sectionParent = VisualTreeHelper.GetParent(sectionBorder);
-                    if (sectionParent is StackPanel)
-                        sectionBorder.Visibility = Visibility.Collapsed;
+                    if (sectionParent is StackPanel) sectionBorder.Visibility = Visibility.Collapsed;
                 }
-                else
-                {
-                    skinRadio.Visibility = Visibility.Collapsed;
-                }
+                else skinRadio.Visibility = Visibility.Collapsed;
             }
 
             if (solarisRadio is not null)
@@ -87,30 +65,16 @@ internal static class SkinAvatarBootstrap
                 solarisRadio.IsHitTestVisible = false;
             }
 
-            // Находим круглый аватар именно внутри блока "ПРОФИЛЬ".
-            TextBlock? profileTitle = FindVisualChildren<TextBlock>(window)
-                .FirstOrDefault(t => string.Equals(t.Text, "ПРОФИЛЬ", StringComparison.Ordinal));
-
-            if (profileTitle is null)
-                return;
-
+            TextBlock? profileTitle = FindVisualChildren<TextBlock>(window).FirstOrDefault(t => string.Equals(t.Text, "ПРОФИЛЬ", StringComparison.Ordinal));
+            if (profileTitle is null) return;
             Border? profileBorder = FindParent<Border>(profileTitle);
-            if (profileBorder is null)
-                return;
-
-            Border? profileAvatar = FindVisualChildren<Border>(profileBorder)
-                .FirstOrDefault(b => Math.Abs(b.Width - 66) < 0.1 && Math.Abs(b.Height - 66) < 0.1);
-
-            if (profileAvatar is null)
-                return;
+            if (profileBorder is null) return;
+            Border? profileAvatar = FindVisualChildren<Border>(profileBorder).FirstOrDefault(b => Math.Abs(b.Width - 66) < 0.1 && Math.Abs(b.Height - 66) < 0.1);
+            if (profileAvatar is null) return;
 
             string nickname = window.WelcomeText.Text.Trim();
-            if (string.IsNullOrWhiteSpace(nickname))
-                nickname = DefaultNickname;
-
-            string encodedNickname = Uri.EscapeDataString(nickname);
-            string avatarUrl = $"https://mc-heads.net/avatar/{encodedNickname}/64.png";
-
+            if (string.IsNullOrWhiteSpace(nickname)) nickname = DefaultNickname;
+            string avatarUrl = $"https://mc-heads.net/avatar/{Uri.EscapeDataString(nickname)}/64.png";
             byte[] imageBytes = await Http.GetByteArrayAsync(avatarUrl);
             BitmapImage bitmap = new();
             using (var stream = new System.IO.MemoryStream(imageBytes))
@@ -122,10 +86,7 @@ internal static class SkinAvatarBootstrap
                 bitmap.Freeze();
             }
 
-            // The avatar ring stays 66x66; the skin itself is intentionally inset
-            // to 58x58 so the circle remains visible around it. Stretch.Uniform
-            // preserves the skin's proportions.
-            const double avatarRingSize = 66;
+            const double avatarSize = 66;
             const double skinSize = 58;
             Image image = new()
             {
@@ -138,14 +99,10 @@ internal static class SkinAvatarBootstrap
                 SnapsToDevicePixels = true,
                 ToolTip = $"Скин игрока {nickname}"
             };
-
             image.Clip = new EllipseGeometry(new Rect(0, 0, skinSize, skinSize));
             profileAvatar.Child = image;
         }
-        catch
-        {
-            // Если сервис скинов временно недоступен, оставляем стандартную иконку Solaris.
-        }
+        catch { }
     }
 
     private static T? FindParent<T>(DependencyObject child) where T : DependencyObject
@@ -153,30 +110,21 @@ internal static class SkinAvatarBootstrap
         DependencyObject? parent = VisualTreeHelper.GetParent(child);
         while (parent is not null)
         {
-            if (parent is T match)
-                return match;
-
+            if (parent is T match) return match;
             parent = VisualTreeHelper.GetParent(parent);
         }
-
         return null;
     }
 
     private static Grid? FindNamedGrid(DependencyObject root, string name)
     {
-        if (root is FrameworkElement element && string.Equals(element.Name, name, StringComparison.Ordinal))
-            return root as Grid;
-
+        if (root is FrameworkElement element && string.Equals(element.Name, name, StringComparison.Ordinal)) return root as Grid;
         foreach (object child in LogicalTreeHelper.GetChildren(root))
-        {
             if (child is DependencyObject dependencyChild)
             {
                 Grid? result = FindNamedGrid(dependencyChild, name);
-                if (result is not null)
-                    return result;
+                if (result is not null) return result;
             }
-        }
-
         return null;
     }
 
@@ -186,11 +134,8 @@ internal static class SkinAvatarBootstrap
         for (int i = 0; i < count; i++)
         {
             DependencyObject child = VisualTreeHelper.GetChild(root, i);
-            if (child is T match)
-                yield return match;
-
-            foreach (T descendant in FindVisualChildren<T>(child))
-                yield return descendant;
+            if (child is T match) yield return match;
+            foreach (T descendant in FindVisualChildren<T>(child)) yield return descendant;
         }
     }
 }
