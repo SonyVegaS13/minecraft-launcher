@@ -23,6 +23,10 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Generate Solaris icon
+        shell: pwsh
+        run: .\tools_prepare_icon.ps1
+
       - name: Restore
         run: dotnet restore SolarisLauncher.csproj
 
