@@ -1,14 +1,9 @@
 $ErrorActionPreference = 'Stop'
 
-if (-not (Get-Command magick -ErrorAction SilentlyContinue)) {
-    choco install imagemagick.app -y --no-progress
-}
-
 New-Item -ItemType Directory -Force -Path Assets | Out-Null
-magick Assets/Solaris.svg -background none -define icon:auto-resize=256,128,64,48,32,16 Assets/Solaris.ico
 
 if (-not (Test-Path Assets/Solaris.ico)) {
-    throw 'Solaris.ico was not generated.'
+    throw 'Assets/Solaris.ico is missing. The committed Solaris icon is the launcher icon source.'
 }
 
-Write-Host 'Generated Assets/Solaris.ico'
+Write-Host 'Using committed Assets/Solaris.ico as the launcher icon.'
