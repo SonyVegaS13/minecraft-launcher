@@ -27,6 +27,10 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Generate Solaris icon
+        shell: pwsh
+        run: .\tools_prepare_icon.ps1
+
       - name: Determine version
         id: version
         shell: pwsh
