@@ -9,7 +9,7 @@ namespace SolarisLauncher;
 
 public partial class MainWindow
 {
-    private void AddVanillaServerArtwork()
+    internal void AddVanillaServerArtwork()
     {
         try
         {
