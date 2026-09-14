@@ -71,7 +71,7 @@
                             <StackPanel>
                                 <Border Height="190" Clip="{x:Null}"><Grid><Image Source="/Assets/vanilla-server.jpg" Stretch="UniformToFill"/><Rectangle Fill="#180E07" Opacity="0.16"/></Grid></Border>
                                 <Border Height="2" Background="{StaticResource Orange}"/>
-                                <StackPanel Padding="18,15,18,18">
+                                <StackPanel Margin="18,15,18,18">
                                     <TextBlock Text="Добро пожаловать на Solaris Classic!" FontSize="20" FontWeight="SemiBold"/>
                                     <TextBlock Text="Это то место, где можно обрести свободу для Ваших фантазий. Здесь установлен только базовый модуль, обеспечивающий интересную игру. Сервер подходит для профи, которые могут похвастаться своими завораживающими постройками, и для тех, кто только-только начинает играть!" TextWrapping="Wrap" FontSize="12" LineHeight="18" Foreground="#C4C9CB" Margin="0,12,0,0"/>
                                     <TextBlock Text="Сервер: solarisplay.millida.host:25565" FontSize="10" Foreground="#858C8F" Margin="0,12,0,0"/>
