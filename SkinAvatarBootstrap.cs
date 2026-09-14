@@ -60,6 +60,26 @@ internal static class SkinAvatarBootstrap
             RadioButton? skinRadio = radios.FirstOrDefault(r => string.Equals(r.Content?.ToString(), "Голова скина", StringComparison.Ordinal));
             RadioButton? solarisRadio = radios.FirstOrDefault(r => string.Equals(r.Content?.ToString(), "Аватар Solaris", StringComparison.Ordinal));
 
+            // Нижний блок выбора аватара больше не нужен — скин теперь показывается
+            // непосредственно в аватаре блока "ПРОФИЛЬ".
+            if (skinRadio is not null)
+            {
+                DependencyObject? avatarSection = skinRadio;
+                while (avatarSection is not null && avatarSection is not Border)
+                    avatarSection = VisualTreeHelper.GetParent(avatarSection);
+
+                if (avatarSection is Border sectionBorder)
+                {
+                    DependencyObject? sectionParent = VisualTreeHelper.GetParent(sectionBorder);
+                    if (sectionParent is StackPanel)
+                        sectionBorder.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    skinRadio.Visibility = Visibility.Collapsed;
+                }
+            }
+
             if (solarisRadio is not null)
             {
                 solarisRadio.IsChecked = false;
@@ -67,35 +87,22 @@ internal static class SkinAvatarBootstrap
                 solarisRadio.IsHitTestVisible = false;
             }
 
-            // The skin selector is now a clean avatar-only tile: keep the internal
-            // label for compatibility with the existing bootstrap logic, but don't render it.
-            if (skinRadio is null)
+            // Находим круглый аватар именно внутри блока "ПРОФИЛЬ".
+            TextBlock? profileTitle = FindVisualChildren<TextBlock>(window)
+                .FirstOrDefault(t => string.Equals(t.Text, "ПРОФИЛЬ", StringComparison.Ordinal));
+
+            if (profileTitle is null)
                 return;
 
-            foreach (ContentPresenter presenter in FindVisualChildren<ContentPresenter>(skinRadio))
-                presenter.Visibility = Visibility.Collapsed;
-
-            foreach (TextBlock textBlock in FindVisualChildren<TextBlock>(window))
-            {
-                if (string.Equals(textBlock.Text, "Голова Minecraft-скина", StringComparison.Ordinal))
-                    textBlock.Visibility = Visibility.Collapsed;
-            }
-
-            skinRadio.IsChecked = true;
-            skinRadio.IsHitTestVisible = false;
-            skinRadio.Focusable = false;
-            skinRadio.Cursor = System.Windows.Input.Cursors.Arrow;
-
-            Border? avatarBorder = FindVisualChildren<Border>(skinRadio)
-                .FirstOrDefault(b => Math.Abs(b.Width - 54) < 0.1 && Math.Abs(b.Height - 54) < 0.1);
-
-            if (avatarBorder is null)
+            Border? profileBorder = FindParent<Border>(profileTitle);
+            if (profileBorder is null)
                 return;
 
-            const double avatarSize = 70;
-            avatarBorder.Width = avatarSize;
-            avatarBorder.Height = avatarSize;
-            avatarBorder.CornerRadius = new CornerRadius(35);
+            Border? profileAvatar = FindVisualChildren<Border>(profileBorder)
+                .FirstOrDefault(b => Math.Abs(b.Width - 66) < 0.1 && Math.Abs(b.Height - 66) < 0.1);
+
+            if (profileAvatar is null)
+                return;
 
             string nickname = window.WelcomeText.Text.Trim();
             if (string.IsNullOrWhiteSpace(nickname))
@@ -115,6 +122,7 @@ internal static class SkinAvatarBootstrap
                 bitmap.Freeze();
             }
 
+            const double avatarSize = 66;
             Image image = new()
             {
                 Width = avatarSize,
@@ -126,12 +134,26 @@ internal static class SkinAvatarBootstrap
             };
 
             image.Clip = new EllipseGeometry(new Rect(0, 0, avatarSize, avatarSize));
-            avatarBorder.Child = image;
+            profileAvatar.Child = image;
         }
         catch
         {
             // Если сервис скинов временно недоступен, оставляем стандартную иконку Solaris.
         }
+    }
+
+    private static T? FindParent<T>(DependencyObject child) where T : DependencyObject
+    {
+        DependencyObject? parent = VisualTreeHelper.GetParent(child);
+        while (parent is not null)
+        {
+            if (parent is T match)
+                return match;
+
+            parent = VisualTreeHelper.GetParent(parent);
+        }
+
+        return null;
     }
 
     private static Grid? FindNamedGrid(DependencyObject root, string name)
