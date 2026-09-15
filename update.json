@@ -1,3 +1,18 @@
 {
-  "version": "2.1.0"
+  "launcher": {
+    "version": "2.1.0",
+    "url": "https://github.com/SonyVegaS13/minecraft-launcher/releases/download/v2.1.0/SolarisLauncher.exe"
+  },
+  "servers": {
+    "vanilla": {
+      "minecraftVersion": "26.2",
+      "host": "solarisplay.millida.host",
+      "port": 25565
+    },
+    "modded": {
+      "minecraftVersion": "1.20.1",
+      "forgeVersion": "47.4.20",
+      "host": ""
+    }
+  }
 }
