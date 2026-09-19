@@ -575,7 +575,7 @@ public partial class MainWindow : Window
     private async Task UpdateClientPackAsync(CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        var release = await GetLatestReleaseAsync(token); string tag = release.TagName;
+        var release = await GetLatestClientReleaseAsync(token); string tag = release.TagName;
         string stateFile = Path.Combine(_stateDir, "client-release.txt"); string installedTag = File.Exists(stateFile) ? (await File.ReadAllTextAsync(stateFile, token)).Trim() : "";
         string packUrl = release.Assets.FirstOrDefault(a => string.Equals(a.Name, ClientPackAssetName, StringComparison.OrdinalIgnoreCase))?.BrowserDownloadUrl ?? throw new InvalidOperationException($"В GitHub Release {tag} не найден файл {ClientPackAssetName}.");
         VersionText.Text = $"Сборка: {tag}";
@@ -585,11 +585,26 @@ public partial class MainWindow : Window
         finally { TryDeleteFile(tempZip); TryDeleteDirectory(tempExtract); }
     }
 
-    private async Task<GitHubRelease> GetLatestReleaseAsync(CancellationToken token)
+    private async Task<GitHubRelease> GetLatestClientReleaseAsync(CancellationToken token)
     {
-        string url = $"https://api.github.com/repos/{GitHubOwner}/{GitHubRepo}/releases/latest"; using HttpResponseMessage response = await _http.GetAsync(url, token);
-        if (!response.IsSuccessStatusCode) throw new InvalidOperationException($"GitHub не вернул последнюю версию сборки. HTTP {(int)response.StatusCode} {response.StatusCode}.");
-        await using Stream stream = await response.Content.ReadAsStreamAsync(token); return await JsonSerializer.DeserializeAsync<GitHubRelease>(stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }, token) ?? throw new InvalidOperationException("GitHub вернул пустой ответ о Release.");
+        string url = $"https://api.github.com/repos/{GitHubOwner}/{GitHubRepo}/releases?per_page=20";
+        using HttpResponseMessage response = await _http.GetAsync(url, token);
+        if (!response.IsSuccessStatusCode)
+            throw new InvalidOperationException($"GitHub не вернул список релизов. HTTP {(int)response.StatusCode} {response.StatusCode}.");
+
+        await using Stream stream = await response.Content.ReadAsStreamAsync(token);
+        List<GitHubRelease> releases =
+            await JsonSerializer.DeserializeAsync<List<GitHubRelease>>(
+                stream,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
+                token) ?? new List<GitHubRelease>();
+
+        GitHubRelease? release = releases.FirstOrDefault(r =>
+            !string.IsNullOrWhiteSpace(r.TagName) &&
+            r.Assets.Any(a => string.Equals(a.Name, ClientPackAssetName, StringComparison.OrdinalIgnoreCase)));
+
+        return release ?? throw new InvalidOperationException(
+            $"В GitHub Release не найден файл {ClientPackAssetName}.");
     }
 
     private async Task DownloadFileWithProgressAsync(string url, string destination, double min, double max, CancellationToken token)
