@@ -44,6 +44,10 @@ public partial class MainWindow : Window
     private bool _registerMode;
     private CancellationTokenSource? _launchCancellation;
     private Button? _activeLaunchButton;
+    private bool _updateCheckStarted;
+
+    private const string LauncherVersion = "2.1.1";
+    private const string UpdateManifestUrl = "https://raw.githubusercontent.com/SonyVegaS13/minecraft-launcher/solaris-2.1-polish/update.json";
 
     public MainWindow()
     {
@@ -54,6 +58,101 @@ public partial class MainWindow : Window
         TryRestoreAccount();
         SetupServerButtons();
         _ = UpdateServerStatusAsync();
+        Loaded += MainWindow_Loaded;
+    }
+
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (_updateCheckStarted)
+            return;
+
+        _updateCheckStarted = true;
+        await CheckForUpdatesAsync();
+    }
+
+    private async Task CheckForUpdatesAsync()
+    {
+        try
+        {
+            string json = await _http.GetStringAsync(UpdateManifestUrl);
+
+            using JsonDocument document = JsonDocument.Parse(json);
+            JsonElement launcher = document.RootElement.GetProperty("launcher");
+
+            string latestVersion =
+                launcher.GetProperty("version").GetString() ?? LauncherVersion;
+
+            string downloadUrl =
+                launcher.GetProperty("url").GetString() ?? string.Empty;
+
+            if (!Version.TryParse(latestVersion, out Version? latest) ||
+                !Version.TryParse(LauncherVersion, out Version? current) ||
+                latest <= current ||
+                string.IsNullOrWhiteSpace(downloadUrl))
+            {
+                return;
+            }
+
+            MessageBoxResult result = MessageBox.Show(
+                $"Доступна новая версия Solaris Launcher: {latestVersion}\n\n" +
+                $"Текущая версия: {LauncherVersion}\n\n" +
+                "Обновить лаунчер сейчас?",
+                "Обновление Solaris Launcher",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Information);
+
+            if (result == MessageBoxResult.Yes)
+                await StartUpdateAsync(downloadUrl);
+        }
+        catch
+        {
+            // Ошибка проверки обновления не мешает запуску лаунчера.
+        }
+    }
+
+    private async Task StartUpdateAsync(string downloadUrl)
+    {
+        string currentLauncherPath = Environment.ProcessPath
+            ?? throw new InvalidOperationException("Не удалось определить путь к лаунчеру.");
+
+        string launcherDirectory = Path.GetDirectoryName(currentLauncherPath)
+            ?? throw new InvalidOperationException("Не удалось определить папку лаунчера.");
+
+        string newLauncherPath = Path.Combine(
+            Path.GetTempPath(),
+            $"SolarisLauncher-{Guid.NewGuid():N}.exe");
+
+        try
+        {
+            StatusText.Text = "Скачиваем обновление Solaris Launcher...";
+            Progress.Value = 0;
+
+            await DownloadFileWithProgressAsync(
+                downloadUrl,
+                newLauncherPath,
+                0,
+                100,
+                CancellationToken.None);
+
+            if (!File.Exists(newLauncherPath))
+                throw new InvalidOperationException("Обновление не было скачано.");
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = currentLauncherPath,
+                Arguments =
+                    $"--self-update \"{currentLauncherPath}\" \"{newLauncherPath}\"",
+                WorkingDirectory = launcherDirectory,
+                UseShellExecute = true
+            });
+
+            Application.Current.Shutdown();
+        }
+        catch
+        {
+            TryDeleteFile(newLauncherPath);
+            throw;
+        }
     }
 
     private async void AuthActionButton_Click(object sender, RoutedEventArgs e)
