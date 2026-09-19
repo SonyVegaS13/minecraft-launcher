@@ -17,9 +17,9 @@
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <DebugType>none</DebugType>
-    <AssemblyVersion>2.1.0.0</AssemblyVersion>
-    <FileVersion>2.1.0.0</FileVersion>
-    <Version>2.1.0</Version>
+    <AssemblyVersion>2.1.1.0</AssemblyVersion>
+    <FileVersion>2.1.1.0</FileVersion>
+    <Version>2.1.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,9 +27,4 @@
     <PackageReference Include="CmlLib.Core.Installer.Forge" Version="1.1.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="SolarisUpdater\**" />
-    <EmbeddedResource Remove="SolarisUpdater\**" />
-    <None Remove="SolarisUpdater\**" />
-  </ItemGroup>
 </Project>
