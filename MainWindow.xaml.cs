@@ -87,7 +87,9 @@ public partial class MainWindow : Window
 
             if (!Version.TryParse(latestVersion, out Version? latest) ||
                 !Version.TryParse(LauncherVersion, out Version? current) ||
-                latest <= current ||
+                latest is null ||
+                current is null ||
+                latest.CompareTo(current) <= 0 ||
                 string.IsNullOrWhiteSpace(downloadUrl))
             {
                 return;
