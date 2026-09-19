@@ -104,7 +104,20 @@ public partial class MainWindow : Window
                 MessageBoxImage.Information);
 
             if (result == MessageBoxResult.Yes)
+        {
+            try
+            {
                 await StartUpdateAsync(downloadUrl);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Не удалось обновить Solaris Launcher.\n\n{ex.Message}",
+                    "Ошибка обновления",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
         }
         catch
         {
