@@ -65,6 +65,10 @@
 
                         <Border Background="#11151F" BorderBrush="#40326A" BorderThickness="1" CornerRadius="20" Padding="24" Margin="0,0,0,14">
                             <Grid>
+                                <Image x:Name="VanillaArtwork" Source="Assets/Vanilla-server.jpg.png" Stretch="UniformToFill" Opacity="0.55" IsHitTestVisible="False">
+                                    <Image.Effect><BlurEffect Radius="8"/></Image.Effect>
+                                </Image>
+                                <Border Background="#B911151F" CornerRadius="16" IsHitTestVisible="False"/>
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal"><Border Width="34" Height="34" CornerRadius="10" Background="#F6C85F"><TextBlock Text="☀" Foreground="#17120A" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><StackPanel Margin="11,0,0,0"><TextBlock Text="SOLARIS VANILLA" FontSize="20" FontWeight="Bold"/><TextBlock Text="ОСНОВНОЙ РЕЖИМ" FontSize="9" Foreground="#8B7CA9" Margin="0,2,0,0"/></StackPanel></StackPanel>
