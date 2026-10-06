@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 
 namespace SolarisLauncher;
@@ -46,7 +47,7 @@ public partial class MainWindow : Window
     private Button? _activeLaunchButton;
     private bool _updateCheckStarted;
 
-    private const string LauncherVersion = "2.1.2";
+    private const string LauncherVersion = "2.2.0";
     private const string UpdateManifestUrl = "https://raw.githubusercontent.com/SonyVegaS13/minecraft-launcher/solaris-2.1-polish/update.json";
 
     public MainWindow()
@@ -708,5 +709,24 @@ public partial class MainWindow : Window
     {
         [JsonPropertyName("name")] public string Name { get; set; } = "";
         [JsonPropertyName("browser_download_url")] public string BrowserDownloadUrl { get; set; } = "";
+    }
+    private void VanillaPlayButton_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        => AnimateVanillaArtworkBlur(0);
+
+    private void VanillaPlayButton_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        => AnimateVanillaArtworkBlur(8);
+
+    private void AnimateVanillaArtworkBlur(double radius)
+    {
+        if (VanillaArtwork.Effect is not System.Windows.Media.Effects.BlurEffect blur)
+            return;
+
+        var animation = new DoubleAnimation
+        {
+            To = radius,
+            Duration = TimeSpan.FromMilliseconds(220),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        };
+        blur.BeginAnimation(System.Windows.Media.Effects.BlurEffect.RadiusProperty, animation);
     }
 }
