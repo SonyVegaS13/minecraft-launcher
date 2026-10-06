@@ -65,11 +65,11 @@
 
                         <Border Background="#11151F" BorderBrush="#40326A" BorderThickness="1" CornerRadius="20" Padding="24" Margin="0,0,0,14">
                             <Grid>
-                                <Image x:Name="VanillaArtwork" Source="Assets/Vanilla-server.jpg.png" Stretch="UniformToFill" Opacity="0.55" IsHitTestVisible="False">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <Image x:Name="VanillaArtwork" Grid.ColumnSpan="2" Source="Assets/Vanilla-server.jpg.png" Stretch="UniformToFill" Opacity="0.55" IsHitTestVisible="False">
                                     <Image.Effect><BlurEffect Radius="8"/></Image.Effect>
                                 </Image>
-                                <Border Background="#B911151F" CornerRadius="16" IsHitTestVisible="False"/>
-                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <Border Grid.ColumnSpan="2" Background="#B911151F" CornerRadius="16" IsHitTestVisible="False"/>
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal"><Border Width="34" Height="34" CornerRadius="10" Background="#F6C85F"><TextBlock Text="☀" Foreground="#17120A" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><StackPanel Margin="11,0,0,0"><TextBlock Text="SOLARIS VANILLA" FontSize="20" FontWeight="Bold"/><TextBlock Text="ОСНОВНОЙ РЕЖИМ" FontSize="9" Foreground="#8B7CA9" Margin="0,2,0,0"/></StackPanel></StackPanel>
                                     <TextBlock Text="Minecraft 26.2 • Survival" FontSize="13" Foreground="#A9B1C0" Margin="0,16,0,0"/>
