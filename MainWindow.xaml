@@ -72,7 +72,7 @@
                                     <StackPanel Orientation="Horizontal" Margin="0,15,0,0"><Ellipse Width="8" Height="8" Fill="#4ADE80" VerticalAlignment="Center"/><TextBlock Text=" Сервер готов" Foreground="#86EFAC" FontSize="11"/><TextBlock Text="  •  25565" Foreground="#5E6676" FontSize="10" Margin="8,0,0,0"/></StackPanel>
                                     <TextBlock Text="solarisplay.millida.host:25565" FontSize="10" Foreground="#60697A" Margin="0,7,0,0"/>
                                 </StackPanel>
-                                <Button x:Name="VanillaPlayButton" Grid.Column="1" Content="ИГРАТЬ" Style="{StaticResource PrimaryButton}" Width="126" Height="50" VerticalAlignment="Center" Click="VanillaPlayButton_Click"/>
+                                <Button x:Name="VanillaPlayButton" Grid.Column="1" Content="ИГРАТЬ" Style="{StaticResource PrimaryButton}" Width="126" Height="50" VerticalAlignment="Center" Click="VanillaPlayButton_Click" MouseEnter="VanillaPlayButton_MouseEnter" MouseLeave="VanillaPlayButton_MouseLeave"/>
                             </Grid>
                         </Border>
 
@@ -91,10 +91,17 @@
                             <Grid><ProgressBar x:Name="Progress" Height="4" Minimum="0" Maximum="100" Value="0"/><Grid Margin="0,9,0,0"><TextBlock x:Name="StatusText" Text="Готов к запуску." Foreground="#737C8D" FontSize="10"/><TextBlock x:Name="VersionText" Text="" HorizontalAlignment="Right" Foreground="#505866" FontSize="10"/></Grid></Grid>
                         </Border>
 
-                        <Grid Margin="0,14,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="16" Padding="18"><StackPanel><TextBlock Text="📰  НОВОСТИ SOLARIS" FontSize="11" FontWeight="SemiBold"/><TextBlock Text="Добро пожаловать в Solaris" FontSize="14" FontWeight="SemiBold" Margin="0,12,0,0"/><TextBlock Text="Новые приключения уже начинаются." TextWrapping="Wrap" FontSize="10" Foreground="#747D8F" Margin="0,5,0,0"/><Button Content="Подробнее" Style="{StaticResource NavButton}" HorizontalAlignment="Left" Margin="-10,7,0,0"/></StackPanel></Border>
-                            <Border Grid.Column="2" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="16" Padding="18"><StackPanel><TextBlock Text="⚡  БЫСТРЫЙ СТАТУС" FontSize="11" FontWeight="SemiBold"/><TextBlock Text="Клиент готов" FontSize="14" FontWeight="SemiBold" Margin="0,12,0,0"/><TextBlock Text="Vanilla 26.2  •  Modded 1.20.1" FontSize="10" Foreground="#747D8F" Margin="0,5,0,0"/><TextBlock Text="Запуск безопасен" FontSize="10" Foreground="#86EFAC" Margin="0,5,0,0"/></StackPanel></Border>
-                        </Grid>
+                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="16" Padding="18" Margin="0,14,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <Border Width="38" Height="38" CornerRadius="12" Background="#1B1531" VerticalAlignment="Top"><TextBlock Text="☀" FontSize="20" Foreground="#C4B5FD" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                <StackPanel Grid.Column="1" Margin="13,0,0,0">
+                                    <TextBlock Text="ЦЕНТР SOLARIS" FontSize="11" FontWeight="SemiBold" Foreground="#B99AFF"/>
+                                    <TextBlock Text="Выбери свой мир" FontSize="15" FontWeight="SemiBold" Margin="0,5,0,0"/>
+                                    <TextBlock Text="Vanilla для классического выживания или Modded для сборки Solaris. Состояние установки и обновления отображается ниже карточек серверов." TextWrapping="Wrap" FontSize="10" Foreground="#747D8F" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2">
@@ -110,8 +117,6 @@
                         <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,14,0,0"><StackPanel><TextBlock Text="АВАТАР" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/><TextBlock Text="Minecraft skin ↔ Solaris" FontSize="10" Foreground="#60697A" Margin="0,4,0,10"/><RadioButton Content="Голова скина" GroupName="Avatar" IsChecked="True" Style="{StaticResource AvatarRadio}" IsHitTestVisible="False"/></StackPanel></Border>
 
                         <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,14,0,0"><StackPanel><TextBlock Text="НАСТРОЙКИ" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/><TextBlock Text="Оперативная память" FontSize="11" Foreground="#AAB2C0" Margin="0,16,0,8"/><DockPanel><Slider x:Name="RamSlider" Minimum="2048" Maximum="4096" TickFrequency="512" IsSnapToTickEnabled="True" Value="3072" ValueChanged="RamSlider_ValueChanged"/><TextBlock x:Name="RamText" Text="3072 MB" Width="70" Margin="12,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="10"/></DockPanel><TextBlock Text="Java определяется автоматически" FontSize="9" Foreground="#5E6676" Margin="0,8,0,0"/></StackPanel></Border>
-
-                        <Border Background="#0C1018" BorderBrush="#1D2431" BorderThickness="1" CornerRadius="16" Padding="16" Margin="0,14,0,0"><StackPanel><Grid><TextBlock Text="🏆  ДОСТИЖЕНИЯ" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/><TextBlock x:Name="AchievementsCount" Text="0 / 3" HorizontalAlignment="Right" FontSize="9" Foreground="#A78BFA"/></Grid><TextBlock x:Name="AchievementWelcome" Text="○  Добро пожаловать — аккаунт создан" FontSize="10" Foreground="#5E6676" Margin="0,11,0,0"/><TextBlock x:Name="AchievementFirstLaunch" Text="○  Первый запуск — запусти Minecraft" FontSize="10" Foreground="#5E6676" Margin="0,7,0,0"/><TextBlock x:Name="AchievementExplorer" Text="○  Исследователь — попробуй Vanilla и Modded" FontSize="10" Foreground="#5E6676" Margin="0,7,0,0"/></StackPanel></Border>
                     </StackPanel>
                 </Grid>
             </ScrollViewer>
