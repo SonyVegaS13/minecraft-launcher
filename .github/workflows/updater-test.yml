@@ -26,7 +26,7 @@ jobs:
         run: |
           [xml]$project = Get-Content -Raw SolarisLauncher.csproj
           $version = [string]$project.Project.PropertyGroup.Version
-          if ($version -notmatch '^2\\.2\\.[01]$') { throw "Unexpected test version: $version" }
+          if ($version -notmatch '^2\.2\.[01]$') { throw "Unexpected test version: $version" }
           "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Restore launcher
