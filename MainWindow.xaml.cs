@@ -57,7 +57,6 @@ public partial class MainWindow : Window
         Directory.CreateDirectory(_stateDir);
         RamText.Text = $"{(int)RamSlider.Value} MB";
         TryRestoreAccount();
-        SetupServerButtons();
         _ = UpdateServerStatusAsync();
         Loaded += MainWindow_Loaded;
     }
@@ -188,7 +187,7 @@ public partial class MainWindow : Window
     {
         _registerMode = !_registerMode;
         AuthTitle.Text = _registerMode ? "Создание аккаунта" : "Вход в аккаунт";
-        AuthActionButton.Content = _registerMode ? "СОЗДАТЬ АККАУНТ" : "ВОЙТИ";
+        AuthActionButton.Content = _registerMode ? "СОЗДАТЬ АККАУНТ" : "ВОЙТИ  ›";
         SwitchAuthButton.Content = _registerMode ? "У меня уже есть аккаунт" : "Создать аккаунт";
         AuthStatus.Text = ""; PasswordBox.Clear();
     }
@@ -203,7 +202,7 @@ public partial class MainWindow : Window
         }
         byte[] salt = RandomNumberGenerator.GetBytes(16);
         byte[] hash = HashPassword(password, salt);
-        await SaveAccountAsync(new LocalAccount { Username = login, Salt = Convert.ToBase64String(salt), PasswordHash = Convert.ToBase64String(hash), RememberMe = true });
+        await SaveAccountAsync(new LocalAccount { Username = login, Salt = Convert.ToBase64String(salt), PasswordHash = Convert.ToBase64String(hash), RememberMe = RememberMeCheck.IsChecked == true });
         ShowMainView(login);
     }
 
@@ -216,12 +215,14 @@ public partial class MainWindow : Window
         byte[] expected = Convert.FromBase64String(account.PasswordHash);
         byte[] actual = HashPassword(password, salt);
         if (!CryptographicOperations.FixedTimeEquals(actual, expected)) throw new InvalidOperationException("Неверный логин или пароль.");
+        account.RememberMe = RememberMeCheck.IsChecked == true;
+        await SaveAccountAsync(account);
         ShowMainView(account.Username);
     }
 
     private async void TryRestoreAccount()
     {
-        try { LocalAccount? account = await ReadAccountAsync(); if (account is not null && account.RememberMe && !string.IsNullOrWhiteSpace(account.Username)) ShowMainView(account.Username); }
+        try { LocalAccount? account = await ReadAccountAsync(); if (account is not null) { RememberMeCheck.IsChecked = account.RememberMe; if (account.RememberMe && !string.IsNullOrWhiteSpace(account.Username)) ShowMainView(account.Username); } }
         catch { }
     }
 
@@ -243,8 +244,8 @@ public partial class MainWindow : Window
         }
         catch { }
         MainView.Visibility = Visibility.Collapsed; AuthView.Visibility = Visibility.Visible;
-        LoginBox.Clear(); PasswordBox.Clear(); AuthStatus.Text = ""; _registerMode = false;
-        AuthTitle.Text = "Вход в аккаунт"; AuthActionButton.Content = "ВОЙТИ"; SwitchAuthButton.Content = "Создать аккаунт";
+        LoginBox.Clear(); PasswordBox.Clear(); RememberMeCheck.IsChecked = false; AuthStatus.Text = ""; _registerMode = false;
+        AuthTitle.Text = "Вход в аккаунт"; AuthActionButton.Content = "ВОЙТИ  ›"; SwitchAuthButton.Content = "Создать аккаунт";
     }
 
     private async Task<LocalAccount?> ReadAccountAsync()
@@ -431,19 +432,6 @@ public partial class MainWindow : Window
             }
         }
         return null;
-    }
-
-    private void SetupServerButtons()
-    {
-        if (PlayButton.Parent is not StackPanel panel) return;
-        PlayButton.Content = "ИГРАТЬ"; PlayButton.Width = 220;
-        if (panel.Children.OfType<Button>().Any(b => b.Name == "VanillaPlayButton")) return;
-        var moddedText = new TextBlock { Text = $"Minecraft {MinecraftVersion} • Forge {ForgeVersion}", Margin = new Thickness(0, 8, 0, 0), Foreground = new SolidColorBrush(Color.FromRgb(142, 153, 170)), FontSize = 12 };
-        int moddedIndex = panel.Children.IndexOf(PlayButton); panel.Children.Insert(moddedIndex + 1, moddedText);
-        var button = new Button { Name = "VanillaPlayButton", Content = "ИГРАТЬ", Width = 220, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 18, 0, 0), Style = FindResource("SecondaryButton") as Style };
-        button.Click += VanillaPlayButton_Click; panel.Children.Insert(panel.Children.IndexOf(PlayButton) + 2, button);
-        var serverText = new TextBlock { Text = $"Minecraft {VanillaVersion} • {ServerHost}:{ServerPort}", Margin = new Thickness(0, 8, 0, 0), Foreground = new SolidColorBrush(Color.FromRgb(142, 153, 170)), FontSize = 12 };
-        panel.Children.Insert(panel.Children.IndexOf(button) + 1, serverText);
     }
 
     private bool TryBeginLaunch(Button button, string playText, out CancellationTokenSource? cancellation, out CancellationToken token)
@@ -710,21 +698,33 @@ public partial class MainWindow : Window
         [JsonPropertyName("name")] public string Name { get; set; } = "";
         [JsonPropertyName("browser_download_url")] public string BrowserDownloadUrl { get; set; } = "";
     }
+    private void VanillaCard_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        => AnimateArtworkBlur(VanillaArtwork, 0);
+
+    private void VanillaCard_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        => AnimateArtworkBlur(VanillaArtwork, 8);
+
+    private void ModdedCard_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        => AnimateArtworkBlur(ModdedArtwork, 0);
+
+    private void ModdedCard_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        => AnimateArtworkBlur(ModdedArtwork, 12);
+
     private void VanillaPlayButton_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        => AnimateVanillaArtworkBlur(0);
+        => AnimateArtworkBlur(VanillaArtwork, 0);
 
     private void VanillaPlayButton_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        => AnimateVanillaArtworkBlur(8);
+        => AnimateArtworkBlur(VanillaArtwork, VanillaCard.IsMouseOver ? 0 : 8);
 
-    private void AnimateVanillaArtworkBlur(double radius)
+    private static void AnimateArtworkBlur(System.Windows.Controls.Image image, double radius)
     {
-        if (VanillaArtwork.Effect is not System.Windows.Media.Effects.BlurEffect blur)
+        if (image.Effect is not System.Windows.Media.Effects.BlurEffect blur)
             return;
 
         var animation = new DoubleAnimation
         {
             To = radius,
-            Duration = TimeSpan.FromMilliseconds(220),
+            Duration = TimeSpan.FromMilliseconds(260),
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
         };
         blur.BeginAnimation(System.Windows.Media.Effects.BlurEffect.RadiusProperty, animation);
