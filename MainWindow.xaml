@@ -42,7 +42,7 @@
                     <Border Width="22" Height="22" CornerRadius="6" Background="#FB963A">
                         <TextBlock Text="☀" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#201027"/>
                     </Border>
-                    <TextBlock Text="Solaris Launcher" VerticalAlignment="Center" FontSize="12" Margin="9,0,0,0" Foreground="#F0E8FC"/>
+                    <TextBlock Text="Solaris Launcher" VerticalAlignment="Center" FontSize="12" Margin="9,0,0,0" Foreground="#F0E8FC"/><TextBlock Text="  •  NEON 2.2.1" VerticalAlignment="Center" FontSize="10" Foreground="#9D86AE"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Content="─" Width="46" Height="40" FontSize="14" Background="Transparent" Foreground="#EADFF0" BorderThickness="0" Cursor="Hand" Click="TitleBarMinimize_Click"/>
@@ -60,9 +60,9 @@
             </Border>
 
             <Border Grid.ColumnSpan="2" CornerRadius="20" IsHitTestVisible="False">
-                <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0.5"><GradientStop Color="#680A0520" Offset="0"/><GradientStop Color="#A4120925" Offset="0.56"/><GradientStop Color="#F1090719" Offset="1"/></LinearGradientBrush></Border.Background>
+                <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0.5"><GradientStop Color="#290A0520" Offset="0"/><GradientStop Color="#87120925" Offset="0.56"/><GradientStop Color="#B1090719" Offset="1"/></LinearGradientBrush></Border.Background>
             </Border>
-            <Border Grid.Column="0" Background="#230B0519" IsHitTestVisible="False" CornerRadius="20"/>
+            <Border Grid.Column="0" Background="#070B0519" IsHitTestVisible="False" CornerRadius="20"/>
             <Grid Grid.Column="0" Margin="48,36,18,54" IsHitTestVisible="False">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
                     <Grid Width="70" Height="70"><Polygon Fill="#FFAE56" Points="35,0 44,12 58,5 58,21 70,35 58,45 62,60 46,58 35,70 24,58 8,62 12,46 0,35 12,24 8,8 24,12"/><Polygon Fill="#200E30" Points="35,13 55,24 55,46 35,57 15,46 15,24"/><Polygon Stroke="#FFBF76" StrokeThickness="3" Fill="#411638" Points="35,21 47,28 47,42 35,49 23,42 23,28"/></Grid>
@@ -86,6 +86,8 @@
                     <Button x:Name="SwitchAuthButton" Content="Создать аккаунт" Style="{StaticResource SecondaryButton}" Height="48" Margin="0,12,0,0" Click="SwitchAuthButton_Click"/>
                     <Border BorderBrush="#443250" BorderThickness="0,1,0,0" Margin="0,29,0,0"/>
                     <TextBlock Text="Аккаунт хранится локально на этом ПК." Margin="0,18,0,0" HorizontalAlignment="Center" Foreground="#92839E" FontSize="10"/>
+                    <Button Content="🎨  Выбрать оформление (ZIP)" Style="{StaticResource SecondaryButton}" Height="32" FontSize="11" Margin="0,15,0,0" Click="ImportNeonArtwork_Click"/>
+                    <TextBlock x:Name="ArtworkDiagnosticText" Text="Проверка оформления..." FontSize="10" Foreground="#E6B894" HorizontalAlignment="Center" Margin="0,8,0,0" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
         </Grid>
@@ -181,7 +183,7 @@
 
                         <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,14,0,0"><StackPanel><TextBlock Text="АВАТАР" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/><TextBlock Text="Minecraft skin ↔ Solaris" FontSize="10" Foreground="#60697A" Margin="0,4,0,10"/><RadioButton Content="Голова скина" GroupName="Avatar" IsChecked="True" Style="{StaticResource AvatarRadio}" IsHitTestVisible="False"/></StackPanel></Border>
 
-                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,14,0,0"><StackPanel><TextBlock Text="НАСТРОЙКИ" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/><TextBlock Text="Оперативная память" FontSize="11" Foreground="#AAB2C0" Margin="0,16,0,8"/><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Slider x:Name="RamSlider" Grid.Column="0" Minimum="2048" Maximum="4096" TickFrequency="512" IsSnapToTickEnabled="True" Value="3072" ValueChanged="RamSlider_ValueChanged" VerticalAlignment="Center" Height="30" Foreground="#B14DFA"/><TextBlock x:Name="RamText" Grid.Column="1" Text="3072 MB" Margin="12,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11" Foreground="#E5D7EE"/></Grid><TextBlock Text="Java определяется автоматически" FontSize="9" Foreground="#5E6676" Margin="0,8,0,0"/></StackPanel></Border>
+                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,14,0,0"><StackPanel><TextBlock Text="НАСТРОЙКИ" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/><TextBlock Text="Оперативная память" FontSize="11" Foreground="#AAB2C0" Margin="0,16,0,8"/><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Slider x:Name="RamSlider" Grid.Column="0" Minimum="2048" Maximum="4096" TickFrequency="512" IsSnapToTickEnabled="True" Value="3072" ValueChanged="RamSlider_ValueChanged" VerticalAlignment="Center" Height="30" Foreground="#B14DFA"/><TextBlock x:Name="RamText" Grid.Column="1" Text="3072 MB" Margin="12,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11" Foreground="#E5D7EE"/></Grid><TextBlock Text="Java определяется автоматически" FontSize="9" Foreground="#5E6676" Margin="0,8,0,0"/><Button Content="🎨  Выбрать оформление (ZIP)" Style="{StaticResource SecondaryButton}" FontSize="11" Height="34" Margin="0,12,0,0" Click="ImportNeonArtwork_Click"/></StackPanel></Border>
                     </StackPanel>
                 </Grid>
             </ScrollViewer>
