@@ -48,7 +48,7 @@ public partial class MainWindow : Window
     private bool _updateCheckStarted;
 
     private const string LauncherVersion = "2.2.0";
-    private const string UpdateManifestUrl = "https://raw.githubusercontent.com/SonyVegaS13/minecraft-launcher/solaris-2.1-polish/update.json";
+    private const string UpdateManifestUrl = "https://raw.githubusercontent.com/SonyVegaS13/minecraft-launcher/solaris-updater-test/update-test.json";
 
     public MainWindow()
     {
