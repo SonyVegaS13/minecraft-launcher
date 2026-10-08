@@ -8,8 +8,57 @@ namespace SolarisLauncher;
 
 public partial class App : Application
 {
+    private bool _handlingCrash;
+    private static readonly string CrashLogPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "Solaris", "logs", "launcher-crash.log");
+
+    private static void LogCrash(string source, Exception exception)
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(CrashLogPath)!);
+            File.AppendAllText(CrashLogPath,
+                $"[{DateTimeOffset.Now:O}] {source}{Environment.NewLine}{exception}{Environment.NewLine}{Environment.NewLine}");
+        }
+        catch { /* A crash logger must never crash the launcher. */ }
+    }
+
+    private void HandleDispatcherCrash(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs args)
+    {
+        LogCrash("WPF dispatcher", args.Exception);
+        args.Handled = true;
+        if (_handlingCrash) return;
+        _handlingCrash = true;
+        try
+        {
+            MessageBox.Show(
+                "Ошибка запуска Solaris Launcher. Подробности записаны в журнал:" +
+                Environment.NewLine + CrashLogPath + Environment.NewLine + Environment.NewLine +
+                args.Exception.GetBaseException().Message,
+                "Solaris Launcher — ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        catch { }
+        Shutdown(-1);
+    }
+
     protected override void OnStartup(StartupEventArgs e)
     {
+        DispatcherUnhandledException += HandleDispatcherCrash;
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+        {
+            if (args.ExceptionObject is Exception exception)
+                LogCrash("Unhandled AppDomain", exception);
+        };
+
+        // Windows 10 LTSC 1809 and older: software rendering avoids WPF GPU driver failures.
+        if (OperatingSystem.IsWindows() && Environment.OSVersion.Version.Major == 10 &&
+            Environment.OSVersion.Version.Build <= 17763)
+        {
+            System.Windows.Media.RenderOptions.ProcessRenderMode =
+                System.Windows.Interop.RenderMode.SoftwareOnly;
+        }
+
         if (e.Args.Length >= 3 &&
             string.Equals(e.Args[0], "--self-update", StringComparison.OrdinalIgnoreCase))
         {
@@ -25,7 +74,14 @@ public partial class App : Application
             return;
         }
 
-        base.OnStartup(e);
+        try { base.OnStartup(e); }
+        catch (Exception ex)
+        {
+            LogCrash("App startup", ex);
+            try { MessageBox.Show(ex.GetBaseException().Message + Environment.NewLine + CrashLogPath,
+                "Solaris Launcher — ошибка запуска", MessageBoxButton.OK, MessageBoxImage.Error); } catch { }
+            Shutdown(-1);
+        }
     }
 
     private Task RunSelfUpdateAsync(string launcherPath, string newLauncherPath)
