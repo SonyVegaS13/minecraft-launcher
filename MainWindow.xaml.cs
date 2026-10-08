@@ -72,6 +72,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        TryLoadNeonArt();
         _http.DefaultRequestHeaders.UserAgent.ParseAdd("SolarisLauncher/3.0");
         Directory.CreateDirectory(_stateDir);
         RamText.Text = $"{(int)RamSlider.Value} MB";
