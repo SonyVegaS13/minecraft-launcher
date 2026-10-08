@@ -1,0 +1,68 @@
+name: Solaris updater isolated test
+
+on:
+  push:
+    branches:
+      - 'solaris-updater-test'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Read version
+        id: version
+        shell: pwsh
+        run: |
+          [xml]$project = Get-Content -Raw SolarisLauncher.csproj
+          $version = [string]$project.Project.PropertyGroup.Version
+          if ($version -notmatch '^2\\.2\\.[01]$') { throw "Unexpected test version: $version" }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Restore launcher
+        run: dotnet restore SolarisLauncher.csproj
+
+      - name: Build launcher
+        run: dotnet build SolarisLauncher.csproj -c Release --no-restore
+
+      - name: Publish single-file launcher
+        shell: pwsh
+        run: |
+          dotnet publish SolarisLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o artifacts/publish
+          if (-not (Test-Path artifacts/publish/SolarisLauncher.exe)) { throw "SolarisLauncher.exe missing" }
+
+      - name: Prepare archive and checksum
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          Compress-Archive -Path artifacts/publish/SolarisLauncher.exe -DestinationPath "artifacts/SolarisLauncher-$version-test-win-x64.zip" -Force
+          Get-FileHash artifacts/publish/SolarisLauncher.exe -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  SolarisLauncher.exe" } | Set-Content artifacts/SHA256SUMS.txt
+
+      - name: Upload test build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Solaris-Updater-Test-${{ steps.version.outputs.version }}-run-${{ github.run_number }}
+          path: |
+            artifacts/publish/SolarisLauncher.exe
+            artifacts/SolarisLauncher-*-test-win-x64.zip
+            artifacts/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish isolated updater test prerelease
+        if: contains(github.event.head_commit.message, '[publish-test-release]') && steps.version.outputs.version == '2.2.1'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "test-solaris-2.2.1" artifacts/publish/SolarisLauncher.exe "artifacts/SolarisLauncher-2.2.1-test-win-x64.zip" artifacts/SHA256SUMS.txt --target "$env:GITHUB_SHA" --prerelease --latest=false --title "Solaris Launcher 2.2.1 (updater test)" --notes "Testing only. Production update.json remains unchanged."
