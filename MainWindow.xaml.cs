@@ -230,6 +230,7 @@ public partial class MainWindow : Window
     {
         AuthView.Visibility = Visibility.Collapsed; MainView.Visibility = Visibility.Visible;
         WelcomeText.Text = username;
+        ProfileName.Text = username;
         ProfileText.Text = $"Игрок: {username}\nВерсия клиента: Minecraft {MinecraftVersion}";
         StatusText.Text = "Готов к запуску."; Progress.Value = 0;
         _ = UpdateServerStatusAsync();
