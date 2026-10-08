@@ -127,6 +127,9 @@ internal static class SkinAvatarBootstrap
 
             image.Clip = new EllipseGeometry(new Rect(0, 0, avatarSize, avatarSize));
             avatarBorder.Child = image;
+            // Mirror the actual player's Minecraft skin in the compact profile header.
+            if (window.FindName("ProfileAvatarImage") is Image headerAvatar)
+                headerAvatar.Source = bitmap;
         }
         catch
         {
