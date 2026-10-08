@@ -39,7 +39,7 @@ public partial class App : Application
             Process.Start(new ProcessStartInfo
             {
                 FileName = helperPath,
-                Arguments = "--apply-update " + "\\"" + launcherPath + "\\" " + "\\"" + newLauncherPath + "\\"",
+                ArgumentList = { "--apply-update", launcherPath, newLauncherPath },
                 WorkingDirectory = Path.GetDirectoryName(launcherPath)!,
                 UseShellExecute = false
             });
