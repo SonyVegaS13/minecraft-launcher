@@ -55,7 +55,7 @@
         <Grid.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#100B25" Offset="0"/><GradientStop Color="#090715" Offset="0.60"/><GradientStop Color="#190D22" Offset="1"/></LinearGradientBrush></Grid.Background>
         <Grid x:Name="AuthView">
             <Grid.ColumnDefinitions><ColumnDefinition Width="1.22*"/><ColumnDefinition Width="0.92*"/></Grid.ColumnDefinitions>
-            <Border Grid.ColumnSpan="2" CornerRadius="20" ClipToBounds="True" BorderBrush="#C445AE" BorderThickness="1">
+            <Border x:Name="LoginBackdrop" Grid.ColumnSpan="2" CornerRadius="20" ClipToBounds="True" BorderBrush="#C445AE" BorderThickness="1">
                 <Border.Background><ImageBrush ImageSource="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill"/></Border.Background>
             </Border>
 
