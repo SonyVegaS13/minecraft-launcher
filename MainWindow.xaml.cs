@@ -26,6 +26,25 @@ namespace SolarisLauncher;
 
 public partial class MainWindow : Window
 {
+    private void TitleBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != System.Windows.Input.MouseButton.Left) return;
+        if (e.ClickCount == 2)
+        {
+            WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+            return;
+        }
+        try { DragMove(); }
+        catch (InvalidOperationException) { /* The mouse was released during the drag. */ }
+    }
+
+    private void TitleBarMinimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
+    private void TitleBarMaximize_Click(object sender, RoutedEventArgs e)
+        => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
+    private void TitleBarClose_Click(object sender, RoutedEventArgs e) => Close();
+
     private const string MinecraftVersion = "1.20.1";
     private const string ForgeVersion = "47.4.20";
     private const string VanillaVersion = "26.2";
