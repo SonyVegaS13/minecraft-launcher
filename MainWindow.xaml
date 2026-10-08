@@ -31,8 +31,19 @@
         <Grid x:Name="AuthView">
             <Grid.ColumnDefinitions><ColumnDefinition Width="1.22*"/><ColumnDefinition Width="0.92*"/></Grid.ColumnDefinitions>
             <Border Grid.ColumnSpan="2" CornerRadius="20" ClipToBounds="True" BorderBrush="#C445AE" BorderThickness="1">
-                <Border.Background><ImageBrush ImageSource="Assets/Vanilla-server.jpg.png" Stretch="UniformToFill"/></Border.Background>
+                <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#14082B" Offset="0"/><GradientStop Color="#663071" Offset="0.44"/><GradientStop Color="#DA653E" Offset="0.72"/><GradientStop Color="#210A29" Offset="1"/></LinearGradientBrush></Border.Background>
             </Border>
+            <Canvas Grid.ColumnSpan="2" IsHitTestVisible="False" ClipToBounds="True" Opacity="0.80">
+                <Ellipse Canvas.Left="86" Canvas.Top="110" Width="410" Height="410" Stroke="#FF9C47" StrokeThickness="18" Fill="#2C0B35"/>
+                <Ellipse Canvas.Left="104" Canvas.Top="128" Width="374" Height="374" Stroke="#D85EF0" StrokeThickness="5" Fill="#371240"/>
+                <Ellipse Canvas.Left="124" Canvas.Top="148" Width="334" Height="334" Stroke="#A43BE7" StrokeThickness="2" Fill="#401747"/>
+                <Polygon Points="0,635 105,568 150,598 252,506 300,540 398,475 565,619 680,566 800,692 800,850 0,850" Fill="#1B112B"/>
+                <Polygon Points="18,760 110,690 160,718 250,600 330,660 430,590 480,650 600,570 715,732 715,850 18,850" Fill="#2B1744" Opacity="0.8"/>
+                <Rectangle Canvas.Left="235" Canvas.Top="275" Width="48" Height="84" Fill="#2D164F" Opacity="0.5"/>
+                <Rectangle Canvas.Left="560" Canvas.Top="110" Width="45" Height="230" Fill="#28124D" Opacity="0.7"/>
+                <Rectangle Canvas.Left="614" Canvas.Top="56" Width="17" Height="330" Fill="#A943E4" Opacity="0.6"/>
+                <Rectangle Canvas.Left="380" Canvas.Top="420" Width="28" Height="156" Fill="#D460C9" Opacity="0.45"/>
+            </Canvas>
             <Border Grid.ColumnSpan="2" CornerRadius="20" IsHitTestVisible="False">
                 <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0.5"><GradientStop Color="#680A0520" Offset="0"/><GradientStop Color="#A4120925" Offset="0.56"/><GradientStop Color="#F1090719" Offset="1"/></LinearGradientBrush></Border.Background>
             </Border>
@@ -87,7 +98,8 @@
 
                         <Border x:Name="VanillaCard" Background="#161023" BorderBrush="#FF954F" BorderThickness="1.5" CornerRadius="18" Margin="0,0,0,14" MouseEnter="VanillaCard_MouseEnter" MouseLeave="VanillaCard_MouseLeave">
                             <Grid Height="186" ClipToBounds="True">
-                                <Image x:Name="VanillaArtwork" Source="Assets/Vanilla-server.jpg.png" Stretch="UniformToFill" Opacity="0.85" IsHitTestVisible="False"><Image.Effect><BlurEffect Radius="8"/></Image.Effect></Image>
+                                <Border CornerRadius="18" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#351742" Offset="0"/><GradientStop Color="#934177" Offset="0.52"/><GradientStop Color="#FF943F" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+                                <Image x:Name="VanillaArtwork" Stretch="UniformToFill" Opacity="0.85" IsHitTestVisible="False"><Image.Effect><BlurEffect Radius="8"/></Image.Effect></Image>
                                 <Border IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#F00C091A" Offset="0"/><GradientStop Color="#9E110E23" Offset="0.49"/><GradientStop Color="#48130621" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                                 <Grid Margin="23,18">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -107,7 +119,8 @@
 
         <Border x:Name="ModdedCard" Background="#150D26" BorderBrush="#A445E5" BorderThickness="1.5" CornerRadius="18" MouseEnter="ModdedCard_MouseEnter" MouseLeave="ModdedCard_MouseLeave">
                             <Grid Height="175" ClipToBounds="True">
-                                <Image x:Name="ModdedArtwork" Source="Assets/Vanilla-server.jpg.png" Stretch="UniformToFill" Opacity="0.60" IsHitTestVisible="False"><Image.Effect><BlurEffect Radius="12"/></Image.Effect></Image>
+                                <Border CornerRadius="18" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#210B31" Offset="0"/><GradientStop Color="#58258E" Offset="0.6"/><GradientStop Color="#871DA0" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+                                <Image x:Name="ModdedArtwork" Stretch="UniformToFill" Opacity="0.60" IsHitTestVisible="False"><Image.Effect><BlurEffect Radius="12"/></Image.Effect></Image>
                                 <Border IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#F00D0620" Offset="0"/><GradientStop Color="#A92C0B4B" Offset="0.5"/><GradientStop Color="#90200437" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                                 <Grid Margin="23,16">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
