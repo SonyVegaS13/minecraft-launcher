@@ -31,19 +31,9 @@
         <Grid x:Name="AuthView">
             <Grid.ColumnDefinitions><ColumnDefinition Width="1.22*"/><ColumnDefinition Width="0.92*"/></Grid.ColumnDefinitions>
             <Border Grid.ColumnSpan="2" CornerRadius="20" ClipToBounds="True" BorderBrush="#C445AE" BorderThickness="1">
-                <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#14082B" Offset="0"/><GradientStop Color="#663071" Offset="0.44"/><GradientStop Color="#DA653E" Offset="0.72"/><GradientStop Color="#210A29" Offset="1"/></LinearGradientBrush></Border.Background>
+                <Border.Background><ImageBrush ImageSource="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill"/></Border.Background>
             </Border>
-            <Canvas Grid.ColumnSpan="2" IsHitTestVisible="False" ClipToBounds="True" Opacity="0.80">
-                <Ellipse Canvas.Left="86" Canvas.Top="110" Width="410" Height="410" Stroke="#FF9C47" StrokeThickness="18" Fill="#2C0B35"/>
-                <Ellipse Canvas.Left="104" Canvas.Top="128" Width="374" Height="374" Stroke="#D85EF0" StrokeThickness="5" Fill="#371240"/>
-                <Ellipse Canvas.Left="124" Canvas.Top="148" Width="334" Height="334" Stroke="#A43BE7" StrokeThickness="2" Fill="#401747"/>
-                <Polygon Points="0,635 105,568 150,598 252,506 300,540 398,475 565,619 680,566 800,692 800,850 0,850" Fill="#1B112B"/>
-                <Polygon Points="18,760 110,690 160,718 250,600 330,660 430,590 480,650 600,570 715,732 715,850 18,850" Fill="#2B1744" Opacity="0.8"/>
-                <Rectangle Canvas.Left="235" Canvas.Top="275" Width="48" Height="84" Fill="#2D164F" Opacity="0.5"/>
-                <Rectangle Canvas.Left="560" Canvas.Top="110" Width="45" Height="230" Fill="#28124D" Opacity="0.7"/>
-                <Rectangle Canvas.Left="614" Canvas.Top="56" Width="17" Height="330" Fill="#A943E4" Opacity="0.6"/>
-                <Rectangle Canvas.Left="380" Canvas.Top="420" Width="28" Height="156" Fill="#D460C9" Opacity="0.45"/>
-            </Canvas>
+
             <Border Grid.ColumnSpan="2" CornerRadius="20" IsHitTestVisible="False">
                 <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0.5"><GradientStop Color="#680A0520" Offset="0"/><GradientStop Color="#A4120925" Offset="0.56"/><GradientStop Color="#F1090719" Offset="1"/></LinearGradientBrush></Border.Background>
             </Border>
@@ -75,12 +65,12 @@
             </Border>
         </Grid>
 
-        <Grid x:Name="MainView" Visibility="Collapsed">
+        <Grid x:Name="MainView" Visibility="Collapsed"><Grid.Background><ImageBrush ImageSource="pack://application:,,,/Assets/SolarisEmber.bmp" Opacity="0.19" Stretch="UniformToFill"/></Grid.Background>
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
 
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Grid Width="70" Height="70"><Polygon Fill="#FFAE56" Points="35,0 44,12 58,5 58,21 70,35 58,45 62,60 46,58 35,70 24,58 8,62 12,46 0,35 12,24 8,8 24,12"/><Polygon Fill="#200E30" Points="35,13 55,24 55,46 35,57 15,46 15,24"/><Polygon Stroke="#FFBF76" StrokeThickness="3" Fill="#411638" Points="35,21 47,28 47,42 35,49 23,42 23,28"/></Grid><StackPanel VerticalAlignment="Center" Margin="13,0,0,0"><TextBlock Text="SOLARIS" FontSize="30" FontWeight="ExtraBold"/><TextBlock Text="MINECRAFT UNIVERSE" FontSize="9" Foreground="#C9A4D8" Margin="2,0,0,0"/></StackPanel></StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Grid Width="70" Height="70"><Polygon Fill="#FFAE56" Points="35,0 44,12 58,5 58,21 70,35 58,45 62,60 46,58 35,70 24,58 8,62 12,46 0,35 12,24 8,8 24,12"/><Polygon Fill="#200E30" Points="35,13 55,24 55,46 35,57 15,46 15,24"/><Polygon Stroke="#FFBF76" StrokeThickness="3" Fill="#411638" Points="35,21 47,28 47,42 35,49 23,42 23,28"/></Grid><StackPanel VerticalAlignment="Center" Margin="13,0,0,0"><TextBlock Text="SOLARIS" FontSize="32" FontWeight="ExtraBold"/></StackPanel></StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <Border Padding="23,11" CornerRadius="12" Background="#512299" BorderBrush="#AA45F8" BorderThickness="1"><TextBlock Text="⬡  Миры" FontSize="14" FontWeight="SemiBold" Foreground="White"/></Border>
                     <TextBlock Text="⚙  Настройки" VerticalAlignment="Center" Margin="25,0,0,0" Foreground="#C3B7D0" FontSize="13"/>
@@ -99,7 +89,7 @@
                         <Border x:Name="VanillaCard" Background="#161023" BorderBrush="#FF954F" BorderThickness="1.5" CornerRadius="18" Margin="0,0,0,14" MouseEnter="VanillaCard_MouseEnter" MouseLeave="VanillaCard_MouseLeave">
                             <Grid Height="186" ClipToBounds="True">
                                 <Border CornerRadius="18" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#351742" Offset="0"/><GradientStop Color="#934177" Offset="0.52"/><GradientStop Color="#FF943F" Offset="1"/></LinearGradientBrush></Border.Background></Border>
-                                <Image x:Name="VanillaArtwork" Stretch="UniformToFill" Opacity="0.85" IsHitTestVisible="False"><Image.Effect><BlurEffect Radius="8"/></Image.Effect></Image>
+                                <Image x:Name="VanillaArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0.85" IsHitTestVisible="False"><Image.Effect><BlurEffect Radius="8"/></Image.Effect></Image>
                                 <Border IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#F00C091A" Offset="0"/><GradientStop Color="#9E110E23" Offset="0.49"/><GradientStop Color="#48130621" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                                 <Grid Margin="23,18">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -109,7 +99,7 @@
                                             <StackPanel Margin="11,0,0,0"><TextBlock Text="SOLARIS VANILLA" FontSize="22" FontWeight="Bold"/><TextBlock Text="ОСНОВНОЙ РЕЖИМ" FontSize="10" Foreground="#D3BDD8"/></StackPanel>
                                         </StackPanel>
                                         <TextBlock Text="Minecraft 26.2 • Survival" FontSize="13" Margin="0,13,0,0" Foreground="#F0E4EF"/>
-                                        <StackPanel Orientation="Horizontal" Margin="0,11,0,0"><Ellipse Width="8" Height="8" Fill="#3DFFA3" VerticalAlignment="Center"/><TextBlock Text=" Сервер готов" Foreground="#64FFAD" FontSize="11"/><TextBlock Text="  •  25565" Foreground="#D1B7D2" FontSize="10" Margin="8,0,0,0"/></StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,11,0,0"><Ellipse Width="8" Height="8" Fill="#3DFFA3" VerticalAlignment="Center"/><TextBlock Text=" Сервер готов" Foreground="#64FFAD" FontSize="11"/></StackPanel>
                                         <TextBlock Text="solarisplay.millida.host:25565" Foreground="#B5A1BC" FontSize="10" Margin="0,5,0,0"/>
                                     </StackPanel>
                                     <Button x:Name="VanillaPlayButton" Grid.Column="1" Content="▶  ИГРАТЬ" Style="{StaticResource PrimaryButton}" Width="172" Height="56" VerticalAlignment="Center" Click="VanillaPlayButton_Click" MouseEnter="VanillaPlayButton_MouseEnter" MouseLeave="VanillaPlayButton_MouseLeave"/>
@@ -120,7 +110,7 @@
         <Border x:Name="ModdedCard" Background="#150D26" BorderBrush="#A445E5" BorderThickness="1.5" CornerRadius="18" MouseEnter="ModdedCard_MouseEnter" MouseLeave="ModdedCard_MouseLeave">
                             <Grid Height="175" ClipToBounds="True">
                                 <Border CornerRadius="18" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#210B31" Offset="0"/><GradientStop Color="#58258E" Offset="0.6"/><GradientStop Color="#871DA0" Offset="1"/></LinearGradientBrush></Border.Background></Border>
-                                <Image x:Name="ModdedArtwork" Stretch="UniformToFill" Opacity="0.60" IsHitTestVisible="False"><Image.Effect><BlurEffect Radius="12"/></Image.Effect></Image>
+                                <Image x:Name="ModdedArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0.60" IsHitTestVisible="False"><Image.Effect><BlurEffect Radius="12"/></Image.Effect></Image>
                                 <Border IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#F00D0620" Offset="0"/><GradientStop Color="#A92C0B4B" Offset="0.5"/><GradientStop Color="#90200437" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                                 <Grid Margin="23,16">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -158,7 +148,7 @@
                         <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20">
                             <StackPanel>
                                 <TextBlock Text="ПРОФИЛЬ" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/>
-                                <Grid Margin="0,15,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="72"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border Width="66" Height="66" CornerRadius="33" Background="{StaticResource AccentBrush}" BorderBrush="#B89BFF" BorderThickness="2"><TextBlock Text="S" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><StackPanel Grid.Column="1" Margin="13,0,0,0" VerticalAlignment="Center"><TextBlock Text="Игрок Solaris" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="● В сети" FontSize="10" Foreground="#86EFAC" Margin="0,5,0,0"/></StackPanel></Grid>
+                                <Grid Margin="0,15,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="72"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border Width="66" Height="66" CornerRadius="33" Background="{StaticResource AccentBrush}" BorderBrush="#B89BFF" BorderThickness="2"><Grid ClipToBounds="True"><TextBlock Text="◈" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/><Image x:Name="ProfileAvatarImage" Stretch="UniformToFill"/></Grid></Border><StackPanel Grid.Column="1" Margin="13,0,0,0" VerticalAlignment="Center"><TextBlock x:Name="ProfileName" Text="Игрок Solaris" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="● В сети" FontSize="10" Foreground="#86EFAC" Margin="0,5,0,0"/></StackPanel></Grid>
                                 <TextBlock x:Name="ProfileText" Text="Версия клиента: Minecraft 1.20.1" Foreground="#727B8C" FontSize="10" Margin="0,13,0,0" TextWrapping="Wrap"/>
                                 <Grid Margin="0,15,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="ОНЛАЙН" FontSize="9" Foreground="#60697A"/><TextBlock Text="—" FontSize="15" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel><StackPanel Grid.Column="1"><TextBlock Text="ИГРЫ" FontSize="9" Foreground="#60697A"/><TextBlock Text="0" FontSize="15" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel><StackPanel Grid.Column="2"><TextBlock Text="LEVEL" FontSize="9" Foreground="#60697A"/><TextBlock Text="1" FontSize="15" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel></Grid>
                             </StackPanel>
@@ -166,7 +156,7 @@
 
                         <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,14,0,0"><StackPanel><TextBlock Text="АВАТАР" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/><TextBlock Text="Minecraft skin ↔ Solaris" FontSize="10" Foreground="#60697A" Margin="0,4,0,10"/><RadioButton Content="Голова скина" GroupName="Avatar" IsChecked="True" Style="{StaticResource AvatarRadio}" IsHitTestVisible="False"/></StackPanel></Border>
 
-                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,14,0,0"><StackPanel><TextBlock Text="НАСТРОЙКИ" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/><TextBlock Text="Оперативная память" FontSize="11" Foreground="#AAB2C0" Margin="0,16,0,8"/><DockPanel><Slider x:Name="RamSlider" Minimum="2048" Maximum="4096" TickFrequency="512" IsSnapToTickEnabled="True" Value="3072" ValueChanged="RamSlider_ValueChanged"/><TextBlock x:Name="RamText" Text="3072 MB" Width="70" Margin="12,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="10"/></DockPanel><TextBlock Text="Java определяется автоматически" FontSize="9" Foreground="#5E6676" Margin="0,8,0,0"/></StackPanel></Border>
+                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,14,0,0"><StackPanel><TextBlock Text="НАСТРОЙКИ" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/><TextBlock Text="Оперативная память" FontSize="11" Foreground="#AAB2C0" Margin="0,16,0,8"/><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Slider x:Name="RamSlider" Grid.Column="0" Minimum="2048" Maximum="4096" TickFrequency="512" IsSnapToTickEnabled="True" Value="3072" ValueChanged="RamSlider_ValueChanged" VerticalAlignment="Center" Height="30" Foreground="#B14DFA"/><TextBlock x:Name="RamText" Grid.Column="1" Text="3072 MB" Margin="12,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11" Foreground="#E5D7EE"/></Grid><TextBlock Text="Java определяется автоматически" FontSize="9" Foreground="#5E6676" Margin="0,8,0,0"/></StackPanel></Border>
                     </StackPanel>
                 </Grid>
             </ScrollViewer>
