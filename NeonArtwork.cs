@@ -25,7 +25,7 @@ public partial class MainWindow
     private bool TryLoadNeonArt(string? selectedPath = null, bool notify = false)
     {
         var report = new StringBuilder();
-        report.AppendLine($"[{DateTimeOffset.Now:O}] Solaris Neon UI 2.2.2");
+        report.AppendLine($"[{DateTimeOffset.Now:O}] Solaris Neon UI 2.2.3");
         bool loaded = false;
         string? loadedFrom = null;
         try
@@ -70,9 +70,11 @@ public partial class MainWindow
 
                     LoginBackdrop.Background = new ImageBrush(login.Bitmap) { Stretch = Stretch.UniformToFill };
                     MainView.Background = new ImageBrush(main.Bitmap) { Stretch = Stretch.UniformToFill, Opacity = 0.30 };
-                    VanillaArtwork.Source = vanilla.Bitmap;
+                    // Pre-render soft thumbnails once on import. GPU only crossfades
+                    // the frozen sharp artwork thereafter; no per-frame blur shaders.
+                    VanillaArtwork.Source = CreateSoftThumbnail(vanilla.Bitmap, 280, 2);
                     VanillaArtworkSharp.Source = vanilla.Bitmap;
-                    ModdedArtwork.Source = modded.Bitmap;
+                    ModdedArtwork.Source = CreateSoftThumbnail(modded.Bitmap, 230, 3);
                     ModdedArtworkSharp.Source = modded.Bitmap;
 
                     loaded = true;
@@ -202,6 +204,84 @@ public partial class MainWindow
             report.AppendLine($"Decoded: {name} [{bitmap.PixelWidth}x{bitmap.PixelHeight}]");
         }
         catch (Exception ex) { report.AppendLine("Not a readable Windows image: " + name + " " + ex.Message); }
+    }
+
+
+    // Preblur only when a new image is loaded, not during mouse movement.
+    // A low-resolution thumbnail + two small box-blur passes reduces VRAM
+    // bandwidth while keeping the card-background blur/reveal appearance.
+    private static BitmapSource CreateSoftThumbnail(BitmapSource image, int targetWidth, int radius)
+    {
+        try
+        {
+            double scale = Math.Min(1.0, targetWidth / (double)image.PixelWidth);
+            var reduced = new TransformedBitmap(image, new ScaleTransform(scale, scale));
+            reduced.Freeze();
+            var rgba = new FormatConvertedBitmap(reduced, PixelFormats.Bgra32, null, 0);
+            rgba.Freeze();
+
+            int width = rgba.PixelWidth, height = rgba.PixelHeight;
+            int stride = width * 4;
+            var pixels = new byte[stride * height];
+            rgba.CopyPixels(pixels, stride, 0);
+            pixels = BoxBlur(pixels, width, height, radius, vertical: false);
+            pixels = BoxBlur(pixels, width, height, radius, vertical: true);
+
+            BitmapSource thumbnail = BitmapSource.Create(
+                width, height, 96, 96, PixelFormats.Bgra32, null, pixels, stride);
+            thumbnail.Freeze();
+            return thumbnail;
+        }
+        catch (Exception)
+        {
+            // Gracefully fall back if an unusual source format cannot be blurred.
+            return image;
+        }
+    }
+
+    private static byte[] BoxBlur(byte[] pixels, int width, int height, int radius, bool vertical)
+    {
+        var destination = new byte[pixels.Length];
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int b = 0, g = 0, r = 0, a = 0;
+                int count = 2 * radius + 1;
+                for (int k = -radius; k <= radius; k++)
+                {
+                    int xx = vertical ? x : Math.Clamp(x + k, 0, width - 1);
+                    int yy = vertical ? Math.Clamp(y + k, 0, height - 1) : y;
+                    int i = (yy * width + xx) * 4;
+                    b += pixels[i];
+                    g += pixels[i + 1];
+                    r += pixels[i + 2];
+                    a += pixels[i + 3];
+                }
+
+                int destinationIndex = (y * width + x) * 4;
+                destination[destinationIndex] = (byte)(b / count);
+                destination[destinationIndex + 1] = (byte)(g / count);
+                destination[destinationIndex + 2] = (byte)(r / count);
+                destination[destinationIndex + 3] = (byte)(a / count);
+            }
+        }
+        return destination;
+    }
+
+    private void InitializeArtworkPreviews()
+    {
+        try
+        {
+            if (VanillaArtworkSharp.Source is BitmapSource vanilla)
+                VanillaArtwork.Source = CreateSoftThumbnail(vanilla, 280, 2);
+            if (ModdedArtworkSharp.Source is BitmapSource modded)
+                ModdedArtwork.Source = CreateSoftThumbnail(modded, 230, 3);
+        }
+        catch (Exception)
+        {
+            // Embedded fallback previews must never prevent the UI from opening.
+        }
     }
 
     private static ArtworkImage? Pick(IEnumerable<ArtworkImage> items, params string[] keywords)
