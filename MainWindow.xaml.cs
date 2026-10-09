@@ -133,7 +133,7 @@ public partial class MainWindow : Window
         }
         byte[] salt = RandomNumberGenerator.GetBytes(16);
         byte[] hash = HashPassword(password, salt);
-        await SaveAccountAsync(new LocalAccount { Username = login, Salt = Convert.ToBase64String(salt), PasswordHash = Convert.ToBase64String(hash), RememberMe = RememberMeCheck.IsChecked == true });
+        await SaveAccountAsync(new LocalAccount { Username = login, Salt = Convert.ToBase64String(salt), PasswordHash = Convert.ToBase64String(hash), RememberMe = RememberMeCheck.IsChecked == true, CreatedUtc = DateTimeOffset.UtcNow });
         ShowMainView(login);
     }
 
@@ -419,23 +419,31 @@ public partial class MainWindow : Window
         try
         {
             Directory.CreateDirectory(_stateDir); string vanillaDir = Path.Combine(_stateDir, "vanilla"); Directory.CreateDirectory(vanillaDir);
-            StatusText.Text = $"Устанавливаем Minecraft {VanillaVersion}..."; Progress.Value = 10;
+            StatusText.Text = $"Проверяем Minecraft {VanillaVersion} и Java 25..."; Progress.Value = 4;
             LocalAccount? account = await ReadAccountAsync();
             token.ThrowIfCancellationRequested();
             if (account is null || string.IsNullOrWhiteSpace(account.Username)) throw new InvalidOperationException("Аккаунт не найден.");
             var path = new MinecraftPath(vanillaDir); var launcher = new MinecraftLauncher(path);
-            StatusText.Text = $"Скачиваем Minecraft {VanillaVersion} и Java..."; Progress.Value = 25;
+            bool alreadyInstalled = Directory.Exists(Path.Combine(vanillaDir, "versions", VanillaVersion));
+            StatusText.Text = alreadyInstalled
+                ? $"Minecraft {VanillaVersion} найден. Проверяем файлы..."
+                : $"Minecraft {VanillaVersion} отсутствует. Устанавливаем...";
+            Progress.Value = 25;
+            // CmlLib inspects its installation and only fetches components it needs.
             await launcher.InstallAsync(VanillaVersion);
             token.ThrowIfCancellationRequested();
             Progress.Value = 85;
-            string javaPath = FindBundledJava(vanillaDir); if (!File.Exists(javaPath)) throw new FileNotFoundException($"Java Runtime не найден: {javaPath}");
+            string javaPath = FindJavaForMode(vanillaDir, 25);
+            StatusText.Text = File.Exists(javaPath) ? "Java 25 найдена. Запускаем Vanilla..." : "Java 25 не найдена."; 
+            if (!File.Exists(javaPath)) throw new FileNotFoundException("Java 25 не найдена после установки Minecraft.", javaPath);
             int ram = GetRamForMode("vanilla");
             var options = new MLaunchOption { Session = MSession.CreateOfflineSession(account.Username), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), ServerIp = ServerHost, ServerPort = ServerPort, GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
             token.ThrowIfCancellationRequested();
             var process = await launcher.BuildProcessAsync(VanillaVersion, options); token.ThrowIfCancellationRequested(); process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            process.Start(); Progress.Value = 100; StatusText.Text = "Minecraft Vanilla запущен."; Application.Current.Shutdown();
+            process.Start(); Progress.Value = 100; StatusText.Text = "Minecraft Vanilla запущен.";
+            await TrackGameProcessAsync(process, account.Username, "vanilla");
         }
         catch (OperationCanceledException)
         {
@@ -458,7 +466,7 @@ public partial class MainWindow : Window
             Directory.CreateDirectory(_stateDir); Directory.CreateDirectory(_gameDir);
             StatusText.Text = "Проверяем обновление сборки на GitHub..."; Progress.Value = 5;
             await UpdateClientPackAsync(token); token.ThrowIfCancellationRequested();
-            StatusText.Text = "Устанавливаем Minecraft 1.20.1 и Forge..."; Progress.Value = 45;
+            StatusText.Text = "Проверяем Minecraft 1.20.1, Forge 47.4.20 и Java 17..."; Progress.Value = 45;
             string versionName = await EnsureForgeAsync(token); token.ThrowIfCancellationRequested();
             LocalAccount? account = await ReadAccountAsync(); token.ThrowIfCancellationRequested();
             if (account is null || string.IsNullOrWhiteSpace(account.Username)) throw new Exception("Аккаунт не найден.");
@@ -495,8 +503,8 @@ public partial class MainWindow : Window
     {
         token.ThrowIfCancellationRequested();
         var launcher = new MinecraftLauncher(new MinecraftPath(_gameDir));
-        string javaPath = FindBundledJava(_gameDir);
-        if (!File.Exists(javaPath)) throw new FileNotFoundException($"Java Runtime не найден: {javaPath}");
+        string javaPath = FindJavaForMode(_gameDir, 17);
+        if (!File.Exists(javaPath)) throw new FileNotFoundException("Java 17 не найдена после установки Forge.", javaPath);
         int ram = GetRamForMode("modded");
         var options = new MLaunchOption { Session = MSession.CreateOfflineSession(nick), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
         if (!string.IsNullOrWhiteSpace(serverHost)) { options.ServerIp = serverHost; options.ServerPort = ServerPort; }
@@ -505,7 +513,7 @@ public partial class MainWindow : Window
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             process.Start();
-        Application.Current.Shutdown();
+        await TrackGameProcessAsync(process, nick, "modded");
     }
 
     private async Task UpdateClientPackAsync(CancellationToken token)
@@ -598,16 +606,45 @@ public partial class MainWindow : Window
         }
     }
 
-    private string FindBundledJava(string rootDir)
+    // Resolve Java separately for each game profile. Never silently use an
+    // incompatible version just because some java.exe exists on this computer.
+    private string FindJavaForMode(string rootDir, int requiredMajor)
     {
-        string[] candidates = {
-            Path.Combine(rootDir, "runtime", "windows-x64", "java-runtime-delta", "bin", "java.exe"),
-            Path.Combine(rootDir, "runtime", "windows-x64", "java-runtime-gamma", "bin", "java.exe"),
-            Path.Combine(rootDir, "runtime", "windows-x64", "java-runtime-alpha", "bin", "java.exe"),
-            Path.Combine(rootDir, "runtime", "windows-x64", "java-runtime-beta", "bin", "java.exe"),
-            Path.Combine(rootDir, "runtime", "windows-x64", "java-runtime-epison", "bin", "java.exe")
-        };
-        return candidates.FirstOrDefault(File.Exists) ?? Directory.GetFiles(Path.Combine(rootDir, "runtime"), "java.exe", SearchOption.AllDirectories).FirstOrDefault() ?? "";
+        string runtimeRoot = Path.Combine(rootDir, "runtime");
+        if (!Directory.Exists(runtimeRoot)) return "";
+        string[] candidates = Directory.EnumerateFiles(runtimeRoot, "java.exe", SearchOption.AllDirectories)
+            .Where(path => path.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        foreach (string candidate in candidates)
+        {
+            try
+            {
+                using var process = Process.Start(new ProcessStartInfo
+                {
+                    FileName = candidate,
+                    Arguments = "-version",
+                    UseShellExecute = false,
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true
+                });
+                if (process is null) continue;
+                string output = process.StandardError.ReadToEnd() + process.StandardOutput.ReadToEnd();
+                if (!process.WaitForExit(3500))
+                {
+                    try { process.Kill(); } catch { }
+                    continue;
+                }
+                // Modern Java: 'version "25..."; Java 8: version "1.8...".
+                var match = System.Text.RegularExpressions.Regex.Match(output, @"version\s+""(?<major>\d+)");
+                if (match.Success && int.TryParse(match.Groups["major"].Value, out int major)
+                    && major == requiredMajor)
+                    return candidate;
+            }
+            catch { /* Try next bundled runtime. */ }
+        }
+        return "";
     }
 
     private static void TryDeleteFile(string path) { try { if (File.Exists(path)) File.Delete(path); } catch { } }
@@ -619,6 +656,7 @@ public partial class MainWindow : Window
         public string Salt { get; set; } = "";
         public string PasswordHash { get; set; } = "";
         public bool RememberMe { get; set; }
+        public DateTimeOffset? CreatedUtc { get; set; }
     }
 
     private sealed class GitHubRelease
