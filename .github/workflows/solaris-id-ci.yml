@@ -1,0 +1,26 @@
+name: Solaris ID API Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - solaris-2.2-dev
+    paths:
+      - 'backend/**'
+      - '.github/workflows/solaris-id-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore
+        run: dotnet restore backend/Solaris.Id.Api/Solaris.Id.Api.csproj
+      - name: Build
+        run: dotnet build backend/Solaris.Id.Api/Solaris.Id.Api.csproj -c Release --no-restore
