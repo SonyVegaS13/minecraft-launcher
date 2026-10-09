@@ -78,6 +78,33 @@ public partial class App : Application
             return;
         }
 
+        // 2.2.6+ auto-installs on the first ordinary launch and reopens
+        // the permanent EXE. The update-helper modes above skip this step.
+        // If the installation cannot be completed, preserve portable mode.
+        try
+        {
+            if (SolarisBootstrapper.RedirectToPermanentInstallation())
+            {
+                Shutdown(0);
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            LogCrash("Automatic installation", ex);
+            try
+            {
+                MessageBox.Show(
+                    "Не удалось автоматически установить Solaris.\\n" +
+                    "Лаунчер продолжит работать из текущей папки.\\n" +
+                    "Можно закрыть другие копии Solaris и запустить его снова.\\n\\n" +
+                    ex.Message,
+                    "Solaris — установка",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch { }
+        }
+
         try { base.OnStartup(e); }
         catch (Exception ex)
         {
