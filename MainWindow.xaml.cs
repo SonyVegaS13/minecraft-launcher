@@ -431,13 +431,19 @@ public partial class MainWindow : Window
             token.ThrowIfCancellationRequested();
             if (account is null || string.IsNullOrWhiteSpace(account.Username)) throw new InvalidOperationException("Аккаунт не найден.");
             var path = new MinecraftPath(vanillaDir); var launcher = new MinecraftLauncher(path);
+            WireMinecraftProgress(launcher, "Vanilla", 25, 85);
+            string javaBefore = FindJavaForMode(vanillaDir, 25);
+            StatusText.Text = File.Exists(javaBefore)
+                ? "Java 25 найдена. Проверяем Minecraft..."
+                : "Java 25 отсутствует. Проверяем и загружаем необходимые компоненты...";
             bool alreadyInstalled = Directory.Exists(Path.Combine(vanillaDir, "versions", VanillaVersion));
             StatusText.Text = alreadyInstalled
                 ? $"Minecraft {VanillaVersion} найден. Проверяем файлы..."
                 : $"Minecraft {VanillaVersion} отсутствует. Устанавливаем...";
             Progress.Value = 25;
-            // CmlLib inspects its installation and only fetches components it needs.
-            await launcher.InstallAsync(VanillaVersion);
+            // CmlLib checks local files and fetches only missing/corrupted libraries,
+            // assets, native dependencies and the runtime supplied by Mojang.
+            await launcher.InstallAsync(VanillaVersion, token);
             token.ThrowIfCancellationRequested();
             Progress.Value = 85;
             string javaPath = FindJavaForMode(vanillaDir, 25);
@@ -477,7 +483,7 @@ public partial class MainWindow : Window
             string versionName = await EnsureForgeAsync(token); token.ThrowIfCancellationRequested();
             LocalAccount? account = await ReadAccountAsync(); token.ThrowIfCancellationRequested();
             if (account is null || string.IsNullOrWhiteSpace(account.Username)) throw new Exception("Аккаунт не найден.");
-            StatusText.Text = "Запускаем Minecraft..."; Progress.Value = 100;
+            StatusText.Text = "Все компоненты готовы. Запускаем Minecraft Modded..."; Progress.Value = 98;
             await LaunchMinecraftAsync(versionName, account.Username, ModdedServerHost, token);
             StatusText.Text = "Minecraft запущен.";
         }
@@ -498,10 +504,11 @@ public partial class MainWindow : Window
         token.ThrowIfCancellationRequested();
         var path = new MinecraftPath(_gameDir);
         var launcher = new MinecraftLauncher(path);
+        WireMinecraftProgress(launcher, "Modded", 47, 89);
         var installer = new ForgeInstaller(launcher);
         string forgeVersion = await installer.Install(MinecraftVersion, ForgeVersion, new ForgeInstallOptions { CancellationToken = token });
         token.ThrowIfCancellationRequested();
-        await launcher.InstallAsync(forgeVersion);
+        await launcher.InstallAsync(forgeVersion, token);
         token.ThrowIfCancellationRequested();
         return forgeVersion;
     }
