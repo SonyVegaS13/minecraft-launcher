@@ -51,9 +51,12 @@ public partial class App : Application
                 LogCrash("Unhandled AppDomain", exception);
         };
 
-        // Windows 10 LTSC 1809 and older: software rendering avoids WPF GPU driver failures.
-        if (OperatingSystem.IsWindows() && Environment.OSVersion.Version.Major == 10 &&
-            Environment.OSVersion.Version.Build <= 17763)
+        // Let WPF choose the best available render tier (GPU when supported).
+        // The previous forced software renderer caused visible typing/input lag
+        // on Windows 10 LTSC with a full-screen neon bitmap backdrop.
+        // An explicit opt-in is retained for computers with broken GPU drivers.
+        if (string.Equals(Environment.GetEnvironmentVariable("SOLARIS_SOFTWARE_RENDER"),
+            "1", StringComparison.Ordinal))
         {
             System.Windows.Media.RenderOptions.ProcessRenderMode =
                 System.Windows.Interop.RenderMode.SoftwareOnly;
