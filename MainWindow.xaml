@@ -4,7 +4,8 @@
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="Solaris Launcher" Width="1320" Height="850" MinWidth="1060" MinHeight="700"
         WindowStartupLocation="CenterScreen" WindowStyle="None" ResizeMode="CanResize"
-        Background="#090716" Foreground="#F5F7FA" FontFamily="Segoe UI">
+        Background="#090716" Foreground="#F5F7FA" FontFamily="Segoe UI"
+        Icon="pack://application:,,,/Assets/SolarisOfficialLogo.png">
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="0" ResizeBorderThickness="6" GlassFrameThickness="0" UseAeroCaptionButtons="False"/>
     </shell:WindowChrome.WindowChrome>
@@ -39,10 +40,8 @@
         <Border Grid.Row="0" Background="#100D20" BorderBrush="#392046" BorderThickness="0,0,0,1" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
             <Grid>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
-                    <Border Width="22" Height="22" CornerRadius="6" Background="#FB963A">
-                        <TextBlock Text="☀" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#201027"/>
-                    </Border>
-                    <TextBlock Text="Solaris Launcher" VerticalAlignment="Center" FontSize="12" Margin="9,0,0,0" Foreground="#F0E8FC"/><TextBlock Text="  •  NEON 2.2.3" VerticalAlignment="Center" FontSize="10" Foreground="#9D86AE"/>
+                    <Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="25" Height="25" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="Solaris Launcher" VerticalAlignment="Center" FontSize="12" Margin="9,0,0,0" Foreground="#F0E8FC"/><TextBlock Text="  •  NEON 2.2.4" VerticalAlignment="Center" FontSize="10" Foreground="#9D86AE"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Content="─" Width="46" Height="40" FontSize="14" Background="Transparent" Foreground="#EADFF0" BorderThickness="0" Cursor="Hand" Click="TitleBarMinimize_Click"/>
@@ -65,7 +64,7 @@
             <Border Grid.Column="0" Background="#070B0519" IsHitTestVisible="False" CornerRadius="20"/>
             <Grid Grid.Column="0" Margin="48,36,18,54" IsHitTestVisible="False">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
-                    <Grid Width="70" Height="70"><Polygon Fill="#FFAE56" Points="35,0 44,12 58,5 58,21 70,35 58,45 62,60 46,58 35,70 24,58 8,62 12,46 0,35 12,24 8,8 24,12"/><Polygon Fill="#200E30" Points="35,13 55,24 55,46 35,57 15,46 15,24"/><Polygon Stroke="#FFBF76" StrokeThickness="3" Fill="#411638" Points="35,21 47,28 47,42 35,49 23,42 23,28"/></Grid>
+                    <Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="70" Height="70" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
                     <TextBlock Text="SOLARIS" FontSize="56" FontWeight="ExtraBold" VerticalAlignment="Center" Margin="17,0,0,0" Foreground="#FFF3FB"/>
                 </StackPanel>
             </Grid>
@@ -96,7 +95,7 @@
 
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Grid Width="70" Height="70"><Polygon Fill="#FFAE56" Points="35,0 44,12 58,5 58,21 70,35 58,45 62,60 46,58 35,70 24,58 8,62 12,46 0,35 12,24 8,8 24,12"/><Polygon Fill="#200E30" Points="35,13 55,24 55,46 35,57 15,46 15,24"/><Polygon Stroke="#FFBF76" StrokeThickness="3" Fill="#411638" Points="35,21 47,28 47,42 35,49 23,42 23,28"/></Grid><StackPanel VerticalAlignment="Center" Margin="13,0,0,0"><TextBlock Text="SOLARIS" FontSize="32" FontWeight="ExtraBold"/></StackPanel></StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="70" Height="70" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/><StackPanel VerticalAlignment="Center" Margin="13,0,0,0"><TextBlock Text="SOLARIS" FontSize="32" FontWeight="ExtraBold"/></StackPanel></StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <Border Padding="23,11" CornerRadius="12" Background="#512299" BorderBrush="#AA45F8" BorderThickness="1"><TextBlock Text="⬡  Миры" FontSize="14" FontWeight="SemiBold" Foreground="White"/></Border>
                     <TextBlock Text="⚙  Настройки" VerticalAlignment="Center" Margin="25,0,0,0" Foreground="#C3B7D0" FontSize="13"/>
@@ -122,7 +121,7 @@
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                     <StackPanel VerticalAlignment="Center">
                                         <StackPanel Orientation="Horizontal">
-                                            <Border Width="42" Height="42" CornerRadius="11" Background="#FFBB4D"><TextBlock Text="☀" Foreground="#211225" FontSize="25" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                            <Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="42" Height="42" Stretch="Uniform"/>
                                             <StackPanel Margin="11,0,0,0"><TextBlock Text="SOLARIS VANILLA" FontSize="22" FontWeight="Bold"/><TextBlock Text="ОСНОВНОЙ РЕЖИМ" FontSize="10" Foreground="#D3BDD8"/></StackPanel>
                                         </StackPanel>
                                         <TextBlock Text="Minecraft 26.2 • Survival" FontSize="13" Margin="0,13,0,0" Foreground="#F0E4EF"/>
