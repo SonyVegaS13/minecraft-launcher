@@ -23,6 +23,11 @@
     <Version>2.2.10</Version>
   </PropertyGroup>
 
+  <!-- The independent ASP.NET Core Solaris ID server has its own .csproj. -->
+  <ItemGroup>
+    <Compile Remove="backend\**\*.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <Resource Include="Assets\SolarisEmber.bmp" />
     <Resource Include="Assets\SolarisOfficialLogo.png" />
