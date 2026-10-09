@@ -15,8 +15,8 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "Assets"
 CARDS = {
-    "SolarisModdedCard": "Воксельная битва под пурпурным небом(3).png",
-    "SolarisVanillaCard": "Изображение ChatGPT 9 окт. 2026 г., 17_24_22(1).png",
+    "SolarisModdedCard": "Воксельная битва под пурпурным небом.png",
+    "SolarisVanillaCard": "Изображение ChatGPT 9 окт. 2026 г., 17_24_22.png",
 }
 APPROVED_SIZE = (2048, 682)
 
