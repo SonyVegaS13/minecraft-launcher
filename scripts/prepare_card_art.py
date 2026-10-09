@@ -1,43 +1,50 @@
 #!/usr/bin/env python3
-"""Package the TWO user-approved Solaris 2.2.8 server card banners.
+"""Bundle EXACTLY the two user-approved Solaris Neon 2.2.8 card images.
 
-Sources (exact artworks selected by the project owner):
-- SolarisVanillaCard.webp: sunset survival valley, player and wolf.
-- SolarisModdedCard.webp: Wither Storm, distant Wither, Create factory/train.
-
-Both source files are binary Git blobs added to the repository. This script
-converts them into resource PNGs before dotnet publish. Do not regenerate art.
+The card images are uploaded once to the GitHub Assets folder under their
+original Russian filenames (no manual rename required). The CI build copies
+them to predictable WPF Resource filenames. No generated substitutes.
 """
+from __future__ import annotations
 
+import shutil
 from pathlib import Path
+
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "Assets"
-NAMES = ("SolarisVanillaCard", "SolarisModdedCard")
+CARDS = {
+    "SolarisModdedCard": "Воксельная битва под пурпурным небом(3).png",
+    "SolarisVanillaCard": "Изображение ChatGPT 9 окт. 2026 г., 17_24_22(1).png",
+}
+APPROVED_SIZE = (2048, 682)
+
 
 def main() -> None:
-    for name in NAMES:
-        source = ASSETS / f"{name}.webp"
-        destination = ASSETS / f"{name}.png"
-        if destination.is_file():
-            # The exact user-supplied PNG takes precedence if available.
-            with Image.open(destination) as original:
-                if original.format != "PNG" or original.size != (2048, 682):
-                    raise RuntimeError(f"Unexpected approved PNG: {destination} {original.size}")
-                original.verify()
-            print(f"Approved original card PNG ready: {destination.name}")
-            continue
-        if not source.is_file():
-            # Development builds may run without cards. The release gate
-            # refuses to publish 2.2.8 until both images are present.
-            print(f"Awaiting approved source: {name}.png or {name}.webp")
-            continue
-        with Image.open(source) as opened:
-            if opened.format != "WEBP" or opened.width < 1500 or opened.height < 500:
-                raise RuntimeError(f"Invalid user-approved server banner: {source}")
-            opened.convert("RGB").save(destination, format="PNG", optimize=True)
-            print(f"Prepared official card art {destination.name}: {opened.width}x{opened.height}")
+    for dest_stem, original_name in CARDS.items():
+        original = ASSETS / original_name
+        canonical = ASSETS / (dest_stem + ".png")
+        # Accept files already uploaded using canonical names, too.
+        src = original if original.is_file() else canonical
+        if not src.is_file():
+            raise SystemExit(
+                f"Missing approved {dest_stem} card. Upload {original_name} "
+                f"to the GitHub Assets folder before publishing Solaris 2.2.8."
+            )
+        with Image.open(src) as artwork:
+            if artwork.format != "PNG" or artwork.size != APPROVED_SIZE:
+                raise SystemExit(
+                    f"Unexpected {src.name}: {artwork.format}, {artwork.size}; "
+                    f"expected user-approved PNG {APPROVED_SIZE}"
+                )
+            artwork.verify()
+        if src != canonical:
+            shutil.copyfile(src, canonical)
+        print(f"Approved card embedded: {canonical.name} from {src.name}")
+
+    print("Both approved Solaris Neon 2.2.8 server cards are ready.")
+
 
 if __name__ == "__main__":
     main()
