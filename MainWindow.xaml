@@ -77,7 +77,55 @@
                     <TextBlock Text="Логин" Foreground="#D9D0E6" FontSize="12" Margin="0,8,0,7"/>
                     <TextBox x:Name="LoginBox" Style="{StaticResource InputBox}"/>
                     <TextBlock Text="Пароль" Foreground="#D9D0E6" FontSize="12" Margin="0,20,0,7"/>
-                    <PasswordBox x:Name="PasswordBox" Style="{StaticResource PasswordBoxStyle}"/>
+                    <Grid Height="46">
+                        <PasswordBox x:Name="PasswordBox" Style="{StaticResource PasswordBoxStyle}" Padding="13,0,50,0"
+                                     GotKeyboardFocus="PasswordField_Focus" PreviewKeyUp="PasswordField_KeyUp" PreviewKeyDown="PasswordField_KeyDown"/>
+                        <TextBox x:Name="PasswordVisibleText" Style="{StaticResource InputBox}" Padding="13,0,50,0"
+                                 Visibility="Collapsed" GotKeyboardFocus="PasswordField_Focus"
+                                 PreviewKeyUp="PasswordField_KeyUp" PreviewKeyDown="PasswordField_KeyDown"/>
+                        <Button x:Name="PasswordRevealButton" Width="44" Height="44" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Показать пароль"
+                                AutomationProperties.Name="Показать пароль" Click="PasswordReveal_Click">
+                            <Grid Width="32" Height="32">
+                                <Path x:Name="PasswordEyeClosed" Stroke="#FFCA31" StrokeThickness="2.2"
+                                      Data="M 3,17 Q 16,10 29,17 M 8,11 L 6,7 M 16,11 L 16,6 M 24,11 L 27,7"/>
+                                <Grid x:Name="PasswordEyeOpen" Visibility="Collapsed" RenderTransformOrigin="0.5,0.5">
+                                    <Grid.RenderTransform><ScaleTransform ScaleY="0.15"/></Grid.RenderTransform>
+                                    <Path Stroke="#FFDD62" StrokeThickness="2.1" Data="M 2,16 Q 16,1 30,16 Q 16,31 2,16 Z"/>
+                                    <Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png"
+                                           Height="17" Width="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Grid>
+                        </Button>
+                    </Grid>
+                    <TextBlock x:Name="CapsLockWarning" Text="⚠ Включён Caps Lock" FontSize="10"
+                               Foreground="#FFCB6B" Margin="0,6,0,0" Visibility="Collapsed"/>
+                    <StackPanel x:Name="ConfirmPasswordPanel" Visibility="Collapsed" Margin="0,12,0,0">
+                        <TextBlock Text="Повторите пароль" Foreground="#D9D0E6" FontSize="12" Margin="0,0,0,7"/>
+                        <Grid Height="46">
+                            <PasswordBox x:Name="ConfirmPasswordBox" Style="{StaticResource PasswordBoxStyle}" Padding="13,0,50,0"
+                                         GotKeyboardFocus="PasswordField_Focus" PreviewKeyUp="PasswordField_KeyUp"
+                                         PreviewKeyDown="PasswordField_KeyDown"/>
+                            <TextBox x:Name="ConfirmPasswordVisibleText" Style="{StaticResource InputBox}" Padding="13,0,50,0"
+                                     Visibility="Collapsed" GotKeyboardFocus="PasswordField_Focus"
+                                     PreviewKeyUp="PasswordField_KeyUp" PreviewKeyDown="PasswordField_KeyDown"/>
+                            <Button x:Name="ConfirmPasswordRevealButton" Width="44" Height="44" HorizontalAlignment="Right"
+                                    VerticalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                    ToolTip="Показать подтверждение пароля" AutomationProperties.Name="Показать подтверждение пароля"
+                                    Click="ConfirmPasswordReveal_Click">
+                                <Grid Width="32" Height="32">
+                                    <Path x:Name="ConfirmEyeClosed" Stroke="#FFCA31" StrokeThickness="2.2"
+                                          Data="M 3,17 Q 16,10 29,17 M 8,11 L 6,7 M 16,11 L 16,6 M 24,11 L 27,7"/>
+                                    <Grid x:Name="ConfirmEyeOpen" Visibility="Collapsed" RenderTransformOrigin="0.5,0.5">
+                                        <Grid.RenderTransform><ScaleTransform ScaleY="0.15"/></Grid.RenderTransform>
+                                        <Path Stroke="#FFDD62" StrokeThickness="2.1" Data="M 2,16 Q 16,1 30,16 Q 16,31 2,16 Z"/>
+                                        <Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png"
+                                               Height="17" Width="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Grid>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
                     <CheckBox x:Name="RememberMeCheck" Content="Запомнить меня" IsChecked="False" Foreground="#DCD1EC" FontSize="12" Margin="2,20,0,0" Cursor="Hand"/>
                     <TextBlock x:Name="AuthStatus" Margin="0,10,0,0" TextWrapping="Wrap" Foreground="#FFACB3" FontSize="11"/>
                     <Button x:Name="AuthActionButton" Content="ВОЙТИ  ›" Style="{StaticResource PrimaryButton}" Height="52" FontSize="15" Margin="0,22,0,0" Click="AuthActionButton_Click"/>

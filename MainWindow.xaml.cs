@@ -104,10 +104,15 @@ public partial class MainWindow : Window
     private async void AuthActionButton_Click(object sender, RoutedEventArgs e)
     {
         string login = LoginBox.Text.Trim();
-        string password = PasswordBox.Password;
+        string password = CurrentPassword();
         AuthStatus.Text = "";
         if (!IsValidLogin(login)) { AuthStatus.Text = "Логин: 3–16 символов, только буквы, цифры и _."; return; }
         if (password.Length < 8) { AuthStatus.Text = "Пароль должен содержать минимум 8 символов."; return; }
+        if (_registerMode && !string.Equals(password, CurrentConfirmationPassword(), StringComparison.Ordinal))
+        {
+            AuthStatus.Text = "Пароли не совпадают.";
+            return;
+        }
         AuthActionButton.IsEnabled = false; SwitchAuthButton.IsEnabled = false;
         try { if (_registerMode) await RegisterLocalAsync(login, password); else await LoginLocalAsync(login, password); }
         catch (Exception ex) { AuthStatus.Text = ex.Message; }
@@ -120,7 +125,8 @@ public partial class MainWindow : Window
         AuthTitle.Text = _registerMode ? "Создание аккаунта" : "Вход в аккаунт";
         AuthActionButton.Content = _registerMode ? "СОЗДАТЬ АККАУНТ" : "ВОЙТИ  ›";
         SwitchAuthButton.Content = _registerMode ? "У меня уже есть аккаунт" : "Создать аккаунт";
-        AuthStatus.Text = ""; PasswordBox.Clear();
+        AuthStatus.Text = ""; ClearPasswordFields();
+        ConfirmPasswordPanel.Visibility = _registerMode ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private async Task RegisterLocalAsync(string login, string password)
@@ -178,7 +184,8 @@ public partial class MainWindow : Window
         }
         catch { }
         MainView.Visibility = Visibility.Collapsed; AuthView.Visibility = Visibility.Visible;
-        LoginBox.Clear(); PasswordBox.Clear(); RememberMeCheck.IsChecked = false; AuthStatus.Text = ""; _registerMode = false;
+        LoginBox.Clear(); ClearPasswordFields(); ConfirmPasswordPanel.Visibility = Visibility.Collapsed;
+        RememberMeCheck.IsChecked = false; AuthStatus.Text = ""; _registerMode = false;
         AuthTitle.Text = "Вход в аккаунт"; AuthActionButton.Content = "ВОЙТИ  ›"; SwitchAuthButton.Content = "Создать аккаунт";
     }
 
