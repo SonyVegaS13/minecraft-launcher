@@ -41,7 +41,7 @@
             <Grid>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
                     <Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="25" Height="25" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock Text="Solaris Launcher" VerticalAlignment="Center" FontSize="12" Margin="9,0,0,0" Foreground="#F0E8FC"/><TextBlock Text="  •  NEON 2.2.7" VerticalAlignment="Center" FontSize="10" Foreground="#9D86AE"/>
+                    <TextBlock Text="Solaris Launcher" VerticalAlignment="Center" FontSize="12" Margin="9,0,0,0" Foreground="#F0E8FC"/><TextBlock Text="  •  NEON 2.2.8" VerticalAlignment="Center" FontSize="10" Foreground="#9D86AE"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Content="─" Width="46" Height="40" FontSize="14" Background="Transparent" Foreground="#EADFF0" BorderThickness="0" Cursor="Hand" Click="TitleBarMinimize_Click"/>
@@ -114,9 +114,9 @@
                         <Border x:Name="VanillaCard" Background="#161023" BorderBrush="#FF954F" BorderThickness="1.5" CornerRadius="18" Margin="0,0,0,14" MouseEnter="VanillaCard_MouseEnter" MouseLeave="VanillaCard_MouseLeave">
                             <Grid Height="222" ClipToBounds="True">
                                 <Border CornerRadius="18" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#351742" Offset="0"/><GradientStop Color="#934177" Offset="0.52"/><GradientStop Color="#FF943F" Offset="1"/></LinearGradientBrush></Border.Background></Border>
-                                <Image x:Name="VanillaArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0.85" IsHitTestVisible="False" CacheMode="BitmapCache" RenderOptions.BitmapScalingMode="Fant"/>
+                                <Image x:Name="VanillaArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0.94" IsHitTestVisible="False" CacheMode="BitmapCache" RenderOptions.BitmapScalingMode="Fant"/>
                                 <Image x:Name="VanillaArtworkSharp" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0" IsHitTestVisible="False" CacheMode="BitmapCache"/>
-                                <Border IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#F00C091A" Offset="0"/><GradientStop Color="#9E110E23" Offset="0.49"/><GradientStop Color="#48130621" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+                                <Border IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#D70C091A" Offset="0"/><GradientStop Color="#57110E23" Offset="0.49"/><GradientStop Color="#25130621" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                                 <Grid Margin="23,18">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                     <StackPanel VerticalAlignment="Center">
@@ -136,9 +136,9 @@
         <Border x:Name="ModdedCard" Background="#150D26" BorderBrush="#A445E5" BorderThickness="1.5" CornerRadius="18" MouseEnter="ModdedCard_MouseEnter" MouseLeave="ModdedCard_MouseLeave">
                             <Grid Height="204" ClipToBounds="True">
                                 <Border CornerRadius="18" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#210B31" Offset="0"/><GradientStop Color="#58258E" Offset="0.6"/><GradientStop Color="#871DA0" Offset="1"/></LinearGradientBrush></Border.Background></Border>
-                                <Image x:Name="ModdedArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0.60" IsHitTestVisible="False" CacheMode="BitmapCache" RenderOptions.BitmapScalingMode="Fant"/>
+                                <Image x:Name="ModdedArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0.90" IsHitTestVisible="False" CacheMode="BitmapCache" RenderOptions.BitmapScalingMode="Fant"/>
                                 <Image x:Name="ModdedArtworkSharp" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0" IsHitTestVisible="False" CacheMode="BitmapCache"/>
-                                <Border IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#F00D0620" Offset="0"/><GradientStop Color="#A92C0B4B" Offset="0.5"/><GradientStop Color="#90200437" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+                                <Border IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#DA0D0620" Offset="0"/><GradientStop Color="#642C0B4B" Offset="0.5"/><GradientStop Color="#3C200437" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                                 <Grid Margin="23,16">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                     <StackPanel VerticalAlignment="Center">
