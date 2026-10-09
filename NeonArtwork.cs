@@ -61,13 +61,17 @@ public partial class MainWindow
                         continue;
                     }
 
-                    ArtworkImage login = Pick(wide, "login", "auth", "signin", "вход", "login-bg") ?? wide[0];
+                    // Keep the original Neon UI archive visually consistent with
+                    // the pre-installed art: World on login/home/Vanilla,
+                    // purple portal on Modded. Custom archives remain supported.
+                    ArtworkImage login = Pick(wide, "login", "auth", "signin", "вход", "login-bg")
+                        ?? Pick(wide, "solarisworld", "world") ?? wide[0];
                     ArtworkImage main = Pick(wide, "dashboard", "main-bg", "main_background", "home", "главн", "main")
-                        ?? wide.FirstOrDefault(x => !ReferenceEquals(x, login)) ?? login;
+                        ?? Pick(wide, "solarisworld", "world") ?? login;
                     ArtworkImage vanilla = Pick(wide, "vanilla", "survival", "classic")
-                        ?? wide.FirstOrDefault(x => !ReferenceEquals(x, login)) ?? main;
+                        ?? Pick(wide, "solarisworld", "world") ?? main;
                     ArtworkImage modded = Pick(wide, "modded", "forge", "endportal", "modpack")
-                        ?? wide.FirstOrDefault(x => !ReferenceEquals(x, login) && !ReferenceEquals(x, vanilla))
+                        ?? wide.FirstOrDefault(x => !ReferenceEquals(x, login))
                         ?? main;
 
                     LoginBackdrop.Background = new ImageBrush(login.Bitmap) { Stretch = Stretch.UniformToFill };
