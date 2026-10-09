@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
@@ -111,39 +112,92 @@ public partial class App : Application
         return Task.CompletedTask;
     }
 
+    // Replace next to the installed executable so Windows can make an atomic
+    // swap with a recoverable backup, even if the download was on another drive.
     private async Task ApplyUpdateAsync(string launcherPath, string newLauncherPath)
     {
+        string? stagedPath = null;
+        string? backupPath = null;
+        bool replaced = false;
+
         try
         {
             launcherPath = Path.GetFullPath(launcherPath);
             newLauncherPath = Path.GetFullPath(newLauncherPath);
-            bool released = false;
-            for (int i = 0; i < 60; i++)
+            if (!File.Exists(newLauncherPath))
+                throw new FileNotFoundException("Загруженное обновление не найдено.", newLauncherPath);
+
+            bool oldProcessClosed = false;
+            for (int attempt = 0; attempt < 90; attempt++)
             {
                 try
                 {
-                    using FileStream stream = new(launcherPath, FileMode.Open,
+                    using var handle = new FileStream(launcherPath, FileMode.Open,
                         FileAccess.ReadWrite, FileShare.None);
-                    released = true;
+                    oldProcessClosed = true;
                     break;
                 }
                 catch (IOException) { await Task.Delay(500); }
                 catch (UnauthorizedAccessException) { await Task.Delay(500); }
             }
-            if (!released) throw new IOException("Old launcher did not exit.");
-            File.Copy(newLauncherPath, launcherPath, true);
+            if (!oldProcessClosed)
+                throw new IOException("Solaris не завершился. Закрой лаунчер и повтори обновление.");
+
+            stagedPath = launcherPath + ".incoming";
+            backupPath = launcherPath + ".previous";
+            File.Copy(newLauncherPath, stagedPath, overwrite: true);
+            if (File.Exists(backupPath))
+                File.Delete(backupPath);
+
+            File.Replace(stagedPath, launcherPath, backupPath, ignoreMetadataErrors: true);
+            replaced = true;
             try { File.Delete(newLauncherPath); } catch { }
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = launcherPath,
-                WorkingDirectory = Path.GetDirectoryName(launcherPath)!,
-                UseShellExecute = true
-            });
+
+            try { NotifyShell(); } catch { }
+            StartLauncher(launcherPath);
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "Solaris update error");
+            if (replaced && backupPath is not null && File.Exists(backupPath))
+            {
+                try { File.Replace(backupPath, launcherPath, null, ignoreMetadataErrors: true); }
+                catch { /* Keep previous executable on disk for manual recovery. */ }
+            }
+
+            try
+            {
+                MessageBox.Show(
+                    "Не удалось применить обновление Solaris.\n" +
+                    "Предыдущая версия сохранена, если файл замены был создан.\n\n" +
+                    ex.Message,
+                    "Solaris — обновление",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch { }
+            try { if (File.Exists(launcherPath)) StartLauncher(launcherPath); } catch { }
         }
-        finally { Shutdown(); }
+        finally
+        {
+            try { if (stagedPath is not null) File.Delete(stagedPath); } catch { }
+            Shutdown();
+        }
     }
+
+    private static void StartLauncher(string path)
+    {
+        if (Process.Start(new ProcessStartInfo
+            {
+                FileName = path,
+                WorkingDirectory = Path.GetDirectoryName(path)!,
+                UseShellExecute = true
+            }) is null)
+            throw new InvalidOperationException("Не удалось перезапустить Solaris.");
+    }
+
+    [DllImport("shell32.dll", EntryPoint = "SHChangeNotify")]
+    private static extern void NotifyWindowsShell(uint eventId, uint flags, IntPtr item1, IntPtr item2);
+
+    private static void NotifyShell()
+        => NotifyWindowsShell(0x08000000, 0, IntPtr.Zero, IntPtr.Zero);
+
 }
