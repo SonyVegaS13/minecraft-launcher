@@ -66,7 +66,7 @@ public partial class MainWindow : Window
     private Button? _activeLaunchButton;
     private bool _updateCheckStarted;
 
-    private const string LauncherVersion = "2.2.1";
+    private const string LauncherVersion = "2.2.2";
     private const string UpdateManifestUrl = "https://raw.githubusercontent.com/SonyVegaS13/minecraft-launcher/solaris-2.1-polish/update.json";
 
     public MainWindow()
@@ -720,34 +720,33 @@ public partial class MainWindow : Window
         [JsonPropertyName("browser_download_url")] public string BrowserDownloadUrl { get; set; } = "";
     }
     private void VanillaCard_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        => AnimateArtworkBlur(VanillaArtwork, 0);
+        => AnimateArtworkReveal(VanillaArtworkSharp, true);
 
     private void VanillaCard_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        => AnimateArtworkBlur(VanillaArtwork, 8);
+        => AnimateArtworkReveal(VanillaArtworkSharp, false);
 
     private void ModdedCard_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        => AnimateArtworkBlur(ModdedArtwork, 0);
+        => AnimateArtworkReveal(ModdedArtworkSharp, true);
 
     private void ModdedCard_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        => AnimateArtworkBlur(ModdedArtwork, 12);
+        => AnimateArtworkReveal(ModdedArtworkSharp, false);
 
     private void VanillaPlayButton_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        => AnimateArtworkBlur(VanillaArtwork, 0);
+        => AnimateArtworkReveal(VanillaArtworkSharp, true);
 
     private void VanillaPlayButton_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        => AnimateArtworkBlur(VanillaArtwork, VanillaCard.IsMouseOver ? 0 : 8);
+        => AnimateArtworkReveal(VanillaArtworkSharp, VanillaCard.IsMouseOver);
 
-    private static void AnimateArtworkBlur(System.Windows.Controls.Image image, double radius)
+    // The blurred artwork remains static. Only the opacity of a cached, sharp layer
+    // changes: no full-resolution BlurEffect recalculation on each animation frame.
+    private static void AnimateArtworkReveal(System.Windows.Controls.Image image, bool visible)
     {
-        if (image.Effect is not System.Windows.Media.Effects.BlurEffect blur)
-            return;
-
         var animation = new DoubleAnimation
         {
-            To = radius,
-            Duration = TimeSpan.FromMilliseconds(260),
+            To = visible ? 0.9 : 0.0,
+            Duration = TimeSpan.FromMilliseconds(200),
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
         };
-        blur.BeginAnimation(System.Windows.Media.Effects.BlurEffect.RadiusProperty, animation);
+        image.BeginAnimation(UIElement.OpacityProperty, animation, HandoffBehavior.SnapshotAndReplace);
     }
 }
