@@ -1,0 +1,43 @@
+name: Solaris 2.2.10 Specification
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - solaris-2.2-dev
+    paths:
+      - docs/SOLARIS-NEON-2.2.10-SPEC.md
+      - scripts/export_spec.py
+      - .github/workflows/spec-docs.yml
+
+permissions:
+  contents: read
+
+jobs:
+  spec:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install document builders
+        shell: pwsh
+        run: python -m pip install --disable-pip-version-check python-docx==1.2.0 reportlab==4.4.4
+      - name: Generate complete Russian specification in PDF and DOCX
+        shell: pwsh
+        run: python scripts/export_spec.py
+      - name: Validate document outputs
+        shell: pwsh
+        run: |
+          $base = "artifacts/spec/SOLARIS-NEON-2.2.10-TECHNICAL-SPEC"
+          if (-not (Test-Path "$base.pdf") -or -not (Test-Path "$base.docx")) { throw "Missing documents" }
+          if ((Get-Item "$base.pdf").Length -lt 5000 -or (Get-Item "$base.docx").Length -lt 5000) { throw "Incomplete document output" }
+      - name: Upload specification for download
+        uses: actions/upload-artifact@v4
+        with:
+          name: Solaris-Neon-2.2.10-Technical-Spec-PDF-DOCX
+          path: |
+            artifacts/spec/SOLARIS-NEON-2.2.10-TECHNICAL-SPEC.pdf
+            artifacts/spec/SOLARIS-NEON-2.2.10-TECHNICAL-SPEC.docx
+          retention-days: 90
