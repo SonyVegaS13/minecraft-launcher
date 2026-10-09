@@ -58,6 +58,18 @@ jobs:
       - name: Generate official Windows icon and launcher logo
         run: python scripts/generate_icon.py
 
+      - name: Prepare bundled Solaris Neon artwork
+        shell: pwsh
+        run: |
+          if (Test-Path Assets/Solaris-Neon-UI.zip) {
+            python scripts/prepare_neon_art.py
+            if ($LASTEXITCODE -ne 0) { throw 'Approved Solaris Neon art verification failed.' }
+          } elseif ('${{ github.event_name }}' -eq 'push' -and '${{ github.event.head_commit.message }}'.StartsWith('release:')) {
+            throw 'Cannot publish Neon 2.2.7 without Assets/Solaris-Neon-UI.zip.'
+          } else {
+            Write-Warning 'Artwork ZIP is not in the repository yet. This development build uses the legacy backdrop; do not distribute it as 2.2.7.'
+          }
+
       - name: Restore launcher
         run: dotnet restore SolarisLauncher.csproj
 
