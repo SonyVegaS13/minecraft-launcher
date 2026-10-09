@@ -18,9 +18,9 @@
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <DebugType>none</DebugType>
-    <AssemblyVersion>2.2.8.0</AssemblyVersion>
-    <FileVersion>2.2.8.0</FileVersion>
-    <Version>2.2.8</Version>
+    <AssemblyVersion>2.2.9.0</AssemblyVersion>
+    <FileVersion>2.2.9.0</FileVersion>
+    <Version>2.2.9</Version>
   </PropertyGroup>
 
   <ItemGroup>

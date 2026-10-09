@@ -64,13 +64,13 @@ jobs:
       - name: Prepare approved server card banners
         run: python scripts/prepare_card_art.py
 
-      - name: Require exact user-approved banners for Solaris Neon 2.2.8 release
+      - name: Require user-approved server card banners for Solaris Neon release
         if: github.event_name == 'push' && github.ref_name == 'solaris-2.2-dev' && startsWith(github.event.head_commit.message, 'release:')
         shell: pwsh
         run: |
           foreach ($name in @('SolarisVanillaCard', 'SolarisModdedCard')) {
             if (-not (Test-Path "Assets/$name.png")) {
-              throw "Refusing to release 2.2.8 without approved $name artwork"
+              throw "Refusing to release Solaris Neon without approved $name artwork"
             }
           }
 

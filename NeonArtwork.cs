@@ -25,7 +25,7 @@ public partial class MainWindow
     private bool TryLoadNeonArt(string? selectedPath = null, bool notify = false)
     {
         var report = new StringBuilder();
-        report.AppendLine($"[{DateTimeOffset.Now:O}] Solaris Neon UI 2.2.8");
+        report.AppendLine($"[{DateTimeOffset.Now:O}] Solaris Neon UI 2.2.9");
         // The release includes the approved world and modded illustrations.
         // A custom ZIP, when present, still overrides these built-in defaults.
         bool loaded = TryApplyEmbeddedNeonArtwork(report);
@@ -181,7 +181,7 @@ public partial class MainWindow
         }
     }
 
-    // The official 2.2.8 card backgrounds are bundled as WPF resources and
+    // The owner-approved server-card backgrounds are bundled as WPF resources and
     // do not depend on files under %APPDATA% or the user's Downloads folder.
     private bool TryApplyOfficialCardArt(StringBuilder report)
     {
@@ -192,13 +192,18 @@ public partial class MainWindow
 
             // Preserve the fast cached-thumbnail-to-sharp hover transitions.
             // Never animate a live WPF BlurEffect on low-power graphics adapters.
-            VanillaArtwork.Source = CreateSoftThumbnail(vanilla, 600, 1);
+            // Neon 2.2.9: visibly stronger STATIC blur (360px/7px box pass per axis)
+            // on both idle cards; the original full-detail PNG fades in on hover.
+            // Compute this once per artwork load, never in the render loop.
+            const int cardBlurWidth = 360;
+            const int cardBlurRadius = 7;
+            VanillaArtwork.Source = CreateSoftThumbnail(vanilla, cardBlurWidth, cardBlurRadius);
             VanillaArtworkSharp.Source = vanilla;
-            ModdedArtwork.Source = CreateSoftThumbnail(modded, 600, 1);
+            ModdedArtwork.Source = CreateSoftThumbnail(modded, cardBlurWidth, cardBlurRadius);
             ModdedArtworkSharp.Source = modded;
 
-            report.AppendLine("OFFICIAL 2.2.8 VANILLA CARD: Assets/SolarisVanillaCard.png");
-            report.AppendLine("OFFICIAL 2.2.8 MODDED CARD: Assets/SolarisModdedCard.png");
+            report.AppendLine("OFFICIAL 2.2.9 VANILLA CARD: Assets/SolarisVanillaCard.png");
+            report.AppendLine("OFFICIAL 2.2.9 MODDED CARD: Assets/SolarisModdedCard.png");
             return true;
         }
         catch (Exception ex)
