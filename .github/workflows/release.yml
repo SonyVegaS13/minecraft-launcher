@@ -61,6 +61,19 @@ jobs:
       - name: Prepare and SHA256-verify bundled Solaris Neon artwork
         run: python scripts/prepare_neon_art.py
 
+      - name: Prepare approved server card banners
+        run: python scripts/prepare_card_art.py
+
+      - name: Require exact user-approved banners for Solaris Neon 2.2.8 release
+        if: github.event_name == 'push' && github.ref_name == 'solaris-2.2-dev' && startsWith(github.event.head_commit.message, 'release:')
+        shell: pwsh
+        run: |
+          foreach ($name in @('SolarisVanillaCard', 'SolarisModdedCard')) {
+            if (-not (Test-Path "Assets/$name.webp") -or -not (Test-Path "Assets/$name.png")) {
+              throw "Refusing to release 2.2.8 without approved $name artwork"
+            }
+          }
+
       - name: Restore launcher
         run: dotnet restore SolarisLauncher.csproj
 
