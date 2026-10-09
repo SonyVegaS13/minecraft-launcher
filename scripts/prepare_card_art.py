@@ -18,7 +18,10 @@ CARDS = {
     "SolarisModdedCard": "Воксельная битва под пурпурным небом.png",
     "SolarisVanillaCard": "Изображение ChatGPT 9 окт. 2026 г., 17_24_22.png",
 }
-APPROVED_SIZE = (2048, 682)
+MIN_WIDTH = 1600
+MIN_HEIGHT = 500
+TARGET_ASPECT_RATIO = 3.0
+ASPECT_TOLERANCE = 0.15
 
 
 def main() -> None:
@@ -33,10 +36,12 @@ def main() -> None:
                 f"to the GitHub Assets folder before publishing Solaris 2.2.8."
             )
         with Image.open(src) as artwork:
-            if artwork.format != "PNG" or artwork.size != APPROVED_SIZE:
+            if (artwork.format != "PNG" or artwork.width < MIN_WIDTH or
+                artwork.height < MIN_HEIGHT or
+                abs(artwork.width / artwork.height - TARGET_ASPECT_RATIO) > ASPECT_TOLERANCE):
                 raise SystemExit(
                     f"Unexpected {src.name}: {artwork.format}, {artwork.size}; "
-                    f"expected user-approved PNG {APPROVED_SIZE}"
+                    f"expected a user-approved wide 3:1 PNG"
                 )
             artwork.verify()
         if src != canonical:
