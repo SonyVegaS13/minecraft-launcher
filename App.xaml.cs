@@ -95,9 +95,9 @@ public partial class App : Application
             try
             {
                 MessageBox.Show(
-                    "Не удалось автоматически установить Solaris.\\n" +
-                    "Лаунчер продолжит работать из текущей папки.\\n" +
-                    "Можно закрыть другие копии Solaris и запустить его снова.\\n\\n" +
+                    "Не удалось автоматически установить Solaris.\n" +
+                    "Лаунчер продолжит работать из текущей папки.\n" +
+                    "Можно закрыть другие копии Solaris и запустить его снова.\n\n" +
                     ex.Message,
                     "Solaris — установка",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
