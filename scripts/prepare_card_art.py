@@ -32,7 +32,7 @@ def main() -> None:
         src = original if original.is_file() else canonical
         if not src.is_file():
             raise SystemExit(
-                f"Missing approved {dest_stem} card. Upload {original_name} "
+                f"Missing approved {dest_stem} card. Upload its original PNG "
                 f"to the GitHub Assets folder before publishing Solaris 2.2.8."
             )
         with Image.open(src) as artwork:
@@ -40,13 +40,13 @@ def main() -> None:
                 artwork.height < MIN_HEIGHT or
                 abs(artwork.width / artwork.height - TARGET_ASPECT_RATIO) > ASPECT_TOLERANCE):
                 raise SystemExit(
-                    f"Unexpected {src.name}: {artwork.format}, {artwork.size}; "
+                    f"Unexpected approved card {dest_stem}: {artwork.format}, {artwork.size}; "
                     f"expected a user-approved wide 3:1 PNG"
                 )
             artwork.verify()
         if src != canonical:
             shutil.copyfile(src, canonical)
-        print(f"Approved card embedded: {canonical.name} from {src.name}")
+        print(f"Approved card embedded: {canonical.name} ({src.stat().st_size:,} bytes)")
 
     print("Both approved Solaris Neon 2.2.8 server cards are ready.")
 
