@@ -52,8 +52,37 @@ public partial class MainWindow
     private void IgnitionTrack_SizeChanged(object sender, SizeChangedEventArgs e) =>
         RefreshIgnitionPosition();
 
+    private bool _ignitionCelebrated;
+
     private void IgnitionProgress_ValueChanged(object sender,
-        RoutedPropertyChangedEventArgs<double> e) => RefreshIgnitionPosition();
+        RoutedPropertyChangedEventArgs<double> e)
+    {
+        RefreshIgnitionPosition();
+        if (e.NewValue >= 99.99 && !_ignitionCelebrated)
+        {
+            _ignitionCelebrated = true;
+            // Short lightweight golden flash, no expensive blur or per-frame shader.
+            IgnitionFill.BeginAnimation(OpacityProperty, new DoubleAnimation(1.0, 0.5,
+                TimeSpan.FromMilliseconds(130))
+                { AutoReverse = true, RepeatBehavior = new RepeatBehavior(2) });
+            for (int i = 0; i < _ignitionSparks.Count; i++)
+            {
+                var spark = _ignitionSparks[i];
+                spark.X = IgnitionTrack.ActualWidth - 5;
+                spark.Y = 8;
+                spark.VX = (_ignitionRandom.NextDouble() - 0.5) * 15;
+                spark.VY = (_ignitionRandom.NextDouble() - 0.5) * 20;
+                spark.Life = 0.7 + _ignitionRandom.NextDouble() * 0.3;
+                spark.Shape.Opacity = spark.Life;
+                Canvas.SetLeft(spark.Shape, spark.X);
+                Canvas.SetTop(spark.Shape, spark.Y);
+                spark.Shape.BeginAnimation(OpacityProperty,
+                    new DoubleAnimation(spark.Life, 0, TimeSpan.FromMilliseconds(430)));
+            }
+        }
+        if (e.NewValue <= 0.01)
+            _ignitionCelebrated = false;
+    }
 
     private void RefreshIgnitionPosition()
     {

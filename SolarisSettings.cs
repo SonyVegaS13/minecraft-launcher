@@ -136,6 +136,11 @@ public partial class MainWindow
         _ = PrepareSkinPreviewAsync(WelcomeText.Text);
     }
 
+    private void ProfileAvatar_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        ProfileNav_Click(sender, new RoutedEventArgs());
+    }
+
     private void BackToHome_Click(object sender, RoutedEventArgs e)
     {
         SettingsView.Visibility = Visibility.Collapsed;
