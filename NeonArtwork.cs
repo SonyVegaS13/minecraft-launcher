@@ -25,7 +25,7 @@ public partial class MainWindow
     private bool TryLoadNeonArt(string? selectedPath = null, bool notify = false)
     {
         var report = new StringBuilder();
-        report.AppendLine($"[{DateTimeOffset.Now:O}] Solaris Neon UI 2.2.5");
+        report.AppendLine($"[{DateTimeOffset.Now:O}] Solaris Neon UI 2.2.6");
         bool loaded = false;
         string? loadedFrom = null;
         try
