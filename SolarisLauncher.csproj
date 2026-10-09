@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>SolarisLauncher</AssemblyName>
+    <ApplicationIcon>Assets\SolarisLauncher.ico</ApplicationIcon>
     <RootNamespace>SolarisLauncher</RootNamespace>
     <Platforms>AnyCPU</Platforms>
 
@@ -17,13 +18,14 @@
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <DebugType>none</DebugType>
-    <AssemblyVersion>2.2.3.0</AssemblyVersion>
-    <FileVersion>2.2.3.0</FileVersion>
-    <Version>2.2.3</Version>
+    <AssemblyVersion>2.2.4.0</AssemblyVersion>
+    <FileVersion>2.2.4.0</FileVersion>
+    <Version>2.2.4</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <Resource Include="Assets\SolarisEmber.bmp" />
+    <Resource Include="Assets\SolarisOfficialLogo.png" />
   </ItemGroup>
 
   <ItemGroup>
