@@ -66,12 +66,13 @@ public partial class MainWindow : Window
     private Button? _activeLaunchButton;
     private bool _updateCheckStarted;
 
-    private const string LauncherVersion = "2.2.2";
+    private const string LauncherVersion = "2.2.3";
     private const string UpdateManifestUrl = "https://raw.githubusercontent.com/SonyVegaS13/minecraft-launcher/solaris-2.1-polish/update.json";
 
     public MainWindow()
     {
         InitializeComponent();
+        InitializeArtworkPreviews();
         TryLoadNeonArt();
         _http.DefaultRequestHeaders.UserAgent.ParseAdd("SolarisLauncher/3.0");
         Directory.CreateDirectory(_stateDir);
@@ -719,33 +720,47 @@ public partial class MainWindow : Window
         [JsonPropertyName("name")] public string Name { get; set; } = "";
         [JsonPropertyName("browser_download_url")] public string BrowserDownloadUrl { get; set; } = "";
     }
+    private bool _vanillaRevealed;
+    private bool _moddedRevealed;
+
     private void VanillaCard_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        => AnimateArtworkReveal(VanillaArtworkSharp, true);
+    {
+        if (_vanillaRevealed) return;
+        _vanillaRevealed = true;
+        AnimateArtworkReveal(VanillaArtworkSharp, true);
+    }
 
     private void VanillaCard_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        => AnimateArtworkReveal(VanillaArtworkSharp, false);
+    {
+        if (!_vanillaRevealed) return;
+        _vanillaRevealed = false;
+        AnimateArtworkReveal(VanillaArtworkSharp, false);
+    }
 
     private void ModdedCard_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        => AnimateArtworkReveal(ModdedArtworkSharp, true);
+    {
+        if (_moddedRevealed) return;
+        _moddedRevealed = true;
+        AnimateArtworkReveal(ModdedArtworkSharp, true);
+    }
 
     private void ModdedCard_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        => AnimateArtworkReveal(ModdedArtworkSharp, false);
+    {
+        if (!_moddedRevealed) return;
+        _moddedRevealed = false;
+        AnimateArtworkReveal(ModdedArtworkSharp, false);
+    }
 
-    private void VanillaPlayButton_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        => AnimateArtworkReveal(VanillaArtworkSharp, true);
-
-    private void VanillaPlayButton_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        => AnimateArtworkReveal(VanillaArtworkSharp, VanillaCard.IsMouseOver);
-
-    // The blurred artwork remains static. Only the opacity of a cached, sharp layer
-    // changes: no full-resolution BlurEffect recalculation on each animation frame.
-    private static void AnimateArtworkReveal(System.Windows.Controls.Image image, bool visible)
+    // Only fade in/out an already-cached image; the blurred card is static.
+    // Repeated MouseEnter events inside a card do not restart its animation.
+    private static void AnimateArtworkReveal(System.Windows.Controls.Image image, bool reveal)
     {
         var animation = new DoubleAnimation
         {
-            To = visible ? 0.9 : 0.0,
-            Duration = TimeSpan.FromMilliseconds(200),
-            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            To = reveal ? 0.92 : 0.0,
+            Duration = TimeSpan.FromMilliseconds(reveal ? 185 : 235),
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseOut },
+            FillBehavior = FillBehavior.HoldEnd
         };
         image.BeginAnimation(UIElement.OpacityProperty, animation, HandoffBehavior.SnapshotAndReplace);
     }
