@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,13 +20,33 @@ public partial class MainWindow
         public int ModdedRamMb { get; set; } = 4096;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MemoryStatus
+    {
+        public uint Length;
+        public uint MemoryLoad;
+        public ulong TotalPhysical;
+        public ulong AvailablePhysical;
+        public ulong TotalPageFile;
+        public ulong AvailablePageFile;
+        public ulong TotalVirtual;
+        public ulong AvailableVirtual;
+        public ulong ExtendedAvailableVirtual;
+    }
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GlobalMemoryStatusEx(ref MemoryStatus memoryStatus);
+
     private static int AvailableRamLimit()
     {
-        // Use the total memory visible to the .NET process as a conservative cap;
-        // always leave at least 2 GiB for the OS and other processes.
-        long bytes = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
-        long totalMb = bytes > 0 ? bytes / (1024 * 1024) : 8192;
-        return (int)Math.Clamp(totalMb - 2048, 2048, 16384);
+        // GC memory is not the size of installed system RAM. Query Windows
+        // physical RAM instead; always reserve at least 2 GiB for Windows.
+        var memory = new MemoryStatus { Length = (uint)Marshal.SizeOf<MemoryStatus>() };
+        long physicalMb = GlobalMemoryStatusEx(ref memory) ?
+            (long)(memory.TotalPhysical / (1024UL * 1024UL)) : 8192;
+        long reserveMb = Math.Max(2048, physicalMb / 4);
+        return (int)Math.Clamp(physicalMb - reserveMb, 2048, 16384);
     }
 
     private void LoadRamSettings()
