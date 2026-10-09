@@ -451,9 +451,8 @@ public partial class MainWindow : Window
             await launcher.InstallAsync(VanillaVersion, token);
             token.ThrowIfCancellationRequested();
             Progress.Value = 85;
-            string javaPath = FindJavaForMode(vanillaDir, 25);
-            StatusText.Text = File.Exists(javaPath) ? "Java 25 найдена. Запускаем Vanilla..." : "Java 25 не найдена."; 
-            if (!File.Exists(javaPath)) throw new FileNotFoundException("Java 25 не найдена после установки Minecraft.", javaPath);
+            string javaPath = await EnsureJavaForModeAsync(vanillaDir, 25, 86, 96, token);
+            StatusText.Text = "Java 25 готова. Все компоненты проверены. Запускаем Vanilla...";
             int ram = GetRamForMode("vanilla");
             var options = new MLaunchOption { Session = MSession.CreateOfflineSession(account.Username), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), ServerIp = ServerHost, ServerPort = ServerPort, GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
             token.ThrowIfCancellationRequested();
@@ -484,8 +483,9 @@ public partial class MainWindow : Window
             Directory.CreateDirectory(_stateDir); Directory.CreateDirectory(_gameDir);
             StatusText.Text = "Проверяем обновление сборки на GitHub..."; Progress.Value = 5;
             await UpdateClientPackAsync(token); token.ThrowIfCancellationRequested();
-            StatusText.Text = "Проверяем Minecraft 1.20.1, Forge 47.4.20 и Java 17..."; Progress.Value = 45;
-            string versionName = await EnsureForgeAsync(token); token.ThrowIfCancellationRequested();
+            StatusText.Text = "Проверяем Minecraft 1.20.1, Forge 47.4.20 и Java 17..."; Progress.Value = 41;
+            string java17 = await EnsureJavaForModeAsync(_gameDir, 17, 41, 47, token);
+            string versionName = await EnsureForgeAsync(java17, token); token.ThrowIfCancellationRequested();
             LocalAccount? account = await ReadAccountAsync(); token.ThrowIfCancellationRequested();
             if (account is null || string.IsNullOrWhiteSpace(account.Username)) throw new Exception("Аккаунт не найден.");
             StatusText.Text = "Все компоненты готовы. Запускаем Minecraft Modded..."; Progress.Value = 98;
@@ -504,14 +504,16 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task<string> EnsureForgeAsync(CancellationToken token)
+    private async Task<string> EnsureForgeAsync(string javaPath, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
         var path = new MinecraftPath(_gameDir);
         var launcher = new MinecraftLauncher(path);
         WireMinecraftProgress(launcher, "Modded", 47, 89);
         var installer = new ForgeInstaller(launcher);
-        string forgeVersion = await installer.Install(MinecraftVersion, ForgeVersion, new ForgeInstallOptions { CancellationToken = token });
+        string forgeVersion = await installer.Install(MinecraftVersion, ForgeVersion,
+            new ForgeInstallOptions { CancellationToken = token, JavaPath = javaPath,
+                SkipIfAlreadyInstalled = true });
         token.ThrowIfCancellationRequested();
         await launcher.InstallAsync(forgeVersion, token);
         token.ThrowIfCancellationRequested();
@@ -522,8 +524,7 @@ public partial class MainWindow : Window
     {
         token.ThrowIfCancellationRequested();
         var launcher = new MinecraftLauncher(new MinecraftPath(_gameDir));
-        string javaPath = FindJavaForMode(_gameDir, 17);
-        if (!File.Exists(javaPath)) throw new FileNotFoundException("Java 17 не найдена после установки Forge.", javaPath);
+        string javaPath = await EnsureJavaForModeAsync(_gameDir, 17, 90, 96, token);
         int ram = GetRamForMode("modded");
         var options = new MLaunchOption { Session = MSession.CreateOfflineSession(nick), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
         if (!string.IsNullOrWhiteSpace(serverHost)) { options.ServerIp = serverHost; options.ServerPort = ServerPort; }
