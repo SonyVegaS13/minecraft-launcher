@@ -18,9 +18,9 @@
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <DebugType>none</DebugType>
-    <AssemblyVersion>2.2.7.0</AssemblyVersion>
-    <FileVersion>2.2.7.0</FileVersion>
-    <Version>2.2.7</Version>
+    <AssemblyVersion>2.2.8.0</AssemblyVersion>
+    <FileVersion>2.2.8.0</FileVersion>
+    <Version>2.2.8</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,6 +29,8 @@
     <!-- These files are extracted and SHA256-verified from the approved ZIP before CI build. -->
     <Resource Include="Assets\SolarisWorld.png" Condition="Exists('Assets\SolarisWorld.png')" />
     <Resource Include="Assets\SolarisModded.png" Condition="Exists('Assets\SolarisModded.png')" />
+    <Resource Include="Assets\SolarisVanillaCard.png" Condition="Exists('Assets\SolarisVanillaCard.png')" />
+    <Resource Include="Assets\SolarisModdedCard.png" Condition="Exists('Assets\SolarisModdedCard.png')" />
   </ItemGroup>
 
   <ItemGroup>
