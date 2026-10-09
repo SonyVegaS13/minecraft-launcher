@@ -79,6 +79,7 @@ public partial class MainWindow : Window
         Directory.CreateDirectory(_stateDir);
         LoadRamSettings();
         InitializeIgnition();
+        InitializeCloudMode();
         TryRestoreAccount();
         _ = UpdateServerStatusAsync();
         Loaded += MainWindow_Loaded;
@@ -111,15 +112,26 @@ public partial class MainWindow : Window
         string login = LoginBox.Text.Trim();
         string password = CurrentPassword();
         AuthStatus.Text = "";
-        if (!IsValidLogin(login)) { AuthStatus.Text = "Логин: 3–16 символов, только буквы, цифры и _."; return; }
-        if (password.Length < 8) { AuthStatus.Text = "Пароль должен содержать минимум 8 символов."; return; }
+        if (!_cloudMode && !IsValidLogin(login)) { AuthStatus.Text = "Логин: 3–16 символов, только буквы, цифры и _."; return; }
+        if (_cloudMode && !login.Contains('@')) { AuthStatus.Text = "Введите email Solaris ID."; return; }
+        int minPasswordLength = _cloudMode ? 12 : 8;
+        if (password.Length < minPasswordLength)
+        {
+            AuthStatus.Text = $"Пароль должен содержать минимум {minPasswordLength} символов.";
+            return;
+        }
         if (_registerMode && !string.Equals(password, CurrentConfirmationPassword(), StringComparison.Ordinal))
         {
             AuthStatus.Text = "Пароли не совпадают.";
             return;
         }
         AuthActionButton.IsEnabled = false; SwitchAuthButton.IsEnabled = false;
-        try { if (_registerMode) await RegisterLocalAsync(login, password); else await LoginLocalAsync(login, password); }
+        try
+        {
+            if (_cloudMode) await AuthenticateCloudAsync(login, password);
+            else if (_registerMode) await RegisterLocalAsync(login, password);
+            else await LoginLocalAsync(login, password);
+        }
         catch (Exception ex) { AuthStatus.Text = ex.Message; }
         finally { AuthActionButton.IsEnabled = true; SwitchAuthButton.IsEnabled = true; }
     }
@@ -132,6 +144,7 @@ public partial class MainWindow : Window
         SwitchAuthButton.Content = _registerMode ? "У меня уже есть аккаунт" : "Создать аккаунт";
         AuthStatus.Text = ""; ClearPasswordFields();
         ConfirmPasswordPanel.Visibility = _registerMode ? Visibility.Visible : Visibility.Collapsed;
+        RefreshCloudAuthLayout();
     }
 
     private async Task RegisterLocalAsync(string login, string password)
@@ -164,8 +177,18 @@ public partial class MainWindow : Window
 
     private async void TryRestoreAccount()
     {
-        try { LocalAccount? account = await ReadAccountAsync(); if (account is not null) { RememberMeCheck.IsChecked = account.RememberMe; if (account.RememberMe && !string.IsNullOrWhiteSpace(account.Username)) ShowMainView(account.Username); } }
-        catch { }
+        try
+        {
+            if (await TryRestoreCloudAsync()) return;
+            LocalAccount? account = await ReadAccountAsync();
+            if (account is not null)
+            {
+                RememberMeCheck.IsChecked = account.RememberMe;
+                if (account.RememberMe && !string.IsNullOrWhiteSpace(account.Username))
+                    ShowMainView(account.Username);
+            }
+        }
+        catch { /* Offline login stays available. */ }
     }
 
     private void ShowMainView(string username)
@@ -173,7 +196,10 @@ public partial class MainWindow : Window
         AuthView.Visibility = Visibility.Collapsed; MainView.Visibility = Visibility.Visible;
         WelcomeText.Text = username;
         ProfileName.Text = username;
-        ProfileText.Text = $"Локальный аккаунт: {username}";
+        ProfileText.Text = _cloudSession is not null
+            ? (_cloudOffline ? "SOLARIS ID — без соединения" : "SOLARIS ID — подключён")
+            : $"Локальный аккаунт: {username}";
+        FullProfileStatus.Text = ProfileText.Text;
         FullProfileName.Text = username;
         _ = RefreshActivityAndProfileAsync(username);
         StatusText.Text = "Готов к запуску."; Progress.Value = 0;
@@ -184,14 +210,19 @@ public partial class MainWindow : Window
     {
         try
         {
-            LocalAccount? account = await ReadAccountAsync();
-            if (account is not null) { account.RememberMe = false; await SaveAccountAsync(account); }
+            if (_cloudSession is not null) ClearCloudSession();
+            else
+            {
+                LocalAccount? account = await ReadAccountAsync();
+                if (account is not null) { account.RememberMe = false; await SaveAccountAsync(account); }
+            }
         }
         catch { }
         MainView.Visibility = Visibility.Collapsed; AuthView.Visibility = Visibility.Visible;
         LoginBox.Clear(); ClearPasswordFields(); ConfirmPasswordPanel.Visibility = Visibility.Collapsed;
         RememberMeCheck.IsChecked = false; AuthStatus.Text = ""; _registerMode = false;
         AuthTitle.Text = "Вход в аккаунт"; AuthActionButton.Content = "ВОЙТИ  ›"; SwitchAuthButton.Content = "Создать аккаунт";
+        RefreshCloudAuthLayout();
     }
 
     private async Task<LocalAccount?> ReadAccountAsync()
@@ -432,9 +463,8 @@ public partial class MainWindow : Window
         {
             Directory.CreateDirectory(_stateDir); string vanillaDir = Path.Combine(_stateDir, "vanilla"); Directory.CreateDirectory(vanillaDir);
             StatusText.Text = $"Проверяем Minecraft {VanillaVersion} и Java 25..."; Progress.Value = 4;
-            LocalAccount? account = await ReadAccountAsync();
+            string nickname = await GetCurrentLaunchUsernameAsync();
             token.ThrowIfCancellationRequested();
-            if (account is null || string.IsNullOrWhiteSpace(account.Username)) throw new InvalidOperationException("Аккаунт не найден.");
             var path = new MinecraftPath(vanillaDir); var launcher = new MinecraftLauncher(path);
             WireMinecraftProgress(launcher, "Vanilla", 25, 85);
             string javaBefore = FindJavaForMode(vanillaDir, 25);
@@ -454,13 +484,13 @@ public partial class MainWindow : Window
             string javaPath = await EnsureJavaForModeAsync(vanillaDir, 25, 86, 96, token);
             StatusText.Text = "Java 25 готова. Все компоненты проверены. Запускаем Vanilla...";
             int ram = GetRamForMode("vanilla");
-            var options = new MLaunchOption { Session = MSession.CreateOfflineSession(account.Username), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), ServerIp = ServerHost, ServerPort = ServerPort, GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
+            var options = new MLaunchOption { Session = MSession.CreateOfflineSession(nickname), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), ServerIp = ServerHost, ServerPort = ServerPort, GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
             token.ThrowIfCancellationRequested();
             var process = await launcher.BuildProcessAsync(VanillaVersion, options); token.ThrowIfCancellationRequested(); process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             process.Start(); Progress.Value = 100; StatusText.Text = "Minecraft Vanilla запущен.";
-            await TrackGameProcessAsync(process, account.Username, "vanilla");
+            await TrackGameProcessAsync(process, nickname, "vanilla");
         }
         catch (OperationCanceledException)
         {
@@ -486,10 +516,9 @@ public partial class MainWindow : Window
             StatusText.Text = "Проверяем Minecraft 1.20.1, Forge 47.4.20 и Java 17..."; Progress.Value = 41;
             string java17 = await EnsureJavaForModeAsync(_gameDir, 17, 41, 47, token);
             string versionName = await EnsureForgeAsync(java17, token); token.ThrowIfCancellationRequested();
-            LocalAccount? account = await ReadAccountAsync(); token.ThrowIfCancellationRequested();
-            if (account is null || string.IsNullOrWhiteSpace(account.Username)) throw new Exception("Аккаунт не найден.");
+            string nickname = await GetCurrentLaunchUsernameAsync(); token.ThrowIfCancellationRequested();
             StatusText.Text = "Все компоненты готовы. Запускаем Minecraft Modded..."; Progress.Value = 98;
-            await LaunchMinecraftAsync(versionName, account.Username, ModdedServerHost, token);
+            await LaunchMinecraftAsync(versionName, nickname, ModdedServerHost, token);
             StatusText.Text = "Minecraft запущен.";
         }
         catch (OperationCanceledException)

@@ -73,9 +73,19 @@
                 <Border.BorderBrush><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#AF39FD" Offset="0"/><GradientStop Color="#703D80" Offset="0.45"/><GradientStop Color="#FF883C" Offset="1"/></LinearGradientBrush></Border.BorderBrush>
                 <StackPanel>
                     <TextBlock x:Name="AuthTitle" Text="Вход в аккаунт" FontSize="29" FontWeight="Bold"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,5">
+                        <Button x:Name="LocalAuthModeButton" Content="Локальный" Style="{StaticResource SecondaryButton}" Width="120" Height="32" FontSize="11"
+                                Click="LocalAuthMode_Click"/>
+                        <Button x:Name="CloudAuthModeButton" Content="☀  SOLARIS ID" Style="{StaticResource SecondaryButton}" Width="150"
+                                Height="32" FontSize="11" Margin="10,0,0,0" Click="CloudAuthMode_Click"/>
+                    </StackPanel>
                     <TextBlock Text="Добро пожаловать в Solaris" Foreground="#C4B6D5" FontSize="13" Margin="0,6,0,20"/>
-                    <TextBlock Text="Логин" Foreground="#D9D0E6" FontSize="12" Margin="0,8,0,7"/>
+                    <TextBlock x:Name="AuthLoginLabel" Text="Логин" Foreground="#D9D0E6" FontSize="12" Margin="0,8,0,7"/>
                     <TextBox x:Name="LoginBox" Style="{StaticResource InputBox}"/>
+                    <StackPanel x:Name="CloudRegisterNicknamePanel" Visibility="Collapsed" Margin="0,10,0,0">
+                        <TextBlock Text="Игровой ник Solaris ID" Foreground="#D9D0E6" FontSize="12" Margin="0,0,0,7"/>
+                        <TextBox x:Name="CloudRegisterNickname" Style="{StaticResource InputBox}"/>
+                    </StackPanel>
                     <TextBlock Text="Пароль" Foreground="#D9D0E6" FontSize="12" Margin="0,20,0,7"/>
                     <Grid Height="46">
                         <PasswordBox x:Name="PasswordBox" Style="{StaticResource PasswordBoxStyle}" Padding="13,0,50,0"
@@ -131,7 +141,9 @@
                     <Button x:Name="AuthActionButton" Content="ВОЙТИ  ›" Style="{StaticResource PrimaryButton}" Height="52" FontSize="15" Margin="0,22,0,0" Click="AuthActionButton_Click"/>
                     <Button x:Name="SwitchAuthButton" Content="Создать аккаунт" Style="{StaticResource SecondaryButton}" Height="48" Margin="0,12,0,0" Click="SwitchAuthButton_Click"/>
                     <Border BorderBrush="#443250" BorderThickness="0,1,0,0" Margin="0,29,0,0"/>
-                    <TextBlock Text="Аккаунт хранится локально на этом ПК." Margin="0,18,0,0" HorizontalAlignment="Center" Foreground="#92839E" FontSize="10"/>
+                    <TextBlock x:Name="AuthStorageExplanation" Text="Аккаунт хранится локально на этом ПК."
+                               Margin="0,18,0,0" HorizontalAlignment="Center" Foreground="#92839E"
+                               FontSize="10" TextWrapping="Wrap" TextAlignment="Center"/>
                     <Button Content="🎨  Выбрать оформление (ZIP)" Style="{StaticResource SecondaryButton}" Height="32" FontSize="11" Margin="0,15,0,0" Click="ImportNeonArtwork_Click"/>
                     <TextBlock x:Name="ArtworkDiagnosticText" Text="Проверка оформления..." FontSize="10" Foreground="#E6B894" HorizontalAlignment="Center" Margin="0,8,0,0" TextWrapping="Wrap"/>
                 </StackPanel>
