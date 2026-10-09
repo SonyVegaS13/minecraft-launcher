@@ -18,14 +18,17 @@
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <DebugType>none</DebugType>
-    <AssemblyVersion>2.2.6.0</AssemblyVersion>
-    <FileVersion>2.2.6.0</FileVersion>
-    <Version>2.2.6</Version>
+    <AssemblyVersion>2.2.7.0</AssemblyVersion>
+    <FileVersion>2.2.7.0</FileVersion>
+    <Version>2.2.7</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <Resource Include="Assets\SolarisEmber.bmp" />
     <Resource Include="Assets\SolarisOfficialLogo.png" />
+    <!-- These files are extracted and SHA256-verified from the approved ZIP before CI build. -->
+    <Resource Include="Assets\SolarisWorld.png" Condition="Exists('Assets\SolarisWorld.png')" />
+    <Resource Include="Assets\SolarisModded.png" Condition="Exists('Assets\SolarisModded.png')" />
   </ItemGroup>
 
   <ItemGroup>
