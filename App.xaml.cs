@@ -13,6 +13,7 @@ public partial class App : Application
     private System.Threading.Mutex? _launcherMutex;
     internal static string? PendingUpdateAcknowledgement { get; private set; }
     internal static bool LaunchedAfterRecovery { get; private set; }
+    internal static bool IsDeveloperMode { get; private set; }
     private static readonly string CrashLogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Solaris", "logs", "launcher-crash.log");
@@ -83,9 +84,14 @@ public partial class App : Application
             return;
         }
 
-        // One visible launcher window per Windows session. Updater helper modes
-        // deliberately bypass this mutex and never display a launcher UI.
-        _launcherMutex = new System.Threading.Mutex(true, @"Local\SolarisLauncher.Main", out bool firstInstance);
+        // Opt-in isolated smoke testing: no self-install, no update prompts and
+        // no changes to the player's stable AppData/Solaris directory.
+        IsDeveloperMode = e.Args.Any(arg =>
+            string.Equals(arg, "--dev-test", StringComparison.OrdinalIgnoreCase));
+        string mutexName = IsDeveloperMode
+            ? @"Local\SolarisLauncher.DevTest"
+            : @"Local\SolarisLauncher.Main";
+        _launcherMutex = new System.Threading.Mutex(true, mutexName, out bool firstInstance);
         if (!firstInstance)
         {
             _launcherMutex.Dispose();
@@ -104,7 +110,7 @@ public partial class App : Application
         // If the installation cannot be completed, preserve portable mode.
         try
         {
-            if (SolarisBootstrapper.RedirectToPermanentInstallation())
+            if (!IsDeveloperMode && SolarisBootstrapper.RedirectToPermanentInstallation())
             {
                 Shutdown(0);
                 return;

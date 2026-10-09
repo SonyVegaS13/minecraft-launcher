@@ -57,9 +57,9 @@ public partial class MainWindow : Window
     private const int ServerPort = 25565;
     private const string ModdedServerHost = "";
 
-    private readonly string _gameDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Solaris", "game");
-    private readonly string _stateDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Solaris");
-    private readonly string _accountFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Solaris", "account.json");
+    private readonly string _gameDir = Path.Combine(SolarisDirectories.StateDir, "game");
+    private readonly string _stateDir = SolarisDirectories.StateDir;
+    private readonly string _accountFile = Path.Combine(SolarisDirectories.StateDir, "account.json");
     private readonly HttpClient _http = new();
     private bool _registerMode;
     private CancellationTokenSource? _launchCancellation;
@@ -90,6 +90,11 @@ public partial class MainWindow : Window
             return;
 
         _updateCheckStarted = true;
+        if (App.IsDeveloperMode)
+        {
+            StatusText.Text = "Режим разработки: данные и обновления изолированы от Solaris 2.2.9.";
+            return;
+        }
         // The new executable acknowledges successful WPF initialization to the
         // detached updater. Never re-offer the same update during its handshake.
         if (App.PendingUpdateAcknowledgement is { } attempt)

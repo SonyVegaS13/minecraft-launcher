@@ -22,8 +22,7 @@ public partial class MainWindow
     {
         string safe = new string(username.ToLowerInvariant().Where(c =>
             char.IsLetterOrDigit(c) || c == '_').ToArray());
-        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Solaris", "profiles", safe, "activity.json");
+        return Path.Combine(SolarisDirectories.StateDir, "profiles", safe, "activity.json");
     }
 
     private static async Task<PlayerActivity> ReadActivityAsync(string username)
