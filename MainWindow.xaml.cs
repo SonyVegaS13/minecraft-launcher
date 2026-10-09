@@ -542,9 +542,17 @@ public partial class MainWindow : Window
         string stateFile = Path.Combine(_stateDir, "client-release.txt"); string installedTag = File.Exists(stateFile) ? (await File.ReadAllTextAsync(stateFile, token)).Trim() : "";
         string packUrl = release.Assets.FirstOrDefault(a => string.Equals(a.Name, ClientPackAssetName, StringComparison.OrdinalIgnoreCase))?.BrowserDownloadUrl ?? throw new InvalidOperationException($"В GitHub Release {tag} не найден файл {ClientPackAssetName}.");
         VersionText.Text = $"Сборка: {tag}";
-        if (string.Equals(installedTag, tag, StringComparison.OrdinalIgnoreCase) && Directory.Exists(Path.Combine(_gameDir, "mods"))) { StatusText.Text = $"Сборка {tag} уже установлена."; Progress.Value = 40; return; }
+        if (string.Equals(installedTag, tag, StringComparison.OrdinalIgnoreCase) &&
+            await ValidateManagedPackManifestAsync(tag, token))
+        {
+            StatusText.Text = $"Сборка {tag} проверена. Все моды на месте.";
+            Progress.Value = 40;
+            return;
+        }
+        StatusText.Text = $"Сборка {tag}: отсутствуют файлы либо требуется проверка. Восстанавливаем...";
         string tempZip = Path.Combine(Path.GetTempPath(), $"SolarisClient-{Guid.NewGuid():N}.zip"); string tempExtract = Path.Combine(Path.GetTempPath(), $"SolarisClient-{Guid.NewGuid():N}");
-        try { StatusText.Text = $"Скачиваем сборку {tag} с GitHub..."; await DownloadFileWithProgressAsync(packUrl, tempZip, 5, 35, token); token.ThrowIfCancellationRequested(); StatusText.Text = "Распаковываем сборку..."; Progress.Value = 36; Directory.CreateDirectory(tempExtract); ExtractZipSafely(tempZip, tempExtract, token); string sourceRoot = FindPackRoot(tempExtract); InstallManagedPack(sourceRoot, token); await File.WriteAllTextAsync(stateFile, tag, token); Progress.Value = 40; }
+        try { StatusText.Text = $"Скачиваем сборку {tag} с GitHub..."; await DownloadFileWithProgressAsync(packUrl, tempZip, 5, 35, token); token.ThrowIfCancellationRequested(); StatusText.Text = "Распаковываем сборку..."; Progress.Value = 36; Directory.CreateDirectory(tempExtract); ExtractZipSafely(tempZip, tempExtract, token); string sourceRoot = FindPackRoot(tempExtract); InstallManagedPack(sourceRoot, token); await SaveManagedPackManifestAsync(sourceRoot, tag, token);
+            await File.WriteAllTextAsync(stateFile, tag, token); Progress.Value = 40; }
         finally { TryDeleteFile(tempZip); TryDeleteDirectory(tempExtract); }
     }
 
@@ -607,21 +615,39 @@ public partial class MainWindow : Window
             string source = Path.Combine(sourceRoot, relative); string destination = Path.Combine(_gameDir, relative);
             if (!Directory.Exists(source)) continue;
             Directory.CreateDirectory(destination);
-            CopyDirectory(source, destination, token);
+            CopyDirectory(source, destination, token, overwriteManaged: relative == "mods");
         }
     }
 
-    private static void CopyDirectory(string source, string destination, CancellationToken token)
+    private static void CopyDirectory(string source, string destination, CancellationToken token, bool overwriteManaged)
     {
         foreach (string directory in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
         {
             token.ThrowIfCancellationRequested();
-            string relative = Path.GetRelativePath(source, directory); Directory.CreateDirectory(Path.Combine(destination, relative));
+            string relative = Path.GetRelativePath(source, directory);
+            Directory.CreateDirectory(Path.Combine(destination, relative));
         }
         foreach (string file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
         {
             token.ThrowIfCancellationRequested();
-            string relative = Path.GetRelativePath(source, file); string target = Path.Combine(destination, relative); Directory.CreateDirectory(Path.GetDirectoryName(target)!); File.Copy(file, target, true);
+            string relative = Path.GetRelativePath(source, file);
+            string target = Path.Combine(destination, relative);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            if (File.Exists(target))
+            {
+                // Keep user-edited configuration, resource packs and scripts
+                // intact. Only the declared managed mod binaries are repaired.
+                if (!overwriteManaged) continue;
+                if (new FileInfo(file).Length == new FileInfo(target).Length)
+                {
+                    using var sourceStream = File.OpenRead(file);
+                    using var targetStream = File.OpenRead(target);
+                    if (CryptographicOperations.FixedTimeEquals(
+                        SHA256.HashData(sourceStream), SHA256.HashData(targetStream)))
+                        continue; // Correct file: do not overwrite.
+                }
+            }
+            File.Copy(file, target, overwrite: true);
         }
     }
 
