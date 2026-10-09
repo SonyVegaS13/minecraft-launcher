@@ -69,7 +69,7 @@ jobs:
         shell: pwsh
         run: |
           foreach ($name in @('SolarisVanillaCard', 'SolarisModdedCard')) {
-            if (-not (Test-Path "Assets/$name.webp") -or -not (Test-Path "Assets/$name.png")) {
+            if (-not (Test-Path "Assets/$name.png")) {
               throw "Refusing to release 2.2.8 without approved $name artwork"
             }
           }
