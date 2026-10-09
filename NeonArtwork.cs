@@ -25,7 +25,7 @@ public partial class MainWindow
     private bool TryLoadNeonArt(string? selectedPath = null, bool notify = false)
     {
         var report = new StringBuilder();
-        report.AppendLine($"[{DateTimeOffset.Now:O}] Solaris Neon UI 2.2.1");
+        report.AppendLine($"[{DateTimeOffset.Now:O}] Solaris Neon UI 2.2.2");
         bool loaded = false;
         string? loadedFrom = null;
         try
@@ -71,7 +71,9 @@ public partial class MainWindow
                     LoginBackdrop.Background = new ImageBrush(login.Bitmap) { Stretch = Stretch.UniformToFill };
                     MainView.Background = new ImageBrush(main.Bitmap) { Stretch = Stretch.UniformToFill, Opacity = 0.30 };
                     VanillaArtwork.Source = vanilla.Bitmap;
+                    VanillaArtworkSharp.Source = vanilla.Bitmap;
                     ModdedArtwork.Source = modded.Bitmap;
+                    ModdedArtworkSharp.Source = modded.Bitmap;
 
                     loaded = true;
                     loadedFrom = candidate;
@@ -190,7 +192,7 @@ public partial class MainWindow
             var bitmap = new BitmapImage();
             bitmap.BeginInit();
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.DecodePixelWidth = 1920;
+            bitmap.DecodePixelWidth = 1600;
             bitmap.StreamSource = stream;
             bitmap.EndInit();
             bitmap.Freeze();
