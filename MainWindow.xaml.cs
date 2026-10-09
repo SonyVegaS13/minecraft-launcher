@@ -66,7 +66,7 @@ public partial class MainWindow : Window
     private Button? _activeLaunchButton;
     private bool _updateCheckStarted;
 
-    private const string LauncherVersion = "2.2.9";
+    private const string LauncherVersion = "2.2.10";
     // Neon versions check signed-off GitHub release assets, not the 2.1.x stable manifest.
 
     public MainWindow()
@@ -89,7 +89,15 @@ public partial class MainWindow : Window
             return;
 
         _updateCheckStarted = true;
-        await CheckForUpdatesAsync();
+        // The new executable acknowledges successful WPF initialization to the
+        // detached updater. Never re-offer the same update during its handshake.
+        if (App.PendingUpdateAcknowledgement is { } attempt)
+        {
+            SolarisSafeUpdate.PublishReady(attempt);
+            return;
+        }
+        if (!App.LaunchedAfterRecovery)
+            await CheckForUpdatesAsync();
     }
 
     private async void AuthActionButton_Click(object sender, RoutedEventArgs e)

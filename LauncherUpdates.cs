@@ -19,13 +19,17 @@ public partial class MainWindow
         "https://api.github.com/repos/SonyVegaS13/minecraft-launcher/releases?per_page=60";
 
     private sealed record NeonUpdate(Version Version, string DownloadUrl, string ChecksumUrl);
+    private bool _updateOperationRunning;
 
     private async Task CheckForUpdatesAsync()
     {
+        if (_updateOperationRunning || App.LaunchedAfterRecovery || App.PendingUpdateAcknowledgement is not null)
+            return;
+        _updateOperationRunning = true;
         try
         {
             NeonUpdate? update = await FindLatestNeonUpdateAsync();
-            if (update is null)
+            if (update is null || !SolarisSafeUpdate.CanOffer(update.Version.ToString()))
                 return;
 
             MessageBoxResult answer = MessageBox.Show(
@@ -64,6 +68,10 @@ public partial class MainWindow
                     $"[{DateTimeOffset.Now:O}] {ex}\n");
             }
             catch { /* Optional diagnostics. */ }
+        }
+        finally
+        {
+            _updateOperationRunning = false;
         }
     }
 
@@ -121,6 +129,8 @@ public partial class MainWindow
             "Solaris", "updates");
         Directory.CreateDirectory(updatesDir);
         string incoming = Path.Combine(updatesDir, $"Solaris-{Guid.NewGuid():N}.exe");
+        string attemptId = Guid.NewGuid().ToString("N");
+        SolarisSafeUpdate.Begin(update.Version.ToString(), attemptId);
 
         try
         {
@@ -157,14 +167,17 @@ public partial class MainWindow
             startInfo.ArgumentList.Add("--self-update");
             startInfo.ArgumentList.Add(currentPath);
             startInfo.ArgumentList.Add(incoming);
+            startInfo.ArgumentList.Add(update.Version.ToString());
+            startInfo.ArgumentList.Add(attemptId);
 
             if (Process.Start(startInfo) is null)
                 throw new InvalidOperationException("Не удалось запустить помощник обновления.");
 
             Application.Current.Shutdown();
         }
-        catch
+        catch (Exception ex)
         {
+            SolarisSafeUpdate.MarkFailed(update.Version.ToString(), attemptId, ex);
             try { File.Delete(incoming); } catch { }
             throw;
         }

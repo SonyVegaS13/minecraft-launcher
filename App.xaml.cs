@@ -10,6 +10,9 @@ namespace SolarisLauncher;
 public partial class App : Application
 {
     private bool _handlingCrash;
+    private System.Threading.Mutex? _launcherMutex;
+    internal static string? PendingUpdateAcknowledgement { get; private set; }
+    internal static bool LaunchedAfterRecovery { get; private set; }
     private static readonly string CrashLogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Solaris", "logs", "launcher-crash.log");
@@ -63,20 +66,38 @@ public partial class App : Application
                 System.Windows.Interop.RenderMode.SoftwareOnly;
         }
 
-        if (e.Args.Length >= 3 &&
+        if (e.Args.Length >= 5 &&
             string.Equals(e.Args[0], "--self-update", StringComparison.OrdinalIgnoreCase))
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            _ = RunSelfUpdateAsync(e.Args[1], e.Args[2]);
+            _ = RunSelfUpdateAsync(e.Args[1], e.Args[2], e.Args[3], e.Args[4]);
             return;
         }
 
-        if (e.Args.Length >= 3 && string.Equals(e.Args[0], "--apply-update", StringComparison.OrdinalIgnoreCase))
+        if (e.Args.Length >= 5 &&
+            string.Equals(e.Args[0], "--apply-update", StringComparison.OrdinalIgnoreCase))
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            _ = ApplyUpdateAsync(e.Args[1], e.Args[2]);
+            _ = SolarisSafeUpdate.ApplyUpdateAsync(e.Args[1], e.Args[2], e.Args[3], e.Args[4],
+                () => Shutdown());
             return;
         }
+
+        // One visible launcher window per Windows session. Updater helper modes
+        // deliberately bypass this mutex and never display a launcher UI.
+        _launcherMutex = new System.Threading.Mutex(true, @"Local\SolarisLauncher.Main", out bool firstInstance);
+        if (!firstInstance)
+        {
+            _launcherMutex.Dispose();
+            _launcherMutex = null;
+            Shutdown(0);
+            return;
+        }
+
+        if (e.Args.Length >= 2 && string.Equals(e.Args[0], "--updated", StringComparison.OrdinalIgnoreCase))
+            PendingUpdateAcknowledgement = e.Args[1];
+        if (e.Args.Length >= 1 && string.Equals(e.Args[0], "--update-recovery", StringComparison.OrdinalIgnoreCase))
+            LaunchedAfterRecovery = true;
 
         // 2.2.6+ auto-installs on the first ordinary launch and reopens
         // the permanent EXE. The update-helper modes above skip this step.
@@ -115,7 +136,18 @@ public partial class App : Application
         }
     }
 
-    private Task RunSelfUpdateAsync(string launcherPath, string newLauncherPath)
+    protected override void OnExit(ExitEventArgs e)
+    {
+        if (_launcherMutex is not null)
+        {
+            try { _launcherMutex.ReleaseMutex(); } catch (ApplicationException) { }
+            _launcherMutex.Dispose();
+            _launcherMutex = null;
+        }
+        base.OnExit(e);
+    }
+
+    private Task RunSelfUpdateAsync(string launcherPath, string newLauncherPath, string expectedVersion, string attemptId)
     {
         try
         {
@@ -126,14 +158,16 @@ public partial class App : Application
             Process.Start(new ProcessStartInfo
             {
                 FileName = helperPath,
-                ArgumentList = { "--apply-update", launcherPath, newLauncherPath },
+                ArgumentList = { "--apply-update", launcherPath, newLauncherPath, expectedVersion, attemptId },
                 WorkingDirectory = Path.GetDirectoryName(launcherPath)!,
                 UseShellExecute = false
             });
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "Solaris update error");
+            SolarisSafeUpdate.MarkFailed(expectedVersion, attemptId, ex);
+            MessageBox.Show("Не удалось запустить помощник обновления. Предыдущая версия сохранена.\n\n" +
+                ex.Message, "Solaris — обновление", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         Shutdown();
         return Task.CompletedTask;
