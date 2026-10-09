@@ -164,7 +164,7 @@
                                 </Grid>
                                 <Grid x:Name="IgnitionTrack" Height="16" ClipToBounds="False" SizeChanged="IgnitionTrack_SizeChanged">
                                     <Border Background="#282032" BorderBrush="#735031" BorderThickness="1" CornerRadius="8"/>
-                                    <Border x:Name="IgnitionFill" Background="#FFCA31" HorizontalAlignment="Left" Width="0" CornerRadius="7" IsHitTestVisible="False">
+                                    <Border x:Name="IgnitionFill" HorizontalAlignment="Left" Width="0" CornerRadius="7" IsHitTestVisible="False">
                                         <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFF4B1" Offset="0"/><GradientStop Color="#FFE63A" Offset="0.25"/><GradientStop Color="#FF9F11" Offset="0.75"/><GradientStop Color="#B45805" Offset="1"/></LinearGradientBrush></Border.Background>
                                     </Border>
                                     <Border x:Name="IgnitionFront" Width="5" HorizontalAlignment="Left" Background="#FFFFCE" Opacity="0.8" CornerRadius="3" IsHitTestVisible="False"/>
