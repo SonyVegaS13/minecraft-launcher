@@ -25,9 +25,11 @@ public partial class MainWindow
     private bool TryLoadNeonArt(string? selectedPath = null, bool notify = false)
     {
         var report = new StringBuilder();
-        report.AppendLine($"[{DateTimeOffset.Now:O}] Solaris Neon UI 2.2.6");
-        bool loaded = false;
-        string? loadedFrom = null;
+        report.AppendLine($"[{DateTimeOffset.Now:O}] Solaris Neon UI 2.2.7");
+        // The release includes the approved world and modded illustrations.
+        // A custom ZIP, when present, still overrides these built-in defaults.
+        bool loaded = TryApplyEmbeddedNeonArtwork(report);
+        string? loadedFrom = loaded ? "встроенное оформление Solaris Neon" : null;
         try
         {
             IEnumerable<string> candidates = selectedPath is not null
@@ -127,9 +129,60 @@ public partial class MainWindow
                 MessageBoxButton.OK, loaded ? MessageBoxImage.Information : MessageBoxImage.Warning);
         }
 
-        if (!loaded) report.AppendLine("RESULT: no external artwork loaded; embedded fallback remains.");
+        if (!loaded) report.AppendLine("RESULT: approved artwork unavailable; legacy fallback remains.");
         WriteArtworkLog(report.ToString());
         return loaded;
+    }
+
+    // These PNG files are WPF Resource items compiled directly into the EXE.
+    // New players see the approved artwork without downloading or importing a ZIP.
+    private bool TryApplyEmbeddedNeonArtwork(StringBuilder report)
+    {
+        try
+        {
+            BitmapImage world = LoadEmbeddedNeonImage("SolarisWorld.png");
+            BitmapImage modded = LoadEmbeddedNeonImage("SolarisModded.png");
+
+            LoginBackdrop.Background = new ImageBrush(world)
+            {
+                Stretch = Stretch.UniformToFill
+            };
+            MainView.Background = new ImageBrush(world)
+            {
+                Stretch = Stretch.UniformToFill,
+                Opacity = 0.30
+            };
+
+            VanillaArtwork.Source = CreateSoftThumbnail(world, 280, 2);
+            VanillaArtworkSharp.Source = world;
+            ModdedArtwork.Source = CreateSoftThumbnail(modded, 230, 3);
+            ModdedArtworkSharp.Source = modded;
+
+            report.AppendLine("BUILT-IN LOGIN: Assets/SolarisWorld.png");
+            report.AppendLine("BUILT-IN MAIN: Assets/SolarisWorld.png");
+            report.AppendLine("BUILT-IN VANILLA: Assets/SolarisWorld.png");
+            report.AppendLine("BUILT-IN MODDED: Assets/SolarisModded.png");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            // Older development builds without the asset bundle still start.
+            report.AppendLine("Embedded artwork unavailable: " + ex.Message);
+            return false;
+        }
+    }
+
+    private static BitmapImage LoadEmbeddedNeonImage(string filename)
+    {
+        var bitmap = new BitmapImage();
+        bitmap.BeginInit();
+        bitmap.UriSource = new Uri(
+            "pack://application:,,,/Assets/" + filename, UriKind.Absolute);
+        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+        bitmap.DecodePixelWidth = 1600;
+        bitmap.EndInit();
+        bitmap.Freeze();
+        return bitmap;
     }
 
     private static IEnumerable<string> FindArtworkCandidates()
