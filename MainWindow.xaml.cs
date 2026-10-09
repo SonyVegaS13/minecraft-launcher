@@ -66,7 +66,7 @@ public partial class MainWindow : Window
     private Button? _activeLaunchButton;
     private bool _updateCheckStarted;
 
-    private const string LauncherVersion = "2.2.6";
+    private const string LauncherVersion = "2.2.7";
     // Neon versions check signed-off GitHub release assets, not the 2.1.x stable manifest.
 
     public MainWindow()
