@@ -25,7 +25,7 @@ public partial class MainWindow
     private bool TryLoadNeonArt(string? selectedPath = null, bool notify = false)
     {
         var report = new StringBuilder();
-        report.AppendLine($"[{DateTimeOffset.Now:O}] Solaris Neon UI 2.2.7");
+        report.AppendLine($"[{DateTimeOffset.Now:O}] Solaris Neon UI 2.2.8");
         // The release includes the approved world and modded illustrations.
         // A custom ZIP, when present, still overrides these built-in defaults.
         bool loaded = TryApplyEmbeddedNeonArtwork(report);
@@ -112,6 +112,11 @@ public partial class MainWindow
             report.AppendLine("Unexpected artwork loader error: " + ex);
         }
 
+        // Approved server-card art always takes priority over old cached UI ZIPs.
+        // ZIP imports may still customize login/home, but they must not silently
+        // restore the old portal background over the official Vanilla/Modded cards.
+        TryApplyOfficialCardArt(report);
+
         if (ArtworkDiagnosticText is not null)
         {
             ArtworkDiagnosticText.Text = loaded
@@ -172,6 +177,33 @@ public partial class MainWindow
         {
             // Older development builds without the asset bundle still start.
             report.AppendLine("Embedded artwork unavailable: " + ex.Message);
+            return false;
+        }
+    }
+
+    // The official 2.2.8 card backgrounds are bundled as WPF resources and
+    // do not depend on files under %APPDATA% or the user's Downloads folder.
+    private bool TryApplyOfficialCardArt(StringBuilder report)
+    {
+        try
+        {
+            BitmapImage vanilla = LoadEmbeddedNeonImage("SolarisVanillaCard.png");
+            BitmapImage modded = LoadEmbeddedNeonImage("SolarisModdedCard.png");
+
+            // Preserve the fast cached-thumbnail-to-sharp hover transitions.
+            // Never animate a live WPF BlurEffect on low-power graphics adapters.
+            VanillaArtwork.Source = CreateSoftThumbnail(vanilla, 600, 1);
+            VanillaArtworkSharp.Source = vanilla;
+            ModdedArtwork.Source = CreateSoftThumbnail(modded, 600, 1);
+            ModdedArtworkSharp.Source = modded;
+
+            report.AppendLine("OFFICIAL 2.2.8 VANILLA CARD: Assets/SolarisVanillaCard.png");
+            report.AppendLine("OFFICIAL 2.2.8 MODDED CARD: Assets/SolarisModdedCard.png");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            report.AppendLine("Official card art unavailable: " + ex.Message);
             return false;
         }
     }
