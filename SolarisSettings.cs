@@ -112,6 +112,7 @@ public partial class MainWindow
         SettingsView.Visibility = Visibility.Collapsed;
         ProfileView.Visibility = Visibility.Visible;
         _ = RefreshActivityAndProfileAsync(WelcomeText.Text);
+        _ = PrepareSkinPreviewAsync(WelcomeText.Text);
     }
 
     private void BackToHome_Click(object sender, RoutedEventArgs e)
