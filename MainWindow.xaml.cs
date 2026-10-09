@@ -77,7 +77,8 @@ public partial class MainWindow : Window
         _http.DefaultRequestHeaders.UserAgent.ParseAdd("SolarisLauncher/3.0");
         _http.Timeout = TimeSpan.FromMinutes(20);
         Directory.CreateDirectory(_stateDir);
-        RamText.Text = $"{(int)RamSlider.Value} MB";
+        LoadRamSettings();
+        InitializeIgnition();
         TryRestoreAccount();
         _ = UpdateServerStatusAsync();
         Loaded += MainWindow_Loaded;
@@ -161,7 +162,9 @@ public partial class MainWindow : Window
         AuthView.Visibility = Visibility.Collapsed; MainView.Visibility = Visibility.Visible;
         WelcomeText.Text = username;
         ProfileName.Text = username;
-        ProfileText.Text = $"Игрок: {username}\nВерсия клиента: Minecraft {MinecraftVersion}";
+        ProfileText.Text = $"Локальный аккаунт: {username}";
+        FullProfileName.Text = username;
+        _ = RefreshActivityAndProfileAsync(username);
         StatusText.Text = "Готов к запуску."; Progress.Value = 0;
         _ = UpdateServerStatusAsync();
     }
@@ -197,7 +200,7 @@ public partial class MainWindow : Window
 
     private static bool IsValidLogin(string login) => login.Length >= 3 && login.Length <= 16 && login.All(c => char.IsLetterOrDigit(c) || c == '_');
 
-    private void RamSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) { if (RamText is not null) RamText.Text = $"{(int)e.NewValue} MB"; }
+    // Individual memory settings are maintained by SolarisSettings.cs.
 
     private async Task UpdateServerStatusAsync()
     {
@@ -426,7 +429,7 @@ public partial class MainWindow : Window
             token.ThrowIfCancellationRequested();
             Progress.Value = 85;
             string javaPath = FindBundledJava(vanillaDir); if (!File.Exists(javaPath)) throw new FileNotFoundException($"Java Runtime не найден: {javaPath}");
-            int ram = (int)RamSlider.Value;
+            int ram = GetRamForMode("vanilla");
             var options = new MLaunchOption { Session = MSession.CreateOfflineSession(account.Username), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), ServerIp = ServerHost, ServerPort = ServerPort, GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
             token.ThrowIfCancellationRequested();
             var process = await launcher.BuildProcessAsync(VanillaVersion, options); token.ThrowIfCancellationRequested(); process.StartInfo.UseShellExecute = false;
@@ -494,7 +497,7 @@ public partial class MainWindow : Window
         var launcher = new MinecraftLauncher(new MinecraftPath(_gameDir));
         string javaPath = FindBundledJava(_gameDir);
         if (!File.Exists(javaPath)) throw new FileNotFoundException($"Java Runtime не найден: {javaPath}");
-        int ram = (int)RamSlider.Value;
+        int ram = GetRamForMode("modded");
         var options = new MLaunchOption { Session = MSession.CreateOfflineSession(nick), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
         if (!string.IsNullOrWhiteSpace(serverHost)) { options.ServerIp = serverHost; options.ServerPort = ServerPort; }
         token.ThrowIfCancellationRequested();

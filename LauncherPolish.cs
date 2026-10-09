@@ -94,7 +94,7 @@ public partial class MainWindow
         if (profileName is not null && !string.IsNullOrWhiteSpace(WelcomeText.Text))
             profileName.Text = WelcomeText.Text;
 
-        PolishAchievements();
+        // Achievements removed: SOLARIS ACTIVITY is now the account dashboard.
     }
 
     private void PolishAchievements()

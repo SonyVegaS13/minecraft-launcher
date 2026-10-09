@@ -98,7 +98,7 @@
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="70" Height="70" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/><StackPanel VerticalAlignment="Center" Margin="13,0,0,0"><TextBlock Text="SOLARIS" FontSize="32" FontWeight="ExtraBold"/></StackPanel></StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <Border Padding="23,11" CornerRadius="12" Background="#512299" BorderBrush="#AA45F8" BorderThickness="1"><TextBlock Text="⬡  Миры" FontSize="14" FontWeight="SemiBold" Foreground="White"/></Border>
-                    <TextBlock Text="⚙  Настройки" VerticalAlignment="Center" Margin="25,0,0,0" Foreground="#C3B7D0" FontSize="13"/>
+                    <Button Content="⚙  Настройки" VerticalAlignment="Center" Margin="25,0,0,0" Style="{StaticResource NavButton}" Foreground="#FFE09A" FontSize="13" Click="SettingsNav_Click"/>
                     <TextBlock Text="▤  Новости" VerticalAlignment="Center" Margin="25,0,0,0" Foreground="#C3B7D0" FontSize="13"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right"><TextBlock x:Name="WelcomeText" HorizontalAlignment="Right" FontSize="15" FontWeight="Bold"/><Button Content="Выйти" Style="{StaticResource NavButton}" HorizontalAlignment="Right" Click="LogoutButton_Click"/></StackPanel>
@@ -127,6 +127,7 @@
                                         <TextBlock Text="Minecraft 26.2 • Survival" FontSize="13" Margin="0,13,0,0" Foreground="#F0E4EF"/>
                                         <StackPanel Orientation="Horizontal" Margin="0,11,0,0"><Ellipse Width="8" Height="8" Fill="#3DFFA3" VerticalAlignment="Center"/><TextBlock Text=" Сервер готов" Foreground="#64FFAD" FontSize="11"/></StackPanel>
                                         <TextBlock Text="solarisplay.millida.host:25565" Foreground="#B5A1BC" FontSize="10" Margin="0,5,0,0"/>
+                                        <TextBlock x:Name="VanillaHours" Text="В игре: 0 ч 0 мин" Foreground="#FFE2A1" FontSize="10" Margin="0,7,0,0"/>
                                     </StackPanel>
                                     <Button x:Name="VanillaPlayButton" Grid.Column="1" Content="▶  ИГРАТЬ" Style="{StaticResource PrimaryButton}" Width="184" Height="58" VerticalAlignment="Center" Click="VanillaPlayButton_Click"/>
                                 </Grid>
@@ -148,6 +149,7 @@
                                         </StackPanel>
                                         <TextBlock Text="Minecraft 1.20.1 • Forge 47.4.20" FontSize="13" Foreground="#E7D9F1" Margin="0,14,0,0"/>
                                         <TextBlock Text="Модовая сборка Solaris" FontSize="10" Foreground="#BB9BD0" Margin="0,9,0,0"/>
+                                        <TextBlock x:Name="ModdedHours" Text="В игре: 0 ч 0 мин" Foreground="#E4C5FF" FontSize="10" Margin="0,7,0,0"/>
                                     </StackPanel>
                                     <Button x:Name="PlayButton" Grid.Column="1" Content="▶  ИГРАТЬ" Style="{StaticResource PrimaryButton}" Width="172" Height="56" VerticalAlignment="Center" Click="PlayButton_Click"/>
                                 </Grid>
@@ -155,7 +157,25 @@
                         </Border>
 
         <Border Background="#130F23" BorderBrush="#593271" BorderThickness="1" CornerRadius="14" Padding="16" Margin="0,14,0,0">
-                            <Grid><ProgressBar x:Name="Progress" Height="4" Minimum="0" Maximum="100" Value="0"/><Grid Margin="0,9,0,0"><TextBlock x:Name="StatusText" Text="Готов к запуску." Foreground="#737C8D" FontSize="10"/><TextBlock x:Name="VersionText" Text="" HorizontalAlignment="Right" Foreground="#505866" FontSize="10"/></Grid></Grid>
+                            <StackPanel>
+                                <Grid Margin="0,0,0,9">
+                                    <TextBlock Text="☀  SOLARIS IGNITION" Foreground="#FFD56A" FontWeight="SemiBold" FontSize="11"/>
+                                    <TextBlock x:Name="IgnitionPercent" Text="0%" Foreground="#FFE99B" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold"/>
+                                </Grid>
+                                <Grid x:Name="IgnitionTrack" Height="16" ClipToBounds="False" SizeChanged="IgnitionTrack_SizeChanged">
+                                    <Border Background="#282032" BorderBrush="#735031" BorderThickness="1" CornerRadius="8"/>
+                                    <Border x:Name="IgnitionFill" Background="#FFCA31" HorizontalAlignment="Left" Width="0" CornerRadius="7" IsHitTestVisible="False">
+                                        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFF4B1" Offset="0"/><GradientStop Color="#FFE63A" Offset="0.25"/><GradientStop Color="#FF9F11" Offset="0.75"/><GradientStop Color="#B45805" Offset="1"/></LinearGradientBrush></Border.Background>
+                                    </Border>
+                                    <Border x:Name="IgnitionFront" Width="5" HorizontalAlignment="Left" Background="#FFFFCE" Opacity="0.8" CornerRadius="3" IsHitTestVisible="False"/>
+                                    <Canvas x:Name="IgnitionParticles" IsHitTestVisible="False" ClipToBounds="False"/>
+                                    <ProgressBar x:Name="Progress" Minimum="0" Maximum="100" Value="0" Visibility="Collapsed" ValueChanged="IgnitionProgress_ValueChanged"/>
+                                </Grid>
+                                <Grid Margin="0,10,0,0">
+                                    <TextBlock x:Name="StatusText" Text="Готов к запуску." Foreground="#CEC3D1" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,0,72,0"/>
+                                    <TextBlock x:Name="VersionText" Text="" HorizontalAlignment="Right" Foreground="#7E7185" FontSize="10"/>
+                                </Grid>
+                            </StackPanel>
                         </Border>
 
                         <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="16" Padding="18" Margin="0,14,0,0">
@@ -176,19 +196,95 @@
                             <StackPanel>
                                 <TextBlock Text="ПРОФИЛЬ" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/>
                                 <Grid Margin="0,15,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="72"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border Width="66" Height="66" CornerRadius="33" Background="{StaticResource AccentBrush}" BorderBrush="#B89BFF" BorderThickness="2"><Grid ClipToBounds="True"><TextBlock Text="◈" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/><Image x:Name="ProfileAvatarImage" Stretch="UniformToFill"/></Grid></Border><StackPanel Grid.Column="1" Margin="13,0,0,0" VerticalAlignment="Center"><TextBlock x:Name="ProfileName" Text="Игрок Solaris" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="● В сети" FontSize="10" Foreground="#86EFAC" Margin="0,5,0,0"/></StackPanel></Grid>
-                                <TextBlock x:Name="ProfileText" Text="Версия клиента: Minecraft 1.20.1" Foreground="#727B8C" FontSize="10" Margin="0,13,0,0" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="ProfileText" Text="Локальный аккаунт Solaris" Foreground="#A398B9" FontSize="10" Margin="0,13,0,0" TextWrapping="Wrap"/>
+                                <Button Content="↗  Открыть профиль" Style="{StaticResource SecondaryButton}" Margin="0,14,0,0" Height="36" FontSize="11" Click="ProfileNav_Click"/>
                                 <Grid Margin="0,15,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="ОНЛАЙН" FontSize="9" Foreground="#60697A"/><TextBlock Text="—" FontSize="15" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel><StackPanel Grid.Column="1"><TextBlock Text="ИГРЫ" FontSize="9" Foreground="#60697A"/><TextBlock Text="0" FontSize="15" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel><StackPanel Grid.Column="2"><TextBlock Text="LEVEL" FontSize="9" Foreground="#60697A"/><TextBlock Text="1" FontSize="15" FontWeight="SemiBold" Margin="0,3,0,0"/></StackPanel></Grid>
                             </StackPanel>
                         </Border>
 
                         <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,14,0,0"><StackPanel><TextBlock Text="АВАТАР" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/><TextBlock Text="Minecraft skin ↔ Solaris" FontSize="10" Foreground="#60697A" Margin="0,4,0,10"/><RadioButton Content="Голова скина" GroupName="Avatar" IsChecked="True" Style="{StaticResource AvatarRadio}" IsHitTestVisible="False"/></StackPanel></Border>
 
-                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,14,0,0"><StackPanel><TextBlock Text="НАСТРОЙКИ" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/><TextBlock Text="Оперативная память" FontSize="11" Foreground="#AAB2C0" Margin="0,16,0,8"/><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Slider x:Name="RamSlider" Grid.Column="0" Minimum="2048" Maximum="4096" TickFrequency="512" IsSnapToTickEnabled="True" Value="3072" ValueChanged="RamSlider_ValueChanged" VerticalAlignment="Center" Height="30" Foreground="#B14DFA"/><TextBlock x:Name="RamText" Grid.Column="1" Text="3072 MB" Margin="12,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11" Foreground="#E5D7EE"/></Grid><TextBlock Text="Java определяется автоматически" FontSize="9" Foreground="#5E6676" Margin="0,8,0,0"/><Button Content="🎨  Выбрать оформление (ZIP)" Style="{StaticResource SecondaryButton}" FontSize="11" Height="34" Margin="0,12,0,0" Click="ImportNeonArtwork_Click"/></StackPanel></Border>
+                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,14,0,0">
+                             <StackPanel>
+                                 <TextBlock Text="☀  SOLARIS ACTIVITY" FontSize="11" FontWeight="SemiBold" Foreground="#FFCF73"/>
+                                 <TextBlock Text="ПОСЛЕДНЯЯ ИГРА" FontSize="9" Foreground="#998CA8" Margin="0,15,0,4"/>
+                                 <TextBlock x:Name="ActivityLastGame" Text="Вы ещё не играли" FontSize="14" FontWeight="SemiBold"/>
+                                 <TextBlock Text="ПОСЛЕДНИЙ СЕАНС" FontSize="9" Foreground="#998CA8" Margin="0,13,0,4"/>
+                                 <TextBlock x:Name="ActivityLastDuration" Text="0 ч 0 мин" FontSize="13" Foreground="#FFE0A0"/>
+                                 <TextBlock Text="ПОСЛЕДНИЙ ЗАПУСК" FontSize="9" Foreground="#998CA8" Margin="0,13,0,4"/>
+                                 <TextBlock x:Name="ActivityLastLaunch" Text="—" FontSize="12" Foreground="#D3C6DD"/>
+                                 <Button Content="↗  Открыть профиль" Style="{StaticResource SecondaryButton}" FontSize="11" Height="36" Margin="0,17,0,0" Click="ProfileNav_Click"/>
+                             </StackPanel>
+                         </Border>
                     </StackPanel>
                 </Grid>
             </ScrollViewer>
             <TextBlock Grid.Row="2" Text="SOLARIS LAUNCHER • Minecraft 26.2 / 1.20.1 Forge" FontSize="9" Foreground="#4D5563"/>
         </Grid>
+        </Grid>
+
+        <!-- Built-in Neon panels: keep gameplay views in the same WPF window. -->
+        <Grid x:Name="SettingsView" Grid.Row="1" Margin="12" Visibility="Collapsed" Background="#100D20" Panel.ZIndex="20">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel MaxWidth="780" HorizontalAlignment="Center" Margin="28,18" Width="710">
+                    <Button Content="←  НАЗАД К МИРАМ" Style="{StaticResource NavButton}" HorizontalAlignment="Left" Click="BackToHome_Click"/>
+                    <TextBlock Text="⚙  НАСТРОЙКИ SOLARIS" FontSize="27" FontWeight="Bold" Foreground="#FFE1A0" Margin="0,24,0,5"/>
+                    <TextBlock Text="Память игры • безопасные ограничения" FontSize="12" Foreground="#AE9DB8" Margin="0,0,0,24"/>
+                    <Border Background="#1A1729" BorderBrush="#584368" BorderThickness="1" CornerRadius="18" Padding="24" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="SOLARIS VANILLA" Foreground="#FFD27C" FontWeight="SemiBold" FontSize="15"/>
+                            <TextBlock Text="Minecraft 26.2" Foreground="#B9AABA" FontSize="11" Margin="0,4,0,12"/>
+                            <TextBlock x:Name="VanillaRamText" Text="3072 МБ" FontSize="19" FontWeight="Bold" Foreground="#FFE2A0"/>
+                            <Slider x:Name="VanillaRamSlider" Minimum="2048" Maximum="4096" Value="3072" TickFrequency="512" IsSnapToTickEnabled="True" ValueChanged="VanillaRamSlider_ValueChanged" Height="34" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#1A1729" BorderBrush="#584368" BorderThickness="1" CornerRadius="18" Padding="24" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="SOLARIS MODDED" Foreground="#D8B2FF" FontWeight="SemiBold" FontSize="15"/>
+                            <TextBlock Text="Minecraft 1.20.1 • Forge 47.4.20" Foreground="#B9AABA" FontSize="11" Margin="0,4,0,12"/>
+                            <TextBlock x:Name="ModdedRamText" Text="4096 МБ" FontSize="19" FontWeight="Bold" Foreground="#FFE2A0"/>
+                            <Slider x:Name="ModdedRamSlider" Minimum="2048" Maximum="4096" Value="4096" TickFrequency="512" IsSnapToTickEnabled="True" ValueChanged="ModdedRamSlider_ValueChanged" Height="34" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <TextBlock x:Name="RamSafetyText" Text="Solaris сохраняет достаточно памяти для Windows." Foreground="#E5C885" FontSize="12" TextWrapping="Wrap"/>
+                    <TextBlock Text="Настройки сохраняются отдельно от Minecraft и не сбрасываются при обновлениях." Foreground="#9C92A9" FontSize="11" Margin="0,12,0,15" TextWrapping="Wrap"/>
+                    <Button Content="🎨  Импортировать оформление" Style="{StaticResource SecondaryButton}" Click="ImportNeonArtwork_Click" Width="245" HorizontalAlignment="Left"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <Grid x:Name="ProfileView" Grid.Row="1" Margin="12" Visibility="Collapsed" Background="#100D20" Panel.ZIndex="21">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel MaxWidth="780" Width="710" HorizontalAlignment="Center" Margin="28,18">
+                    <Button Content="←  НАЗАД К МИРАМ" Style="{StaticResource NavButton}" HorizontalAlignment="Left" Click="BackToHome_Click"/>
+                    <TextBlock Text="☀  SOLARIS PLAYER PROFILE" FontSize="27" FontWeight="Bold" Foreground="#FFE1A0" Margin="0,24,0,16"/>
+                    <Border Background="#201A30" BorderBrush="#715144" BorderThickness="1" CornerRadius="18" Padding="20">
+                        <StackPanel>
+                            <TextBlock x:Name="FullProfileName" Text="Игрок Solaris" FontSize="24" FontWeight="Bold" Foreground="#FFE1A0"/>
+                            <TextBlock x:Name="FullProfileStatus" Text="Локальный аккаунт Solaris" FontSize="11" Foreground="#BAADC6" Margin="0,5,0,0"/>
+                            <TextBlock x:Name="FullProfileCreated" Text="Дата регистрации: неизвестна" FontSize="11" Foreground="#BAADC6" Margin="0,5,0,0"/>
+                            <TextBlock x:Name="FullProfileTotal" Text="Всего в Minecraft: 0 ч 0 мин" FontSize="18" FontWeight="Bold" Foreground="#FFD16E" Margin="0,18,0,0"/>
+                            <TextBlock x:Name="FullProfileVanilla" Text="Vanilla: 0 ч 0 мин" Foreground="#E5DCED" FontSize="12" Margin="0,12,0,0"/>
+                            <TextBlock x:Name="FullProfileModded" Text="Modded: 0 ч 0 мин" Foreground="#E5DCED" FontSize="12" Margin="0,7,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#1A1729" BorderBrush="#584368" BorderThickness="1" CornerRadius="18" Padding="22" Margin="0,15,0,0">
+                        <StackPanel>
+                            <TextBlock Text="СКИН MINECRAFT" FontSize="13" FontWeight="SemiBold" Foreground="#FFE2A6"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,12,0,12">
+                                <Button Content="2D" x:Name="ProfileSkin2DButton" Style="{StaticResource SecondaryButton}" Width="85" Click="ProfileSkin2D_Click"/>
+                                <Button Content="3D ↻" x:Name="ProfileSkin3DButton" Style="{StaticResource SecondaryButton}" Width="90" Margin="10,0,0,0" Click="ProfileSkin3D_Click"/>
+                                <Button Content="Загрузить PNG" Style="{StaticResource SecondaryButton}" Width="175" Margin="15,0,0,0" Click="ProfileSkinImport_Click"/>
+                            </StackPanel>
+                            <Grid Height="240" Background="#141321">
+                                <Image x:Name="ProfileFullSkin2D" Stretch="Uniform" Margin="20" Visibility="Visible"/>
+                                <Viewport3D x:Name="ProfileFullSkin3D" Visibility="Collapsed" MouseLeftButtonDown="ProfileModel_MouseDown" MouseMove="ProfileModel_MouseMove" MouseLeftButtonUp="ProfileModel_MouseUp"/>
+                            </Grid>
+                            <TextBlock Text="В 3D вращай персонажа мышью. Можно установить свой PNG-скин 64×64." Foreground="#A79DB3" FontSize="11" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </Window>
