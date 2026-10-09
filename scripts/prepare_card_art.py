@@ -19,15 +19,23 @@ NAMES = ("SolarisVanillaCard", "SolarisModdedCard")
 def main() -> None:
     for name in NAMES:
         source = ASSETS / f"{name}.webp"
+        destination = ASSETS / f"{name}.png"
+        if destination.is_file():
+            # The exact user-supplied PNG takes precedence if available.
+            with Image.open(destination) as original:
+                if original.format != "PNG" or original.size != (2048, 682):
+                    raise RuntimeError(f"Unexpected approved PNG: {destination} {original.size}")
+                original.verify()
+            print(f"Approved original card PNG ready: {destination.name}")
+            continue
         if not source.is_file():
-            # During ongoing development, allow builds without the optional new
-            # banners; a release gate below will require both art files.
-            print(f"Awaiting approved source: {source}")
+            # Development builds may run without cards. The release gate
+            # refuses to publish 2.2.8 until both images are present.
+            print(f"Awaiting approved source: {name}.png or {name}.webp")
             continue
         with Image.open(source) as opened:
             if opened.format != "WEBP" or opened.width < 1500 or opened.height < 500:
                 raise RuntimeError(f"Invalid user-approved server banner: {source}")
-            destination = ASSETS / f"{name}.png"
             opened.convert("RGB").save(destination, format="PNG", optimize=True)
             print(f"Prepared official card art {destination.name}: {opened.width}x{opened.height}")
 
