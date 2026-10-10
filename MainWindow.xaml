@@ -197,9 +197,11 @@
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <Border Padding="23,11" CornerRadius="12" Background="#512299" BorderBrush="#AA45F8" BorderThickness="1"><TextBlock Text="⬡  Миры" FontSize="14" FontWeight="SemiBold" Foreground="White"/></Border>
                     <Button Content="⚙  Настройки" VerticalAlignment="Center" Margin="25,0,0,0" Style="{StaticResource NavButton}" Foreground="#FFE09A" FontSize="13" Click="SettingsNav_Click"/>
-                    <Button Content="▤  Новости" VerticalAlignment="Center" Margin="25,0,0,0"
-                            Style="{StaticResource NavButton}" FontSize="13"
-                            Foreground="#E8D8F2" Click="NewsNav_Click"/>
+                    <Button x:Name="NewsNavButton" Content="▤  Новости" VerticalAlignment="Center" Margin="19,0,0,0"
+                            Style="{StaticResource SecondaryButton}" FontSize="13" Height="42"
+                            Background="#2E1A4D" BorderBrush="#8D55C8" BorderThickness="1"
+                            Foreground="#F0DDFF" Cursor="Hand" ToolTip="Открыть Solaris News"
+                            Click="NewsNav_Click"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right"><TextBlock x:Name="WelcomeText" HorizontalAlignment="Right" FontSize="15" FontWeight="Bold"/><Button Content="Выйти" Style="{StaticResource NavButton}" HorizontalAlignment="Right" Click="LogoutButton_Click"/></StackPanel>
             </Grid>
@@ -244,7 +246,12 @@
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                     <StackPanel VerticalAlignment="Center">
                                         <StackPanel Orientation="Horizontal">
-                                            <Border Width="42" Height="42" CornerRadius="11" Background="#5720AD"><TextBlock Text="⚙" Foreground="#F4D1FF" FontSize="23" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                            <Border Width="52" Height="52" CornerRadius="13" Background="#28143E"
+                                                     BorderBrush="#7D4BC9" BorderThickness="1" SnapsToDevicePixels="True">
+                                                <Image Source="pack://application:,,,/Assets/SolarisModdedIcon.png"
+                                                       Width="50" Height="50" Stretch="Uniform" IsHitTestVisible="False"
+                                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                                            </Border>
                                             <StackPanel Margin="11,0,0,0"><TextBlock Text="SOLARIS MODDED" FontSize="22" FontWeight="Bold"/><TextBlock Text="FORGE СБОРКА" FontSize="10" Foreground="#C3A5DE"/></StackPanel>
                                         </StackPanel>
                                         <TextBlock Text="Minecraft 1.20.1 • Forge 47.4.20" FontSize="13" Foreground="#E7D9F1" Margin="0,14,0,0"/>
