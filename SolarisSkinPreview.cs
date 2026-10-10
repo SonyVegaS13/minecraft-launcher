@@ -220,7 +220,7 @@ public partial class MainWindow
         ProfileFullSkin3D.Visibility = Visibility.Visible;
     }
 
-    private void ProfileSkinImport_Click(object sender, RoutedEventArgs e)
+    private async void ProfileSkinImport_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog
         {
@@ -239,6 +239,12 @@ public partial class MainWindow
             _skinTexture = image;
             Show2DSkin(image);
             Build3DSkin(image);
+            if (_cloudSession is not null)
+            {
+                string marker = Path.Combine(Path.GetDirectoryName(destination)!, "skin-pending.flag");
+                await File.WriteAllTextAsync(marker, "pending");
+                await UploadCloudSkinAsync(data);
+            }
         }
         catch (Exception ex)
         {

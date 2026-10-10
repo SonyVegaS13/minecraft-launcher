@@ -16,16 +16,35 @@ public partial class MainWindow
         public string LastMode { get; set; } = "";
         public int LastSessionSeconds { get; set; }
         public DateTimeOffset? LastLaunchUtc { get; set; }
+        public List<CloudGameUpload> PendingCloudSessions { get; set; } = new();
+        public long SyncedVanillaSeconds { get; set; }
+        public long SyncedModdedSeconds { get; set; }
+        public bool HasCloudTotals { get; set; }
     }
 
-    private static string ActivityFile(string username)
+    private sealed class CloudGameUpload
+    {
+        public Guid Id { get; set; }
+        public string Mode { get; set; } = "";
+        public DateTimeOffset StartedUtc { get; set; }
+        public int Seconds { get; set; }
+    }
+
+    private string ActivityFile(string username)
     {
         string safe = new string(username.ToLowerInvariant().Where(c =>
             char.IsLetterOrDigit(c) || c == '_').ToArray());
-        return Path.Combine(SolarisDirectories.StateDir, "profiles", safe, "activity.json");
+        if (_cloudSession is { } cloud &&
+            username.Equals(cloud.Nickname, StringComparison.OrdinalIgnoreCase))
+        {
+            // Remote ID, not nickname: prevent mixing unrelated local/cloud accounts.
+            safe = "cloud-" + new string(cloud.Id.ToLowerInvariant()
+                .Where(c => char.IsLetterOrDigit(c) || c == '-').ToArray());
+        }
+        return Path.Combine(_stateDir, "profiles", safe, "activity.json");
     }
 
-    private static async Task<PlayerActivity> ReadActivityAsync(string username)
+    private async Task<PlayerActivity> ReadActivityAsync(string username)
     {
         string path = ActivityFile(username);
         if (!File.Exists(path)) return new PlayerActivity();
@@ -34,7 +53,7 @@ public partial class MainWindow
         catch { return new PlayerActivity(); }
     }
 
-    private static async Task SaveActivityAsync(string username, PlayerActivity activity)
+    private async Task SaveActivityAsync(string username, PlayerActivity activity)
     {
         string path = ActivityFile(username);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
@@ -62,19 +81,33 @@ public partial class MainWindow
         ActivityLastDuration.Text = DisplayDuration(activity.LastSessionSeconds);
         ActivityLastLaunch.Text = activity.LastLaunchUtc is { } last
             ? last.ToLocalTime().ToString("dd.MM.yyyy, HH:mm") : "—";
-        FullProfileTotal.Text = "Всего в Minecraft: " +
-            DisplayDuration(activity.VanillaSeconds + activity.ModdedSeconds);
-        FullProfileVanilla.Text = "Vanilla: " + DisplayDuration(activity.VanillaSeconds);
-        FullProfileModded.Text = "Modded: " + DisplayDuration(activity.ModdedSeconds);
-        FullProfileName.Text = username;
-        try
+        long vanilla = activity.VanillaSeconds;
+        long modded = activity.ModdedSeconds;
+        if (_cloudSession is not null && activity.HasCloudTotals)
         {
-            LocalAccount? account = await ReadAccountAsync();
-            FullProfileCreated.Text = account?.CreatedUtc is { } created
-                ? "Дата регистрации: " + created.ToLocalTime().ToString("dd.MM.yyyy")
-                : "Дата регистрации: неизвестна (старый локальный аккаунт)";
+            vanilla = activity.SyncedVanillaSeconds +
+                activity.PendingCloudSessions.Where(s => s.Mode == "vanilla").Sum(s => (long)s.Seconds);
+            modded = activity.SyncedModdedSeconds +
+                activity.PendingCloudSessions.Where(s => s.Mode == "modded").Sum(s => (long)s.Seconds);
         }
-        catch { FullProfileCreated.Text = "Дата регистрации: неизвестна"; }
+        FullProfileTotal.Text = "Всего в Minecraft: " + DisplayDuration(vanilla + modded);
+        FullProfileVanilla.Text = "Vanilla: " + DisplayDuration(vanilla);
+        FullProfileModded.Text = "Modded: " + DisplayDuration(modded);
+        FullProfileName.Text = username;
+        if (_cloudSession is { } cloud)
+            FullProfileCreated.Text = "Дата регистрации: " +
+                cloud.CreatedUtc.ToLocalTime().ToString("dd.MM.yyyy");
+        else
+        {
+            try
+            {
+                LocalAccount? account = await ReadAccountAsync();
+                FullProfileCreated.Text = account?.CreatedUtc is { } created
+                    ? "Дата регистрации: " + created.ToLocalTime().ToString("dd.MM.yyyy")
+                    : "Дата регистрации: неизвестна (старый локальный аккаунт)";
+            }
+            catch { FullProfileCreated.Text = "Дата регистрации: неизвестна"; }
+        }
     }
 
     private async Task TrackGameProcessAsync(Process process, string username, string mode)
@@ -82,6 +115,7 @@ public partial class MainWindow
         PlayerActivity state = await ReadActivityAsync(username);
         state.LastMode = mode;
         state.LastLaunchUtc = DateTimeOffset.UtcNow;
+        DateTimeOffset startedUtc = state.LastLaunchUtc.Value;
         await SaveActivityAsync(username, state);
 
         // Keep the lightweight launcher hidden, not terminated, to track offline
@@ -113,7 +147,19 @@ public partial class MainWindow
             if (mode == "vanilla") state.VanillaSeconds += delta;
             else state.ModdedSeconds += delta;
             state.LastSessionSeconds = (int)Math.Min(int.MaxValue, elapsed);
-            try { await SaveActivityAsync(username, state); } catch { }
+            if (_cloudSession is not null && state.LastSessionSeconds > 0)
+                state.PendingCloudSessions.Add(new CloudGameUpload
+                {
+                    Id = Guid.NewGuid(), Mode = mode, StartedUtc = startedUtc,
+                    Seconds = state.LastSessionSeconds
+                });
+            try
+            {
+                await SaveActivityAsync(username, state);
+                if (_cloudSession is not null && !_cloudOffline)
+                    await SyncCloudDataAsync(username);
+            }
+            catch { /* Local playtime must survive a temporary cloud outage. */ }
             Show();
             if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
             Activate();

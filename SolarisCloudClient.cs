@@ -141,6 +141,7 @@ public partial class MainWindow
         if (RememberMeCheck.IsChecked == true) StoreCloudSession(candidate);
         else TryDeleteFile(CloudSessionFile);
         ShowMainView(candidate.Nickname);
+        _ = SyncCloudDataAsync(candidate.Nickname);
     }
 
     private async Task FetchCloudProfileAsync(SolarisCloudSession session, HttpClient client,
@@ -229,6 +230,8 @@ public partial class MainWindow
         RememberMeCheck.IsChecked = true;
         RefreshCloudAuthLayout();
         ShowMainView(saved.Nickname);
+        if (!_cloudOffline)
+            _ = SyncCloudDataAsync(saved.Nickname);
         return true;
     }
 
