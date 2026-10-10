@@ -69,20 +69,75 @@ public partial class MainWindow : Window
     private const string LauncherVersion = "2.2.10";
     // Neon versions check signed-off GitHub release assets, not the 2.1.x stable manifest.
 
+    // Diagnostic only: DEV traces go into the isolated profile, never the player's
+    // stable Solaris settings. Nothing typed into password fields is logged.
+    private void TraceStartup(string stage, Exception? exception = null)
+    {
+        if (!App.IsDeveloperMode) return;
+        try
+        {
+            string logDir = Path.Combine(_stateDir, "logs");
+            Directory.CreateDirectory(logDir);
+            File.AppendAllText(Path.Combine(logDir, "startup.log"),
+                $"[{DateTimeOffset.Now:O}] {stage}" + (exception is null
+                    ? Environment.NewLine
+                    : Environment.NewLine + exception + Environment.NewLine));
+        }
+        catch { /* Diagnostics must never prevent starting the launcher. */ }
+    }
+
     public MainWindow()
     {
-        InitializeComponent();
-        InitializeArtworkPreviews();
-        TryLoadNeonArt();
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("SolarisLauncher/3.0");
-        _http.Timeout = TimeSpan.FromMinutes(20);
-        Directory.CreateDirectory(_stateDir);
-        LoadRamSettings();
-        InitializeIgnition();
-        InitializeCloudMode();
-        TryRestoreAccount();
-        _ = UpdateServerStatusAsync();
-        Loaded += MainWindow_Loaded;
+        string stage = "InitializeComponent";
+        try
+        {
+            TraceStartup("START " + LauncherVersion);
+            InitializeComponent();
+
+            stage = "InitializeArtworkPreviews";
+            TraceStartup(stage);
+            InitializeArtworkPreviews();
+
+            stage = "TryLoadNeonArt";
+            TraceStartup(stage);
+            TryLoadNeonArt();
+
+            stage = "HTTP settings";
+            TraceStartup(stage);
+            _http.DefaultRequestHeaders.UserAgent.ParseAdd("SolarisLauncher/3.0");
+            _http.Timeout = TimeSpan.FromMinutes(20);
+            Directory.CreateDirectory(_stateDir);
+
+            stage = "LoadRamSettings";
+            TraceStartup(stage);
+            LoadRamSettings();
+
+            stage = "InitializeIgnition";
+            TraceStartup(stage);
+            InitializeIgnition();
+
+            stage = "InitializeCloudMode";
+            TraceStartup(stage);
+            InitializeCloudMode();
+
+            stage = "TryRestoreAccount";
+            TraceStartup(stage);
+            TryRestoreAccount();
+
+            stage = "UpdateServerStatusAsync";
+            TraceStartup(stage);
+            _ = UpdateServerStatusAsync();
+            Loaded += MainWindow_Loaded;
+
+            TraceStartup("MainWindow constructor COMPLETE");
+        }
+        catch (Exception ex)
+        {
+            TraceStartup("FAILED at " + stage, ex);
+            throw new InvalidOperationException(
+                $"Не удалось создать окно Solaris (этап: {stage}). " +
+                "При тестировании смотри Solaris-Neon-Dev\\logs\\startup.log.", ex);
+        }
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
