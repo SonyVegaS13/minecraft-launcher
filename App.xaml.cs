@@ -68,12 +68,19 @@ public partial class App : Application
                 System.Windows.Interop.RenderMode.SoftwareOnly;
         }
 
-        // Recognize the isolated, persistently installed DEV channel even in
-        // updater and recovery subprocesses. --dev-test stays portable/offline.
-        IsDevChannel = Array.Exists(e.Args, arg =>
-            string.Equals(arg, "--dev-channel", StringComparison.OrdinalIgnoreCase));
-        IsDeveloperMode = IsDevChannel || Array.Exists(e.Args, arg =>
+        // DEV distribution EXEs carry the channel inside the binary, so a
+        // normal double-click installs/starts Solaris Launcher DEV. Never
+        // overwrite stable Solaris and never depend on a hand-typed flag.
+        // The explicit --dev-test override still provides a portable sandbox.
+        bool portableDevTest = Array.Exists(e.Args, arg =>
             string.Equals(arg, "--dev-test", StringComparison.OrdinalIgnoreCase));
+#if SOLARIS_DEV_DISTRIBUTION
+        IsDevChannel = !portableDevTest;
+#else
+        IsDevChannel = !portableDevTest && Array.Exists(e.Args, arg =>
+            string.Equals(arg, "--dev-channel", StringComparison.OrdinalIgnoreCase));
+#endif
+        IsDeveloperMode = IsDevChannel || portableDevTest;
 
         if (e.Args.Length >= 5 &&
             string.Equals(e.Args[0], "--self-update", StringComparison.OrdinalIgnoreCase))
