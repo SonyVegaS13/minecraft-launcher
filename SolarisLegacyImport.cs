@@ -72,8 +72,19 @@ public partial class MainWindow
             using HttpResponseMessage response = await SendCloudAsync(client, cloud,
                 HttpMethod.Post, "api/v1/me/legacy", payload);
             response.EnsureSuccessStatusCode();
-            LegacyImportStatus.Text = "Игровые часы перенесены (без дублирования). " +
-                "Локальный аккаунт и его файлы не удалены.";
+            // Keep the old profile intact. A legacy custom skin can optionally
+            // be copied into the new cloud profile after the player proves ownership.
+            string legacySkinPath = Path.Combine(_stateDir, "profiles", safeNick, "skin.png");
+            if (File.Exists(legacySkinPath) && !File.Exists(CurrentSkinPath()))
+            {
+                byte[] skin = await File.ReadAllBytesAsync(legacySkinPath);
+                DecodeSkin(skin);
+                Directory.CreateDirectory(Path.GetDirectoryName(CurrentSkinPath())!);
+                await File.WriteAllBytesAsync(CurrentSkinPath(), skin);
+                await UploadCloudSkinAsync(skin);
+            }
+            LegacyImportStatus.Text = "Игровые часы и доступный скин перенесены. " +
+                "Старый локальный профиль и файлы сохранены.";
             await SyncCloudDataAsync(cloud.Nickname);
         }
         catch (Exception ex)

@@ -24,6 +24,10 @@ public partial class MainWindow
         string username = WelcomeText.Text;
         string safe = new string(username.ToLowerInvariant()
             .Where(c => char.IsLetterOrDigit(c) || c == '_').ToArray());
+        if (_cloudSession is { } cloud &&
+            username.Equals(cloud.Nickname, StringComparison.OrdinalIgnoreCase))
+            safe = "cloud-" + new string(cloud.Id.ToLowerInvariant()
+                .Where(c => char.IsLetterOrDigit(c) || c == '-').ToArray());
         return Path.Combine(_stateDir, "profiles", safe, "skin.png");
     }
 

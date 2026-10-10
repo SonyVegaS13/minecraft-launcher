@@ -206,6 +206,8 @@ public partial class MainWindow : Window
             ? (_cloudOffline ? "SOLARIS ID — без соединения" : "SOLARIS ID — подключён")
             : $"Локальный аккаунт: {username}";
         FullProfileStatus.Text = ProfileText.Text;
+        CloudLegacyImportPanel.Visibility = _cloudSession is null
+            ? Visibility.Collapsed : Visibility.Visible;
         OpenControlButton.Visibility = _cloudSession?.IsAdmin == true && !_cloudOffline
             ? Visibility.Visible : Visibility.Collapsed;
         FullProfileName.Text = username;
