@@ -100,12 +100,18 @@ public partial class MainWindow : Window
             stage = "RAM slider event wiring (pending)";
             if (App.IsDeveloperMode)
             {
-                NeonBuildTag.Text += App.IsDevChannel
-                    ? "  •  DEV AUTO-UPDATE"
-                    : "  •  RAMFIX-R2 DEV";
-                Title = App.IsDevChannel
-                    ? "Solaris Launcher - DEV AUTO-UPDATE"
-                    : "Solaris Launcher - RAMFIX-R2 DEV";
+                if (App.IsDevChannel)
+                {
+                    int revision = System.Diagnostics.FileVersionInfo.GetVersionInfo(
+                        Environment.ProcessPath!).FilePrivatePart;
+                    NeonBuildTag.Text += $"  •  DEV AUTO-UPDATE r{revision}";
+                    Title = $"Solaris Launcher - DEV AUTO-UPDATE r{revision}";
+                }
+                else
+                {
+                    NeonBuildTag.Text += "  •  RAMFIX-R2 DEV";
+                    Title = "Solaris Launcher - RAMFIX-R2 DEV";
+                }
             }
 
             stage = "InitializeArtworkPreviews";
