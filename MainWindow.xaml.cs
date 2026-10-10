@@ -280,6 +280,7 @@ public partial class MainWindow : Window
     private void ShowMainView(string username)
     {
         AuthView.Visibility = Visibility.Collapsed; MainView.Visibility = Visibility.Visible;
+        NewsView.Visibility = Visibility.Collapsed;
         WelcomeText.Text = username;
         ProfileName.Text = username;
         ProfileText.Text = _cloudSession is not null
@@ -313,6 +314,7 @@ public partial class MainWindow : Window
         }
         catch { }
         MainView.Visibility = Visibility.Collapsed; AuthView.Visibility = Visibility.Visible;
+        NewsView.Visibility = Visibility.Collapsed;
         SettingsView.Visibility = Visibility.Collapsed;
         ProfileView.Visibility = Visibility.Collapsed;
         ControlView.Visibility = Visibility.Collapsed;
