@@ -85,10 +85,10 @@
                     </StackPanel>
                     <TextBlock Text="Открой свой мир возможностей."
                                Margin="87,9,0,0" FontSize="18" FontWeight="Light"
-                               Foreground="#E2D7D0" TextWrapping="Wrap" MaxWidth="440">
+                               Foreground="#FFE8C4" TextWrapping="Wrap" MaxWidth="440">
                         <TextBlock.Effect>
-                            <DropShadowEffect Color="#432650" BlurRadius="5"
-                                              ShadowDepth="0" Opacity="0.18"/>
+                            <DropShadowEffect Color="#FFD58A" BlurRadius="12"
+                                              ShadowDepth="0" Opacity="0.58"/>
                         </TextBlock.Effect>
                     </TextBlock>
                 </StackPanel>
@@ -188,7 +188,12 @@
 
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="70" Height="70" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/><StackPanel VerticalAlignment="Center" Margin="13,0,0,0"><TextBlock Text="SOLARIS" FontSize="32" FontWeight="ExtraBold"/><TextBlock Text="Открой свой мир возможностей." Foreground="#E8D2C4" FontSize="11" FontWeight="Light" Margin="0,2,0,0"/></StackPanel></StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="70" Height="70" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/><StackPanel VerticalAlignment="Center" Margin="13,0,0,0"><TextBlock Text="SOLARIS" FontSize="32" FontWeight="ExtraBold"/><TextBlock Text="Открой свой мир возможностей." Foreground="#FFE8C4"
+                                           FontSize="11" FontWeight="Light" Margin="0,2,0,0">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect Color="#FFD58A" BlurRadius="12" ShadowDepth="0" Opacity="0.62"/>
+                                    </TextBlock.Effect>
+                                </TextBlock></StackPanel></StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <Border Padding="23,11" CornerRadius="12" Background="#512299" BorderBrush="#AA45F8" BorderThickness="1"><TextBlock Text="⬡  Миры" FontSize="14" FontWeight="SemiBold" Foreground="White"/></Border>
                     <Button Content="⚙  Настройки" VerticalAlignment="Center" Margin="25,0,0,0" Style="{StaticResource NavButton}" Foreground="#FFE09A" FontSize="13" Click="SettingsNav_Click"/>
@@ -291,11 +296,8 @@
                                 <Grid Margin="0,15,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="72"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border Width="66" Height="66" CornerRadius="33" Background="{StaticResource AccentBrush}" BorderBrush="#B89BFF" BorderThickness="2" Cursor="Hand" ToolTip="Открыть профиль Solaris" MouseLeftButtonUp="ProfileAvatar_Click"><Grid ClipToBounds="True"><TextBlock Text="◈" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/><Image x:Name="ProfileAvatarImage" Stretch="UniformToFill"/></Grid></Border><StackPanel Grid.Column="1" Margin="13,0,0,0" VerticalAlignment="Center"><TextBlock x:Name="ProfileName" Text="Игрок Solaris" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="● В сети" FontSize="10" Foreground="#86EFAC" Margin="0,5,0,0"/></StackPanel></Grid>
                                 <TextBlock x:Name="ProfileText" Text="Локальный аккаунт Solaris" Foreground="#A398B9" FontSize="10" Margin="0,13,0,0" TextWrapping="Wrap"/>
                                 <Button Content="↗  Открыть профиль" Style="{StaticResource SecondaryButton}" Margin="0,14,0,0" Height="36" FontSize="11" Click="ProfileNav_Click"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,14,0,0">
-                             <StackPanel>
+                                <!-- Profile and activity share one panel. -->
+                                <Border BorderBrush="#564062" BorderThickness="0,1,0,0" Margin="0,19,0,17"/>
                                  <TextBlock Text="☀  SOLARIS ACTIVITY" FontSize="11" FontWeight="SemiBold" Foreground="#FFCF73"/>
                                  <TextBlock Text="ПОСЛЕДНЯЯ ИГРА" FontSize="9" Foreground="#998CA8" Margin="0,15,0,4"/>
                                  <TextBlock x:Name="ActivityLastGame" Text="Вы ещё не играли" FontSize="14" FontWeight="SemiBold"/>
