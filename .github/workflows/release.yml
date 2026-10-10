@@ -85,7 +85,18 @@ jobs:
         run: |
           if (Test-Path artifacts) { Remove-Item artifacts -Recurse -Force }
           New-Item -ItemType Directory -Path artifacts/publish | Out-Null
-          dotnet publish SolarisLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:Version=${{ steps.version.outputs.version }} -p:AssemblyVersion=${{ steps.version.outputs.version }}.0 -p:FileVersion=${{ steps.version.outputs.version }}.0 -o artifacts/publish
+          # Each continuous DEV build gets a monotonically increasing Windows
+          # file revision. The installed EXE can then distinguish updates even
+          # while the product version stays at 2.2.10.
+          $revision = '0'
+          if ($env:GITHUB_REF -eq 'refs/heads/solaris-2.2-dev' -and $env:GITHUB_EVENT_NAME -eq 'push') {
+            $event = Get-Content $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json
+            if (-not ($event.head_commit.message -like 'release:*')) {
+              $revision = $env:GITHUB_RUN_NUMBER
+            }
+          }
+          $version = '${{ steps.version.outputs.version }}'
+          dotnet publish SolarisLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:Version=$version -p:AssemblyVersion="$version.0" -p:FileVersion="$version.$revision" -o artifacts/publish
           if (-not (Test-Path artifacts/publish/SolarisLauncher.exe)) { throw 'SolarisLauncher.exe was not produced.' }
 
       - name: Create launcher ZIP
@@ -110,6 +121,21 @@ jobs:
             artifacts/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 14
+
+      # Continuous opt-in DEV updates. Public assets are durable (unlike the
+      # 14-day Actions artifacts). Every successful development build has its
+      # own tag/revision; the DEV updater checks this channel independently.
+      # Official Solaris 2.2.9 never sees these tags or executables.
+      - name: Publish continuous Solaris DEV update
+        if: github.event_name == 'push' && github.ref_name == 'solaris-2.2-dev' && !startsWith(github.event.head_commit.message, 'release:')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          $revision = $env:GITHUB_RUN_NUMBER
+          $tag = "neon-dev-v$version.$revision"
+          gh release create $tag "artifacts/publish/SolarisLauncher.exe" "artifacts/SHA256SUMS.txt" --target "$env:GITHUB_SHA" --title "Solaris Neon DEV $version.$revision" --notes "Continuous DEV update, isolated from stable. Install with --dev-channel. SHA256 verified, safe backup and rollback." --prerelease
 
       # A release: commit publishes the verified EXE to a durable GitHub
       # prerelease. Subsequent versions update in place through this channel.
