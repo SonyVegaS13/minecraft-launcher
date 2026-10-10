@@ -23,6 +23,12 @@
     <Version>2.2.10</Version>
   </PropertyGroup>
 
+  <!-- Explicit opt-in DEV binary branding: only CI DEV artifacts get this flag.
+       Stable release builds never inherit the DEV updater or install path. -->
+  <PropertyGroup Condition="'$(SolarisChannel)' == 'dev'">
+    <DefineConstants>$(DefineConstants);SOLARIS_DEV_DISTRIBUTION</DefineConstants>
+  </PropertyGroup>
+
   <!-- The independent ASP.NET Core Solaris ID server has its own .csproj. -->
   <ItemGroup>
     <Compile Remove="backend\**\*.cs" />
