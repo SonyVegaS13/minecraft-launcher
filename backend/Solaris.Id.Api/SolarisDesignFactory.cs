@@ -12,7 +12,11 @@ public sealed class SolarisDesignFactory : IDesignTimeDbContextFactory<SolarisDb
     public SolarisDbContext CreateDbContext(string[] args)
     {
         var options = new DbContextOptionsBuilder<SolarisDbContext>();
-        options.UseNpgsql("Host=localhost;Database=solaris_schema_only;Username=unused");
+        // Prefer the explicit test/production connection string when applying
+        // migrations. The dummy connection is ONLY for offline model generation.
+        string db = Environment.GetEnvironmentVariable("SOLARIS_ID_CONNECTION_STRING")
+            ?? "Host=localhost;Database=solaris_schema_only;Username=unused";
+        options.UseNpgsql(db);
         return new SolarisDbContext(options.Options);
     }
 }
