@@ -12,6 +12,7 @@ public partial class MainWindow
     private int _vanillaRamMb = 3072;
     private int _moddedRamMb = 4096;
     private bool _loadingRamSettings;
+    private bool _ramSettingsReady;
     private string RamSettingsPath => Path.Combine(_stateDir, "settings.json");
 
     private sealed class LocalDeviceSettings
@@ -74,11 +75,12 @@ public partial class MainWindow
             ModdedRamSlider.Value = _moddedRamMb = 4096;
             RefreshMemoryLabels();
         }
-        finally { _loadingRamSettings = false; }
+        finally { _loadingRamSettings = false; _ramSettingsReady = true; }
     }
 
     private void RefreshMemoryLabels()
     {
+        if (VanillaRamText is null || ModdedRamText is null || RamSafetyText is null) return;
         VanillaRamText.Text = $"{_vanillaRamMb} МБ";
         ModdedRamText.Text = $"{_moddedRamMb} МБ";
         RamSafetyText.Text = _moddedRamMb < 4096
@@ -108,7 +110,7 @@ public partial class MainWindow
 
     private void VanillaRamSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (VanillaRamText is null) return;
+        if (!_ramSettingsReady) return;
         _vanillaRamMb = (int)e.NewValue;
         RefreshMemoryLabels();
         if (!_loadingRamSettings) SaveRamSettings();
@@ -116,7 +118,7 @@ public partial class MainWindow
 
     private void ModdedRamSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (ModdedRamText is null) return;
+        if (!_ramSettingsReady) return;
         _moddedRamMb = (int)e.NewValue;
         RefreshMemoryLabels();
         if (!_loadingRamSettings) SaveRamSettings();
