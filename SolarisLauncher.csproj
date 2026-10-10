@@ -37,6 +37,8 @@
   <ItemGroup>
     <Resource Include="Assets\SolarisEmber.bmp" />
     <Resource Include="Assets\SolarisOfficialLogo.png" />
+    <!-- Approved compact icon for the Solaris Modded server tile. -->
+    <Resource Include="Assets\SolarisModdedIcon.png" />
     <!-- These files are extracted and SHA256-verified from the approved ZIP before CI build. -->
     <Resource Include="Assets\SolarisWorld.png" Condition="Exists('Assets\SolarisWorld.png')" />
     <Resource Include="Assets\SolarisModded.png" Condition="Exists('Assets\SolarisModded.png')" />
