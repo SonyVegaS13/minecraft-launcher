@@ -91,8 +91,18 @@ public partial class MainWindow : Window
         string stage = "InitializeComponent";
         try
         {
-            TraceStartup("START " + LauncherVersion);
+            TraceStartup("START " + LauncherVersion + " [RAMFIX-R2]");
             InitializeComponent();
+
+            // The sliders no longer wire ValueChanged in XAML: events can
+            // arrive while WPF is still constructing other named controls.
+            // Subscribe only after all elements and RAM settings are ready.
+            stage = "RAM slider event wiring (pending)";
+            if (App.IsDeveloperMode)
+            {
+                NeonBuildTag.Text += "  •  RAMFIX-R2 DEV";
+                Title = "Solaris Launcher - RAMFIX-R2 DEV";
+            }
 
             stage = "InitializeArtworkPreviews";
             TraceStartup(stage);
@@ -111,6 +121,9 @@ public partial class MainWindow : Window
             stage = "LoadRamSettings";
             TraceStartup(stage);
             LoadRamSettings();
+            VanillaRamSlider.ValueChanged += VanillaRamSlider_ValueChanged;
+            ModdedRamSlider.ValueChanged += ModdedRamSlider_ValueChanged;
+            TraceStartup("RAM slider handlers attached after initialization [RAMFIX-R2]");
 
             stage = "InitializeIgnition";
             TraceStartup(stage);
