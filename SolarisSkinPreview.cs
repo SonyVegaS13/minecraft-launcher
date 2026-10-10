@@ -33,29 +33,71 @@ public partial class MainWindow
 
     private async Task PrepareSkinPreviewAsync(string username)
     {
+        // One texture is the source of truth for the full-body previews and
+        // for the compact profile head. Never depend on a removed avatar picker.
         BitmapSource image = CreateDefaultSkin();
+        bool hasPlayerSkin = false;
         string local = CurrentSkinPath();
         try
         {
             if (File.Exists(local))
             {
                 image = DecodeSkin(await File.ReadAllBytesAsync(local));
+                hasPlayerSkin = true;
             }
             else if (!string.IsNullOrWhiteSpace(username))
             {
-                // Optional public Minecraft skin. Offline/local users get Steve.
+                // Public skins are optional. Offline/local users keep the
+                // normal fallback; network failure must never block login.
                 using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
                 byte[] remote = await client.GetByteArrayAsync(
                     "https://mc-heads.net/skin/" + Uri.EscapeDataString(username));
                 image = DecodeSkin(remote);
+                hasPlayerSkin = true;
             }
         }
-        catch { /* Unsupported or unavailable public skin: Steve fallback. */ }
-        if (!string.Equals(WelcomeText.Text, username, StringComparison.OrdinalIgnoreCase))
+        catch { /* Invalid skin or network problem: retain default full-body preview. */ }
+        if (!string.Equals(WelcomeText.Text, username, StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(CurrentSkinPath(), local, StringComparison.OrdinalIgnoreCase) ||
+            MainView.Visibility != Visibility.Visible)
             return;
+
         _skinTexture = image;
+        SetProfileSkinHead(hasPlayerSkin ? image : null);
         Show2DSkin(image);
         Build3DSkin(image);
+    }
+
+    private void SetProfileSkinHead(BitmapSource? texture)
+    {
+        // A branded Solaris fallback is shown only until a usable skin exists.
+        // Use the Minecraft front face UVs, including the transparent hat layer.
+        if (texture is not null && texture.PixelWidth >= 48 && texture.PixelHeight >= 16)
+        {
+            try
+            {
+                var baseFace = new CroppedBitmap(texture, new Int32Rect(8, 8, 8, 8));
+                var hatLayer = new CroppedBitmap(texture, new Int32Rect(40, 8, 8, 8));
+                var drawing = new DrawingVisual();
+                using (DrawingContext context = drawing.RenderOpen())
+                {
+                    RenderOptions.SetBitmapScalingMode(drawing, BitmapScalingMode.NearestNeighbor);
+                    context.DrawImage(baseFace, new Rect(0, 0, 8, 8));
+                    context.DrawImage(hatLayer, new Rect(0, 0, 8, 8));
+                }
+                var head = new RenderTargetBitmap(8, 8, 96, 96, PixelFormats.Pbgra32);
+                head.Render(drawing);
+                head.Freeze();
+                ProfileAvatarImage.Source = head;
+                ProfileAvatarImage.Visibility = Visibility.Visible;
+                ProfileAvatarFallback.Visibility = Visibility.Collapsed;
+                return;
+            }
+            catch { /* Unexpected texture format: show the Solaris fallback. */ }
+        }
+        ProfileAvatarImage.Source = null;
+        ProfileAvatarImage.Visibility = Visibility.Collapsed;
+        ProfileAvatarFallback.Visibility = Visibility.Visible;
     }
 
     private static BitmapSource DecodeSkin(byte[] content)
@@ -241,6 +283,7 @@ public partial class MainWindow
             Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
             File.WriteAllBytes(destination, data);
             _skinTexture = image;
+            SetProfileSkinHead(image);
             Show2DSkin(image);
             Build3DSkin(image);
             if (_cloudSession is not null)
