@@ -371,17 +371,17 @@
                                 Background="#221A37" BorderBrush="#A84BFF" BorderThickness="1">
                             <StackPanel>
                                 <TextBlock Text="✈" FontSize="35" Foreground="#B49AFF"/>
-                                <TextBlock Text="TELEGRAM-КАНАЛ" FontSize="17" FontWeight="Bold"
+                                <TextBlock Text="SOLARIS COMMUNITY" FontSize="17" FontWeight="Bold"
                                            Foreground="#F4E8FF" Margin="0,17,0,10"/>
-                                <TextBlock Text="Патчноуты, анонсы, опросы игроков и общение с командой Solaris."
+                                <TextBlock Text="Наша Telegram-группа: патчноуты, опросы, новости и общение игроков Solaris."
                                            TextWrapping="Wrap" MinHeight="67" Foreground="#BDAFCB" FontSize="12"/>
-                                <Button x:Name="NewsTelegramButton" Content="TELEGRAM — СКОРО"
-                                        IsEnabled="False" Style="{StaticResource PrimaryButton}"
+                                <Button x:Name="NewsTelegramButton" Content="ПЕРЕЙТИ В ГРУППУ  ↗"
+                                        IsEnabled="True" Style="{StaticResource PrimaryButton}"
                                         Height="46" Margin="0,20,0,0" Click="NewsTelegram_Click"/>
                             </StackPanel>
                         </Border>
                     </Grid>
-                    <TextBlock Text="Официальные ссылки появятся здесь после запуска сайта и канала."
+                    <TextBlock Text="Telegram-сообщество уже открыто. Официальный сайт появится позже."
                                Foreground="#9E8BAE" FontSize="11" TextWrapping="Wrap"
                                TextAlignment="Center" Margin="0,28,0,0"/>
                 </StackPanel>
