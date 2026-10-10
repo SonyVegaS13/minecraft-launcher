@@ -1,4 +1,4 @@
-name: Solaris ID API Build
+name: Solaris ID API Build and Database Smoke Test
 
 on:
   workflow_dispatch:
@@ -13,8 +13,23 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build-and-db:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: solaris_ci
+          POSTGRES_PASSWORD: ci_only_not_production
+          POSTGRES_DB: solaris_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U solaris_ci"
+          --health-interval=5s --health-timeout=5s --health-retries=12
+    env:
+      SOLARIS_ID_CONNECTION_STRING: "Host=127.0.0.1;Port=5432;Database=solaris_ci;Username=solaris_ci;Password=ci_only_not_production"
+      SOLARIS_ID_PUBLIC_ORIGIN: "https://auth.example.invalid"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -24,3 +39,32 @@ jobs:
         run: dotnet restore backend/Solaris.Id.Api/Solaris.Id.Api.csproj
       - name: Build
         run: dotnet build backend/Solaris.Id.Api/Solaris.Id.Api.csproj -c Release --no-restore
+      - name: Verify EF Core migrations on PostgreSQL
+        run: |
+          dotnet tool install --global dotnet-ef --version 8.0.11
+          dotnet ef database update --project backend/Solaris.Id.Api/Solaris.Id.Api.csproj --startup-project backend/Solaris.Id.Api/Solaris.Id.Api.csproj
+      - name: Health and anonymous admin route smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet run --no-build -c Release --project backend/Solaris.Id.Api/Solaris.Id.Api.csproj --urls http://127.0.0.1:5115 > /tmp/solaris-api.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          ready=0
+          for i in {1..30}; do
+            if curl --silent --fail http://127.0.0.1:5115/health | grep -q '"status":"ok"'; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" != "1" ]; then
+            cat /tmp/solaris-api.log
+            exit 1
+          fi
+          status=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:5115/api/v1/control/audit)
+          if [ "$status" != "401" ] && [ "$status" != "403" ]; then
+            echo "Anonymous admin route must reject; got $status"
+            exit 1
+          fi
+          echo "PostgreSQL migrations, health, authorization: PASS"
