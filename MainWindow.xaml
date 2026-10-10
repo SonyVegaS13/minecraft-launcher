@@ -62,10 +62,35 @@
                 <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0.5"><GradientStop Color="#290A0520" Offset="0"/><GradientStop Color="#87120925" Offset="0.56"/><GradientStop Color="#B1090719" Offset="1"/></LinearGradientBrush></Border.Background>
             </Border>
             <Border Grid.Column="0" Background="#070B0519" IsHitTestVisible="False" CornerRadius="20"/>
-            <Grid Grid.Column="0" Margin="48,36,18,54" IsHitTestVisible="False">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
-                    <Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="70" Height="70" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <TextBlock Text="SOLARIS" FontSize="56" FontWeight="ExtraBold" VerticalAlignment="Center" Margin="17,0,0,0" Foreground="#FFF3FB"/>
+            <!-- Login hero branding: intentionally above the former bottom-left
+                 position, balanced against the account form on the right. -->
+            <Grid Grid.Column="0" Margin="48,24,18,30" IsHitTestVisible="False">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1.05*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="1.80*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="1" HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png"
+                               Width="70" Height="70" Stretch="Uniform"
+                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <TextBlock Text="SOLARIS" FontSize="56" FontWeight="ExtraBold"
+                                   VerticalAlignment="Center" Margin="17,0,0,0" Foreground="#FFFFFFFF">
+                            <TextBlock.Effect>
+                                <DropShadowEffect Color="#FFE5B5" BlurRadius="9"
+                                                  ShadowDepth="0" Opacity="0.22"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </StackPanel>
+                    <TextBlock Text="Открой свой мир возможностей."
+                               Margin="87,9,0,0" FontSize="18" FontWeight="Light"
+                               Foreground="#E2D7D0" TextWrapping="Wrap" MaxWidth="440">
+                        <TextBlock.Effect>
+                            <DropShadowEffect Color="#432650" BlurRadius="5"
+                                              ShadowDepth="0" Opacity="0.18"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
                 </StackPanel>
             </Grid>
             <Border Grid.Column="1" Margin="26,50,38,50" VerticalAlignment="Center" Padding="38" CornerRadius="22" BorderThickness="1.5">
