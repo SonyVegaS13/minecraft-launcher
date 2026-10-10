@@ -6,11 +6,11 @@ namespace SolarisLauncher;
 
 public partial class MainWindow
 {
-    // Add the two *official* URLs here when the Solaris website and Telegram
-    // channel are publicly announced. Never publish guessed addresses.
+    // The official community group URL was provided by the Solaris team.
+    // The website is still unannounced; never fabricate its address.
     // The DEV updater distributes future changes without reinstalling.
     private const string OfficialWebsiteUrl = "";
-    private const string OfficialTelegramUrl = "";
+    private const string OfficialTelegramUrl = "https://t.me/solarisUnity";
 
     private static bool IsSafeExternalUrl(string value, bool telegram)
     {
@@ -32,11 +32,11 @@ public partial class MainWindow
         ControlView.Visibility = Visibility.Collapsed;
 
         bool siteReady = IsSafeExternalUrl(OfficialWebsiteUrl, telegram: false);
-        bool channelReady = IsSafeExternalUrl(OfficialTelegramUrl, telegram: true);
+        bool communityReady = IsSafeExternalUrl(OfficialTelegramUrl, telegram: true);
         NewsWebsiteButton.IsEnabled = siteReady;
-        NewsTelegramButton.IsEnabled = channelReady;
+        NewsTelegramButton.IsEnabled = communityReady;
         NewsWebsiteButton.Content = siteReady ? "ОТКРЫТЬ САЙТ  ↗" : "САЙТ — СКОРО";
-        NewsTelegramButton.Content = channelReady ? "ОТКРЫТЬ TELEGRAM  ↗" : "TELEGRAM — СКОРО";
+        NewsTelegramButton.Content = communityReady ? "ПЕРЕЙТИ В ГРУППУ  ↗" : "TELEGRAM — СКОРО";
 
         NewsView.Visibility = Visibility.Visible;
     }
