@@ -100,8 +100,12 @@ public partial class MainWindow : Window
             stage = "RAM slider event wiring (pending)";
             if (App.IsDeveloperMode)
             {
-                NeonBuildTag.Text += "  •  RAMFIX-R2 DEV";
-                Title = "Solaris Launcher - RAMFIX-R2 DEV";
+                NeonBuildTag.Text += App.IsDevChannel
+                    ? "  •  DEV AUTO-UPDATE"
+                    : "  •  RAMFIX-R2 DEV";
+                Title = App.IsDevChannel
+                    ? "Solaris Launcher - DEV AUTO-UPDATE"
+                    : "Solaris Launcher - RAMFIX-R2 DEV";
             }
 
             stage = "InitializeArtworkPreviews";
@@ -159,18 +163,20 @@ public partial class MainWindow : Window
             return;
 
         _updateCheckStarted = true;
-        if (App.IsDeveloperMode)
-        {
-            StatusText.Text = "Режим разработки: данные и обновления изолированы от Solaris 2.2.9.";
-            return;
-        }
-        // The new executable acknowledges successful WPF initialization to the
-        // detached updater. Never re-offer the same update during its handshake.
+        // A successful updated WPF window must ACK the helper first, including
+        // DEV-channel updates. --dev-test remains entirely offline/portable.
         if (App.PendingUpdateAcknowledgement is { } attempt)
         {
             SolarisSafeUpdate.PublishReady(attempt);
             return;
         }
+        if (App.IsDeveloperMode && !App.IsDevChannel)
+        {
+            StatusText.Text = "Портативный DEV-тест: автоматические обновления отключены.";
+            return;
+        }
+        if (App.IsDevChannel)
+            StatusText.Text = "Solaris DEV: проверяем автоматические обновления...";
         if (!App.LaunchedAfterRecovery)
             await CheckForUpdatesAsync();
     }
