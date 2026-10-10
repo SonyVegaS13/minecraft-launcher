@@ -79,8 +79,9 @@ public partial class MainWindow
                     await output.WriteAsync(buffer.AsMemory(0, n), token);
                     if (total is > 0)
                     {
-                        Progress.Value = percentFrom + (percentTo - percentFrom) *
-                            Math.Clamp((double)current / total.Value, 0, 1);
+                        double fraction = Math.Clamp((double)current / total.Value, 0, 1);
+                        Progress.Value = percentFrom + (percentTo - percentFrom) * fraction;
+                        IgnitionPercent.Text = $"{fraction * 100:0}%";
                         StatusText.Text = $"Скачиваем Java {major}: {current / 1048576} / {total.Value / 1048576} МБ...";
                     }
                 }

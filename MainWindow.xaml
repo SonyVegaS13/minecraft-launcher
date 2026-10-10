@@ -220,7 +220,7 @@
                             <StackPanel>
                                 <Grid Margin="0,0,0,9">
                                     <TextBlock Text="☀  SOLARIS IGNITION" Foreground="#FFD56A" FontWeight="SemiBold" FontSize="11"/>
-                                    <TextBlock x:Name="IgnitionPercent" Text="0%" Foreground="#FFE99B" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold"/>
+                                    <TextBlock x:Name="IgnitionPercent" Text="ГОТОВО" Foreground="#FFE99B" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold"/>
                                 </Grid>
                                 <Grid x:Name="IgnitionTrack" Height="16" ClipToBounds="False" SizeChanged="IgnitionTrack_SizeChanged">
                                     <Border Background="#282032" BorderBrush="#735031" BorderThickness="1" CornerRadius="8"/>

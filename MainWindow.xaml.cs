@@ -613,12 +613,30 @@ public partial class MainWindow : Window
             $"В GitHub Release не найден файл {ClientPackAssetName}.");
     }
 
-    private async Task DownloadFileWithProgressAsync(string url, string destination, double min, double max, CancellationToken token)
+    private async Task DownloadFileWithProgressAsync(string url, string destination,
+        double min, double max, CancellationToken token)
     {
-        using HttpResponseMessage response = await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token); response.EnsureSuccessStatusCode(); long? total = response.Content.Headers.ContentLength;
-        await using Stream input = await response.Content.ReadAsStreamAsync(token); await using FileStream output = new(destination, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 64, true);
-        byte[] buffer = new byte[1024 * 128]; long readTotal = 0; int read;
-        while ((read = await input.ReadAsync(buffer.AsMemory(0, buffer.Length), token)) > 0) { await output.WriteAsync(buffer.AsMemory(0, read), token); readTotal += read; if (total is > 0) Progress.Value = min + (max - min) * Math.Clamp((double)readTotal / total.Value, 0, 1); }
+        using HttpResponseMessage response = await _http.GetAsync(
+            url, HttpCompletionOption.ResponseHeadersRead, token);
+        response.EnsureSuccessStatusCode();
+        long? total = response.Content.Headers.ContentLength;
+        await using Stream input = await response.Content.ReadAsStreamAsync(token);
+        await using FileStream output = new(destination, FileMode.Create, FileAccess.Write,
+            FileShare.None, 1024 * 64, useAsync: true);
+        byte[] buffer = new byte[1024 * 128];
+        long readTotal = 0;
+        int read;
+        while ((read = await input.ReadAsync(buffer.AsMemory(0, buffer.Length), token)) > 0)
+        {
+            await output.WriteAsync(buffer.AsMemory(0, read), token);
+            readTotal += read;
+            if (total is > 0)
+            {
+                double fraction = Math.Clamp((double)readTotal / total.Value, 0, 1);
+                Progress.Value = min + (max - min) * fraction;
+                IgnitionPercent.Text = $"{fraction * 100:0}%";
+            }
+        }
     }
 
     private static void ExtractZipSafely(string zipFile, string destination, CancellationToken token)

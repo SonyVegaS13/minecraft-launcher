@@ -21,9 +21,11 @@ public partial class MainWindow
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 Progress.Value = percentFrom + (percentTo - percentFrom) * fraction;
+                IgnitionPercent.Text = $"{fraction * 100:0}%";
                 StatusText.Text = fraction < 1
-                    ? $"Solaris {phase}: проверяем и загружаем файлы Minecraft, библиотек и Java..."
-                    : $"Solaris {phase}: файлы проверены, готовим запуск...";
+                    ? $"{phase}: загрузка Minecraft, библиотек и Java — " +
+                        $"{e.ProgressedBytes / 1048576} / {e.TotalBytes / 1048576} МБ"
+                    : $"{phase}: файлы проверены, готовим запуск...";
             }));
         };
     }

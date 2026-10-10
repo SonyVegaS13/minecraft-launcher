@@ -93,7 +93,11 @@ public partial class MainWindow
         IgnitionFill.Width = width * pct / 100.0;
         double leading = Math.Clamp(IgnitionFill.Width - 3, 0, width);
         IgnitionFront.Margin = new Thickness(leading, 0, 0, 0);
-        IgnitionPercent.Text = $"{pct:0}%";
+        // Progress.Value controls the visual multi-stage plasma position.
+        // It is NOT a truthful overall byte percentage. Only report numeric
+        // percentages for downloads with known ProgressedBytes/TotalBytes.
+        IgnitionPercent.Text = pct >= 99.99 ? "100%" : pct <= 0.01
+            ? "ГОТОВО" : "ПРОВЕРКА";
         bool active = pct > 0.01 && pct < 99.99;
         if (active) _ignitionTimer?.Start();
         else
