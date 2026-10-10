@@ -188,7 +188,7 @@
 
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="70" Height="70" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/><StackPanel VerticalAlignment="Center" Margin="13,0,0,0"><TextBlock Text="SOLARIS" FontSize="32" FontWeight="ExtraBold"/></StackPanel></StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="70" Height="70" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/><StackPanel VerticalAlignment="Center" Margin="13,0,0,0"><TextBlock Text="SOLARIS" FontSize="32" FontWeight="ExtraBold"/><TextBlock Text="Открой свой мир возможностей." Foreground="#E8D2C4" FontSize="11" FontWeight="Light" Margin="0,2,0,0"/></StackPanel></StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <Border Padding="23,11" CornerRadius="12" Background="#512299" BorderBrush="#AA45F8" BorderThickness="1"><TextBlock Text="⬡  Миры" FontSize="14" FontWeight="SemiBold" Foreground="White"/></Border>
                     <Button Content="⚙  Настройки" VerticalAlignment="Center" Margin="25,0,0,0" Style="{StaticResource NavButton}" Foreground="#FFE09A" FontSize="13" Click="SettingsNav_Click"/>
@@ -291,13 +291,8 @@
                                 <Grid Margin="0,15,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="72"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border Width="66" Height="66" CornerRadius="33" Background="{StaticResource AccentBrush}" BorderBrush="#B89BFF" BorderThickness="2" Cursor="Hand" ToolTip="Открыть профиль Solaris" MouseLeftButtonUp="ProfileAvatar_Click"><Grid ClipToBounds="True"><TextBlock Text="◈" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/><Image x:Name="ProfileAvatarImage" Stretch="UniformToFill"/></Grid></Border><StackPanel Grid.Column="1" Margin="13,0,0,0" VerticalAlignment="Center"><TextBlock x:Name="ProfileName" Text="Игрок Solaris" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="● В сети" FontSize="10" Foreground="#86EFAC" Margin="0,5,0,0"/></StackPanel></Grid>
                                 <TextBlock x:Name="ProfileText" Text="Локальный аккаунт Solaris" Foreground="#A398B9" FontSize="10" Margin="0,13,0,0" TextWrapping="Wrap"/>
                                 <Button Content="↗  Открыть профиль" Style="{StaticResource SecondaryButton}" Margin="0,14,0,0" Height="36" FontSize="11" Click="ProfileNav_Click"/>
-                                <TextBlock Text="Время Vanilla и Modded — в карточках и профиле."
-                                           Foreground="#9289A1" FontSize="10" Margin="0,13,0,0"
-                                           TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
-
-                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,14,0,0"><StackPanel><TextBlock Text="АВАТАР" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/><TextBlock Text="Minecraft skin ↔ Solaris" FontSize="10" Foreground="#60697A" Margin="0,4,0,10"/><RadioButton Content="Голова скина" GroupName="Avatar" IsChecked="True" Style="{StaticResource AvatarRadio}" IsHitTestVisible="False"/></StackPanel></Border>
 
                         <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,14,0,0">
                              <StackPanel>
@@ -308,7 +303,6 @@
                                  <TextBlock x:Name="ActivityLastDuration" Text="0 ч 0 мин" FontSize="13" Foreground="#FFE0A0"/>
                                  <TextBlock Text="ПОСЛЕДНИЙ ЗАПУСК" FontSize="9" Foreground="#998CA8" Margin="0,13,0,4"/>
                                  <TextBlock x:Name="ActivityLastLaunch" Text="—" FontSize="12" Foreground="#D3C6DD"/>
-                                 <Button Content="↗  Открыть профиль" Style="{StaticResource SecondaryButton}" FontSize="11" Height="36" Margin="0,17,0,0" Click="ProfileNav_Click"/>
                              </StackPanel>
                          </Border>
                     </StackPanel>
