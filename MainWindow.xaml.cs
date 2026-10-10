@@ -200,6 +200,8 @@ public partial class MainWindow : Window
             ? (_cloudOffline ? "SOLARIS ID — без соединения" : "SOLARIS ID — подключён")
             : $"Локальный аккаунт: {username}";
         FullProfileStatus.Text = ProfileText.Text;
+        OpenControlButton.Visibility = _cloudSession?.IsAdmin == true && !_cloudOffline
+            ? Visibility.Visible : Visibility.Collapsed;
         FullProfileName.Text = username;
         _ = RefreshActivityAndProfileAsync(username);
         StatusText.Text = "Готов к запуску."; Progress.Value = 0;
@@ -219,6 +221,9 @@ public partial class MainWindow : Window
         }
         catch { }
         MainView.Visibility = Visibility.Collapsed; AuthView.Visibility = Visibility.Visible;
+        SettingsView.Visibility = Visibility.Collapsed;
+        ProfileView.Visibility = Visibility.Collapsed;
+        ControlView.Visibility = Visibility.Collapsed;
         LoginBox.Clear(); ClearPasswordFields(); ConfirmPasswordPanel.Visibility = Visibility.Collapsed;
         RememberMeCheck.IsChecked = false; AuthStatus.Text = ""; _registerMode = false;
         AuthTitle.Text = "Вход в аккаунт"; AuthActionButton.Content = "ВОЙТИ  ›"; SwitchAuthButton.Content = "Создать аккаунт";

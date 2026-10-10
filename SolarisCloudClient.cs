@@ -32,6 +32,7 @@ public partial class MainWindow
         public DateTimeOffset CreatedUtc { get; set; }
         public string AccessToken { get; set; } = "";
         public string RefreshToken { get; set; } = "";
+        public bool IsAdmin { get; set; }
         public DateTimeOffset ExpiresUtc { get; set; }
     }
 
@@ -186,6 +187,7 @@ public partial class MainWindow
         session.Nickname = user.GetProperty("nickname").GetString() ?? "";
         session.Email = user.GetProperty("email").GetString() ?? "";
         session.CreatedUtc = user.GetProperty("createdUtc").GetDateTimeOffset();
+        session.IsAdmin = user.TryGetProperty("isAdmin", out var admin) && admin.GetBoolean();
         if (string.IsNullOrWhiteSpace(session.Id) ||
             string.IsNullOrWhiteSpace(session.Nickname))
             throw new InvalidDataException("Неполный профиль Solaris ID.");

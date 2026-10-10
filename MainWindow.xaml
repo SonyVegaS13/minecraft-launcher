@@ -326,6 +326,9 @@
                             <TextBlock x:Name="FullProfileTotal" Text="Всего в Minecraft: 0 ч 0 мин" FontSize="18" FontWeight="Bold" Foreground="#FFD16E" Margin="0,18,0,0"/>
                             <TextBlock x:Name="FullProfileVanilla" Text="Vanilla: 0 ч 0 мин" Foreground="#E5DCED" FontSize="12" Margin="0,12,0,0"/>
                             <TextBlock x:Name="FullProfileModded" Text="Modded: 0 ч 0 мин" Foreground="#E5DCED" FontSize="12" Margin="0,7,0,0"/>
+                            <Button x:Name="OpenControlButton" Content="⚙  SOLARIS CONTROL"
+                                    Margin="0,20,0,0" Height="38" Visibility="Collapsed"
+                                    Style="{StaticResource SecondaryButton}" Click="ControlOpen_Click"/>
                         </StackPanel>
                     </Border>
                     <Border Background="#1A1729" BorderBrush="#584368" BorderThickness="1" CornerRadius="18" Padding="22" Margin="0,15,0,0">
@@ -343,6 +346,58 @@
                             <TextBlock Text="В 3D вращай персонажа мышью. Можно установить свой PNG-скин 64×64." Foreground="#A79DB3" FontSize="11" Margin="0,10,0,0" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <Grid x:Name="ControlView" Grid.Row="1" Visibility="Collapsed" Background="#100D20"
+              Margin="12" Panel.ZIndex="22">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Width="800" HorizontalAlignment="Center" Margin="25,16">
+                    <Button Content="←  К ПРОФИЛЮ" Style="{StaticResource NavButton}"
+                            HorizontalAlignment="Left" Click="ControlBack_Click"/>
+                    <TextBlock Text="☀  SOLARIS CONTROL" Foreground="#FFE0A0" FontWeight="Bold"
+                               FontSize="27" Margin="0,18,0,8"/>
+                    <TextBlock Text="Администрирование Solaris ID — только с подтверждённой 2FA"
+                               Foreground="#AEA1BC" FontSize="12" Margin="0,0,0,16"/>
+                    <Border Background="#1C172C" BorderBrush="#715144" BorderThickness="1" Padding="20" CornerRadius="15">
+                        <StackPanel>
+                            <TextBlock Text="Поиск аккаунта: ник или email (не менее 2 символов)"
+                                       FontSize="12" Foreground="#D2C4D9"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <TextBox x:Name="ControlSearchBox" Style="{StaticResource InputBox}" Width="520"/>
+                                <Button Content="НАЙТИ" Width="130" Style="{StaticResource SecondaryButton}"
+                                        Margin="12,0,0,0" Click="ControlSearch_Click"/>
+                            </StackPanel>
+                            <ListBox x:Name="ControlAccountsList" Margin="0,14,0,0" Height="160"
+                                     Background="#0F0D1D" Foreground="#EEE5F3" BorderBrush="#57416D"/>
+                            <TextBlock Text="Причина действия (записывается в журнал):"
+                                       Foreground="#D2C4D9" FontSize="12" Margin="0,15,0,6"/>
+                            <TextBox x:Name="ControlReasonBox" Style="{StaticResource InputBox}"
+                                     Text="Нарушение правил сервера" MaxLength="256"/>
+                            <WrapPanel Margin="0,16,0,0">
+                                <Button Content="ЗАБЛОКИРОВАТЬ" Tag="ban"
+                                        Width="160" Style="{StaticResource SecondaryButton}"
+                                        Click="ControlAccountAction_Click"/>
+                                <Button Content="РАЗБЛОКИРОВАТЬ" Tag="unban"
+                                        Margin="10,0,0,0" Width="165" Style="{StaticResource SecondaryButton}"
+                                        Click="ControlAccountAction_Click"/>
+                                <Button Content="ОТКЛЮЧИТЬ СЕССИИ" Tag="revoke"
+                                        Margin="10,0,0,0" Width="180" Style="{StaticResource SecondaryButton}"
+                                        Click="ControlAccountAction_Click"/>
+                                <Button Content="СБРОС ПО ПОЧТЕ" Tag="reset-password"
+                                        Margin="10,0,0,0" Width="165" Style="{StaticResource SecondaryButton}"
+                                        Click="ControlAccountAction_Click"/>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+                    <TextBlock x:Name="ControlStatus" Foreground="#FFD789" FontSize="12"
+                               TextWrapping="Wrap" Margin="0,12,0,0"/>
+                    <Button Content="ПОКАЗАТЬ ЖУРНАЛ ДЕЙСТВИЙ"
+                            Style="{StaticResource SecondaryButton}" Margin="0,16,0,0"
+                            HorizontalAlignment="Left" Click="ControlAudit_Click"/>
+                    <TextBlock x:Name="ControlAuditText" Foreground="#BFB4C9" TextWrapping="Wrap"
+                               FontSize="11" Margin="0,12,0,0"/>
                 </StackPanel>
             </ScrollViewer>
         </Grid>

@@ -145,5 +145,6 @@ public partial class MainWindow
     {
         SettingsView.Visibility = Visibility.Collapsed;
         ProfileView.Visibility = Visibility.Collapsed;
+        ControlView.Visibility = Visibility.Collapsed;
     }
 }

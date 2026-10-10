@@ -191,7 +191,8 @@ app.MapGet("/api/v1/me", async (System.Security.Claims.ClaimsPrincipal principal
     return Results.Ok(new
     {
         user.Id, user.Nickname, user.Email, user.CreatedUtc,
-        user.EmailConfirmed, type = "solaris-id"
+        user.EmailConfirmed, isAdmin = await users.IsInRoleAsync(user, "SolarisAdmin"),
+        type = "solaris-id"
     });
 }).RequireAuthorization();
 
@@ -357,6 +358,31 @@ control.MapPost("/accounts/{id}/revoke", async (string id, AdminAction request,
     });
     await data.SaveChangesAsync();
     return Results.Ok(new { status = "revoked" });
+});
+
+control.MapPost("/accounts/{id}/reset-password", async (string id, AdminAction request,
+    ClaimsPrincipal actor, UserManager<SolarisUser> users,
+    IEmailSender<SolarisUser> mail, SolarisDbContext data) =>
+{
+    var admin = await users.GetUserAsync(actor);
+    var target = await users.FindByIdAsync(id);
+    if (admin is null || target is null) return Results.NotFound();
+    if (await users.IsInRoleAsync(target, "SolarisAdmin"))
+        return Results.BadRequest(new { error = "protected_admin" });
+    if (string.IsNullOrWhiteSpace(request.Reason) || request.Reason.Length > 256)
+        return Results.BadRequest(new { error = "reason_required" });
+    if (!target.EmailConfirmed || string.IsNullOrWhiteSpace(target.Email))
+        return Results.BadRequest(new { error = "email_unconfirmed" });
+    string code = await users.GeneratePasswordResetTokenAsync(target);
+    await mail.SendPasswordResetCodeAsync(target, target.Email, code);
+    // Administrators do not receive or see the token or the player's password.
+    data.AuditEvents.Add(new SolarisAuditEvent
+    {
+        ActorId = admin.Id, TargetId = target.Id, Operation = "reset-request",
+        Reason = request.Reason.Trim(), Utc = DateTimeOffset.UtcNow
+    });
+    await data.SaveChangesAsync();
+    return Results.Ok(new { status = "password_reset_email_sent" });
 });
 
 control.MapGet("/audit", async (SolarisDbContext data) =>
