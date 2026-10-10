@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 using System.Security.Claims;
 using Npgsql;
 using Solaris.Id.Api;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 string db = builder.Configuration["SOLARIS_ID_CONNECTION_STRING"]
@@ -18,6 +19,12 @@ string db = builder.Configuration["SOLARIS_ID_CONNECTION_STRING"]
         "SOLARIS_ID_CONNECTION_STRING is required. Never commit database credentials.");
 
 builder.Services.AddDbContext<SolarisDbContext>(options => options.UseNpgsql(db));
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    // Only loopback proxies are trusted by default. Deploy Nginx on the same
+    // VDS (or explicitly configure known proxy IPs) to avoid spoofable headers.
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
 builder.Services.AddIdentityApiEndpoints<SolarisUser>(identity =>
 {
     identity.User.RequireUniqueEmail = true;
@@ -47,6 +54,7 @@ builder.Services.AddRateLimiter(limiter =>
 });
 
 var app = builder.Build();
+app.UseForwardedHeaders();
 if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
@@ -129,7 +137,10 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.MapGet("/health", () => Results.Ok(new { service = "solaris-id", status = "ok" }));
+app.MapGet("/health", async (SolarisDbContext data) =>
+    await data.Database.CanConnectAsync()
+        ? Results.Ok(new { service = "solaris-id", status = "ok" })
+        : Results.Problem("Database unavailable", statusCode: 503));
 app.MapGroup("/api/v1/identity")
     .MapIdentityApi<SolarisUser>()
     .RequireRateLimiting("auth");
