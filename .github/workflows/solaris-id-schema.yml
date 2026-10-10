@@ -1,0 +1,54 @@
+name: Solaris ID Database Migration
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - solaris-2.2-dev
+    paths:
+      - 'backend/Solaris.Id.Api/Model.cs'
+      - '.github/workflows/solaris-id-schema.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: solaris-id-schema
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Generate initial EF migrations in source control
+        shell: bash
+        run: |
+          set -euo pipefail
+          if test -d backend/Solaris.Id.Api/Migrations &&
+             find backend/Solaris.Id.Api/Migrations -name '*InitialSolarisSchema.cs' | grep -q .; then
+            echo 'Initial migration already exists; do not regenerate automatically.'
+            exit 0
+          fi
+          dotnet tool install --global dotnet-ef --version 8.0.11
+          dotnet restore backend/Solaris.Id.Api/Solaris.Id.Api.csproj
+          dotnet ef migrations add InitialSolarisSchema \
+            --project backend/Solaris.Id.Api/Solaris.Id.Api.csproj \
+            --startup-project backend/Solaris.Id.Api/Solaris.Id.Api.csproj \
+            --output-dir Migrations
+          dotnet build backend/Solaris.Id.Api/Solaris.Id.Api.csproj -c Release
+          git config user.name 'solaris-schema-bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add backend/Solaris.Id.Api/Migrations
+          if git diff --cached --quiet; then
+            echo 'Nothing to commit.'
+          else
+            git commit -m 'build: initial reviewed-model Solaris ID PostgreSQL migration'
+            git pull --rebase origin solaris-2.2-dev
+            git push origin HEAD:solaris-2.2-dev
+          fi
