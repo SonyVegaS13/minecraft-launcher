@@ -108,6 +108,11 @@
                             </Grid>
                         </Button>
                     </Grid>
+                    <StackPanel x:Name="CloudResetCodePanel" Visibility="Collapsed" Margin="0,10,0,0">
+                        <TextBlock Text="Код восстановления из письма" FontSize="12"
+                                   Foreground="#D9D0E6" Margin="0,0,0,6"/>
+                        <TextBox x:Name="CloudResetCodeBox" Style="{StaticResource InputBox}"/>
+                    </StackPanel>
                     <TextBlock x:Name="CapsLockWarning" Text="⚠ Включён Caps Lock" FontSize="10"
                                Foreground="#FFCB6B" Margin="0,6,0,0" Visibility="Collapsed"/>
                     <StackPanel x:Name="ConfirmPasswordPanel" Visibility="Collapsed" Margin="0,12,0,0">
@@ -140,6 +145,9 @@
                     <TextBlock x:Name="AuthStatus" Margin="0,10,0,0" TextWrapping="Wrap" Foreground="#FFACB3" FontSize="11"/>
                     <Button x:Name="AuthActionButton" Content="ВОЙТИ  ›" Style="{StaticResource PrimaryButton}" Height="52" FontSize="15" Margin="0,22,0,0" Click="AuthActionButton_Click"/>
                     <Button x:Name="SwitchAuthButton" Content="Создать аккаунт" Style="{StaticResource SecondaryButton}" Height="48" Margin="0,12,0,0" Click="SwitchAuthButton_Click"/>
+                    <Button x:Name="CloudForgotPasswordButton" Content="Забыли пароль Solaris ID?" Style="{StaticResource NavButton}"
+                            Visibility="Collapsed" HorizontalAlignment="Center" Height="32"
+                            FontSize="11" Margin="0,8,0,0" Click="CloudForgotPassword_Click"/>
                     <Border BorderBrush="#443250" BorderThickness="0,1,0,0" Margin="0,29,0,0"/>
                     <TextBlock x:Name="AuthStorageExplanation" Text="Аккаунт хранится локально на этом ПК."
                                Margin="0,18,0,0" HorizontalAlignment="Center" Foreground="#92839E"

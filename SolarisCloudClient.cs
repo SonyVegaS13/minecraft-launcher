@@ -20,6 +20,7 @@ public partial class MainWindow
     // In isolated --dev-test, developers can supply SOLARIS_ID_API_ORIGIN.
     private const string OfficialApiOrigin = "";
     private bool _cloudMode;
+    private bool _cloudResetMode;
     private bool _cloudOffline;
     private SolarisCloudSession? _cloudSession;
 
@@ -55,6 +56,7 @@ public partial class MainWindow
     {
         _cloudMode = false;
         _registerMode = false;
+        _cloudResetMode = false;
         ResetAuthScreen();
     }
 
@@ -67,6 +69,7 @@ public partial class MainWindow
         }
         _cloudMode = true;
         _registerMode = false;
+        _cloudResetMode = false;
         ResetAuthScreen();
     }
 
@@ -74,6 +77,8 @@ public partial class MainWindow
     {
         LoginBox.Clear();
         CloudRegisterNickname.Clear();
+        _cloudResetMode = false;
+        CloudResetCodeBox.Clear();
         ClearPasswordFields();
         AuthStatus.Text = "";
         AuthTitle.Text = "Вход в аккаунт";
@@ -89,11 +94,58 @@ public partial class MainWindow
         AuthLoginLabel.Text = _cloudMode ? "Email Solaris ID" : "Логин";
         CloudRegisterNicknamePanel.Visibility = _cloudMode && _registerMode
             ? Visibility.Visible : Visibility.Collapsed;
+        CloudResetCodePanel.Visibility = _cloudResetMode
+            ? Visibility.Visible : Visibility.Collapsed;
+        CloudForgotPasswordButton.Visibility = _cloudMode && !_registerMode
+            ? Visibility.Visible : Visibility.Collapsed;
+        CloudForgotPasswordButton.Content = _cloudResetMode
+            ? "Вернуться ко входу" : "Забыли пароль Solaris ID?";
         AuthStorageExplanation.Text = _cloudMode
             ? "SOLARIS ID — аккаунт на независимом защищённом сервере."
             : "Аккаунт хранится локально на этом ПК.";
         LocalAuthModeButton.Opacity = _cloudMode ? 0.55 : 1;
         CloudAuthModeButton.Opacity = _cloudMode ? 1 : 0.55;
+    }
+
+    private async void CloudForgotPassword_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_cloudMode) return;
+        if (_cloudResetMode)
+        {
+            ResetAuthScreen();
+            return;
+        }
+        string email = LoginBox.Text.Trim();
+        Uri? origin = GetCloudOrigin();
+        if (origin is null)
+        {
+            AuthStatus.Text = "Сервер Solaris ID ещё не подключён.";
+            return;
+        }
+        if (email.Length == 0 || !email.Contains('@'))
+        {
+            AuthStatus.Text = "Сначала введи email Solaris ID.";
+            return;
+        }
+        try
+        {
+            using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
+            using var response = await client.PostAsJsonAsync(
+                new Uri(origin, "api/v1/identity/forgotPassword"), new { email });
+            if (!response.IsSuccessStatusCode)
+                throw new InvalidOperationException("Письмо сейчас не удалось отправить. Попробуй позже.");
+            _cloudResetMode = true;
+            _registerMode = false;
+            AuthTitle.Text = "Новый пароль Solaris ID";
+            AuthActionButton.Content = "ИЗМЕНИТЬ ПАРОЛЬ";
+            SwitchAuthButton.Content = "Назад ко входу";
+            CloudForgotPasswordButton.Content = "Вернуться ко входу";
+            ConfirmPasswordPanel.Visibility = Visibility.Visible;
+            ClearPasswordFields();
+            RefreshCloudAuthLayout();
+            AuthStatus.Text = "Если email существует и подтверждён, проверь почту и введи код.";
+        }
+        catch (Exception ex) { AuthStatus.Text = ex.Message; }
     }
 
     private async Task AuthenticateCloudAsync(string email, string password)
@@ -102,6 +154,20 @@ public partial class MainWindow
             "Сервер Solaris ID ещё не подключён.");
         using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
         client.DefaultRequestHeaders.UserAgent.ParseAdd("SolarisLauncher/2.2.10");
+        if (_cloudResetMode)
+        {
+            string resetCode = CloudResetCodeBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(resetCode))
+                throw new InvalidOperationException("Введите код из письма Solaris ID.");
+            using var reset = await client.PostAsJsonAsync(
+                new Uri(origin, "api/v1/identity/resetPassword"),
+                new { email, resetCode, newPassword = password });
+            if (!reset.IsSuccessStatusCode)
+                throw new InvalidOperationException("Код недействителен или пароль не соответствует требованиям.");
+            ResetAuthScreen();
+            AuthStatus.Text = "Пароль изменён. Теперь войди с новым паролем.";
+            return;
+        }
         if (_registerMode)
         {
             string nickname = CloudRegisterNickname.Text.Trim();

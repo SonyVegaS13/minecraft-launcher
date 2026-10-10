@@ -120,7 +120,8 @@ public partial class MainWindow : Window
             AuthStatus.Text = $"Пароль должен содержать минимум {minPasswordLength} символов.";
             return;
         }
-        if (_registerMode && !string.Equals(password, CurrentConfirmationPassword(), StringComparison.Ordinal))
+        if ((_registerMode || _cloudResetMode) &&
+            !string.Equals(password, CurrentConfirmationPassword(), StringComparison.Ordinal))
         {
             AuthStatus.Text = "Пароли не совпадают.";
             return;
@@ -138,6 +139,11 @@ public partial class MainWindow : Window
 
     private void SwitchAuthButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_cloudResetMode)
+        {
+            ResetAuthScreen();
+            return;
+        }
         _registerMode = !_registerMode;
         AuthTitle.Text = _registerMode ? "Создание аккаунта" : "Вход в аккаунт";
         AuthActionButton.Content = _registerMode ? "СОЗДАТЬ АККАУНТ" : "ВОЙТИ  ›";
