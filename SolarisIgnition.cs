@@ -57,6 +57,11 @@ public partial class MainWindow
     private void IgnitionProgress_ValueChanged(object sender,
         RoutedPropertyChangedEventArgs<double> e)
     {
+        // ValueChanged may fire before all named controls are initialized.
+        if (IgnitionTrack is null || IgnitionFill is null ||
+            IgnitionFront is null || IgnitionPercent is null)
+            return;
+
         RefreshIgnitionPosition();
         if (e.NewValue >= 99.99 && !_ignitionCelebrated)
         {
@@ -86,7 +91,10 @@ public partial class MainWindow
 
     private void RefreshIgnitionPosition()
     {
-        if (IgnitionTrack is null || IgnitionFill is null || IgnitionPercent is null)
+        // WPF can raise size/value notifications while loading XAML. Named
+        // components further down the tree are not guaranteed to exist yet.
+        if (IgnitionTrack is null || IgnitionFill is null ||
+            IgnitionFront is null || IgnitionPercent is null)
             return;
         double pct = Math.Clamp(Progress?.Value ?? 0, 0, 100);
         double width = Math.Max(0, IgnitionTrack.ActualWidth - 2);
