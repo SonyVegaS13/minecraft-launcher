@@ -21,6 +21,15 @@ public sealed class SolarisPlayerSession
     public int Seconds { get; set; }
 }
 
+public sealed class SolarisLegacyImport
+{
+    public string UserId { get; set; } = "";
+    public string SourceId { get; set; } = "";
+    public long VanillaSeconds { get; set; }
+    public long ModdedSeconds { get; set; }
+    public DateTimeOffset ImportedUtc { get; set; }
+}
+
 public sealed class SolarisSkin
 {
     public string UserId { get; set; } = "";
@@ -44,6 +53,7 @@ public sealed class SolarisDbContext(DbContextOptions<SolarisDbContext> options)
 {
     public DbSet<SolarisPlayerSession> PlayerSessions => Set<SolarisPlayerSession>();
     public DbSet<SolarisSkin> Skins => Set<SolarisSkin>();
+    public DbSet<SolarisLegacyImport> LegacyImports => Set<SolarisLegacyImport>();
     public DbSet<SolarisAuditEvent> AuditEvents => Set<SolarisAuditEvent>();
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -62,6 +72,11 @@ public sealed class SolarisDbContext(DbContextOptions<SolarisDbContext> options)
             entity.HasKey(s => new { s.UserId, s.Id });
             entity.Property(s => s.Mode).HasMaxLength(12).IsRequired();
             entity.HasIndex(s => new { s.UserId, s.StartedUtc });
+        });
+        builder.Entity<SolarisLegacyImport>(entity =>
+        {
+            entity.HasKey(i => new { i.UserId, i.SourceId });
+            entity.Property(i => i.SourceId).HasMaxLength(64).IsRequired();
         });
         builder.Entity<SolarisSkin>(entity =>
         {

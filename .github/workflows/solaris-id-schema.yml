@@ -31,13 +31,13 @@ jobs:
         run: |
           set -euo pipefail
           if test -d backend/Solaris.Id.Api/Migrations &&
-             find backend/Solaris.Id.Api/Migrations -name '*InitialSolarisSchema.cs' | grep -q .; then
-            echo 'Initial migration already exists; do not regenerate automatically.'
+             find backend/Solaris.Id.Api/Migrations -name '*LegacyImports.cs' | grep -q .; then
+            echo 'Legacy import migration already exists.'
             exit 0
           fi
           dotnet tool install --global dotnet-ef --version 8.0.11
           dotnet restore backend/Solaris.Id.Api/Solaris.Id.Api.csproj
-          dotnet ef migrations add InitialSolarisSchema \
+          dotnet ef migrations add LegacyImports \
             --project backend/Solaris.Id.Api/Solaris.Id.Api.csproj \
             --startup-project backend/Solaris.Id.Api/Solaris.Id.Api.csproj \
             --output-dir Migrations

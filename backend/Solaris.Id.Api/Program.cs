@@ -204,6 +204,9 @@ app.MapGet("/api/v1/me/playtime", async (System.Security.Claims.ClaimsPrincipal 
     var sessions = data.PlayerSessions.AsNoTracking().Where(s => s.UserId == user.Id);
     var vanilla = await sessions.Where(s => s.Mode == "vanilla").SumAsync(s => (long?)s.Seconds) ?? 0;
     var modded = await sessions.Where(s => s.Mode == "modded").SumAsync(s => (long?)s.Seconds) ?? 0;
+    var imports = data.LegacyImports.AsNoTracking().Where(x => x.UserId == user.Id);
+    vanilla += await imports.SumAsync(x => (long?)x.VanillaSeconds) ?? 0;
+    modded += await imports.SumAsync(x => (long?)x.ModdedSeconds) ?? 0;
     return Results.Ok(new { vanillaSeconds = vanilla, moddedSeconds = modded,
         totalSeconds = vanilla + modded });
 }).RequireAuthorization();
@@ -240,6 +243,39 @@ app.MapPost("/api/v1/me/playtime", async (GameSession request,
     }
 }).RequireAuthorization();
 
+
+
+app.MapPost("/api/v1/me/legacy", async (LegacyImportRequest request,
+    ClaimsPrincipal principal, UserManager<SolarisUser> users, SolarisDbContext data) =>
+{
+    var user = await users.GetUserAsync(principal);
+    if (user is null || user.IsBanned) return Results.Forbid();
+    if (request.SourceId.Length != 64 || !request.SourceId.All(Uri.IsHexDigit) ||
+        request.VanillaSeconds < 0 || request.ModdedSeconds < 0 ||
+        request.VanillaSeconds + request.ModdedSeconds > 5L * 365 * 24 * 3600)
+        return Results.BadRequest(new { error = "legacy_import_invalid" });
+    if (await data.LegacyImports.AnyAsync(x =>
+        x.UserId == user.Id && x.SourceId == request.SourceId))
+        return Results.Ok(new { status = "already_imported" });
+    data.LegacyImports.Add(new SolarisLegacyImport
+    {
+        UserId = user.Id,
+        SourceId = request.SourceId,
+        VanillaSeconds = request.VanillaSeconds,
+        ModdedSeconds = request.ModdedSeconds,
+        ImportedUtc = DateTimeOffset.UtcNow
+    });
+    try
+    {
+        await data.SaveChangesAsync();
+        return Results.Ok(new { status = "imported" });
+    }
+    catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+        { SqlState: PostgresErrorCodes.UniqueViolation })
+    {
+        return Results.Ok(new { status = "already_imported" });
+    }
+}).RequireAuthorization().RequireRateLimiting("auth");
 
 app.MapGet("/api/v1/me/skin", async (ClaimsPrincipal principal,
     UserManager<SolarisUser> users, SolarisDbContext data) =>
@@ -394,3 +430,4 @@ app.Run();
 public sealed record NewAccount(string Nickname, string Email, string Password);
 public sealed record GameSession(Guid Id, string Mode, DateTimeOffset StartedUtc, int Seconds);
 public sealed record AdminAction(string Reason);
+public sealed record LegacyImportRequest(string SourceId, long VanillaSeconds, long ModdedSeconds);

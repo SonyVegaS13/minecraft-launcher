@@ -143,6 +143,7 @@ public partial class MainWindow
         else TryDeleteFile(CloudSessionFile);
         ShowMainView(candidate.Nickname);
         _ = SyncCloudDataAsync(candidate.Nickname);
+        CloudLegacyImportPanel.Visibility = Visibility.Visible;
     }
 
     private async Task FetchCloudProfileAsync(SolarisCloudSession session, HttpClient client,
@@ -232,6 +233,7 @@ public partial class MainWindow
         RememberMeCheck.IsChecked = true;
         RefreshCloudAuthLayout();
         ShowMainView(saved.Nickname);
+        CloudLegacyImportPanel.Visibility = Visibility.Visible;
         if (!_cloudOffline)
             _ = SyncCloudDataAsync(saved.Nickname);
         return true;

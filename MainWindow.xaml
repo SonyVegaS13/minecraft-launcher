@@ -326,6 +326,18 @@
                             <TextBlock x:Name="FullProfileTotal" Text="Всего в Minecraft: 0 ч 0 мин" FontSize="18" FontWeight="Bold" Foreground="#FFD16E" Margin="0,18,0,0"/>
                             <TextBlock x:Name="FullProfileVanilla" Text="Vanilla: 0 ч 0 мин" Foreground="#E5DCED" FontSize="12" Margin="0,12,0,0"/>
                             <TextBlock x:Name="FullProfileModded" Text="Modded: 0 ч 0 мин" Foreground="#E5DCED" FontSize="12" Margin="0,7,0,0"/>
+                            <StackPanel x:Name="CloudLegacyImportPanel" Visibility="Collapsed" Margin="0,17,0,0">
+                                <TextBlock Text="ПЕРЕНЕСТИ СТАРЫЙ ЛОКАЛЬНЫЙ ПРОФИЛЬ"
+                                           Foreground="#FFD582" FontSize="11" FontWeight="SemiBold"/>
+                                <TextBlock Text="Нужен старый локальный пароль. Данные и аккаунт на ПК сохранятся."
+                                           FontSize="11" Foreground="#B4A9C0" TextWrapping="Wrap" Margin="0,6,0,9"/>
+                                <PasswordBox x:Name="LegacyPasswordBox" Style="{StaticResource PasswordBoxStyle}"
+                                             ToolTip="Пароль старого локального аккаунта"/>
+                                <Button Content="Перенести игровые часы" Margin="0,9,0,0" Height="36"
+                                        Style="{StaticResource SecondaryButton}" Click="CloudLegacyImport_Click"/>
+                                <TextBlock x:Name="LegacyImportStatus" Foreground="#FFD37D" FontSize="11"
+                                           TextWrapping="Wrap" Margin="0,7,0,0"/>
+                            </StackPanel>
                             <Button x:Name="OpenControlButton" Content="⚙  SOLARIS CONTROL"
                                     Margin="0,20,0,0" Height="38" Visibility="Collapsed"
                                     Style="{StaticResource SecondaryButton}" Click="ControlOpen_Click"/>
