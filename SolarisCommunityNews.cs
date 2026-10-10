@@ -27,6 +27,9 @@ public partial class MainWindow
 
     private void NewsNav_Click(object sender, RoutedEventArgs e)
     {
+        if (AuthView.Visibility == Visibility.Visible)
+            return;
+
         SettingsView.Visibility = Visibility.Collapsed;
         ProfileView.Visibility = Visibility.Collapsed;
         ControlView.Visibility = Visibility.Collapsed;
@@ -38,7 +41,10 @@ public partial class MainWindow
         NewsWebsiteButton.Content = siteReady ? "ОТКРЫТЬ САЙТ  ↗" : "САЙТ — СКОРО";
         NewsTelegramButton.Content = communityReady ? "ПЕРЕЙТИ В ГРУППУ  ↗" : "TELEGRAM — СКОРО";
 
+        // News is a separate screen, not a translucent overlay competing
+        // with the main world's hit-test surface or its scrolling content.
         NewsView.Visibility = Visibility.Visible;
+        MainView.Visibility = Visibility.Collapsed;
     }
 
     private void NewsWebsite_Click(object sender, RoutedEventArgs e) =>
