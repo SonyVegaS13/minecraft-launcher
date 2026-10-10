@@ -44,7 +44,9 @@ jobs:
             $tag = '${{ github.ref_name }}'
           } else {
             [xml]$project = Get-Content SolarisLauncher.csproj
-            $tag = "v$($project.Project.PropertyGroup.Version)"
+            $versionNode = $project.SelectSingleNode('/Project/PropertyGroup/Version')
+            if ($null -eq $versionNode) { throw 'Project version is missing.' }
+            $tag = "v$($versionNode.InnerText)"
           }
           if ($tag -notmatch '^v\d+\.\d+\.\d+$') {
             throw 'Version must look like v1.0.0'
