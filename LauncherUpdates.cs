@@ -17,6 +17,9 @@ public partial class MainWindow
     // Only deliberately published `neon-vX.Y.Z` releases are offered as updates.
     private const string NeonReleasesUrl =
         "https://api.github.com/repos/SonyVegaS13/minecraft-launcher/releases?per_page=60";
+    // Separate, opt-in channel. A DEV release is published on successful
+    // Windows CI builds and never offered to installed production players.
+    private const string DevTagPrefix = "neon-dev-v";
 
     private sealed record NeonUpdate(Version Version, string DownloadUrl, string ChecksumUrl);
     private bool _updateOperationRunning;
@@ -28,13 +31,15 @@ public partial class MainWindow
         _updateOperationRunning = true;
         try
         {
-            NeonUpdate? update = await FindLatestNeonUpdateAsync();
+            NeonUpdate? update = App.IsDevChannel
+                ? await FindLatestDevNeonUpdateAsync()
+                : await FindLatestNeonUpdateAsync();
             if (update is null || !SolarisSafeUpdate.CanOffer(update.Version.ToString()))
                 return;
 
             MessageBoxResult answer = MessageBox.Show(
-                $"Доступна новая версия Solaris Neon {update.Version}.\n\n" +
-                $"Установлена версия {LauncherVersion}.\n\n" +
+                $"Доступна новая версия Solaris Neon {(App.IsDevChannel ? "DEV " : "")}{update.Version}.\n\n" +
+                $"Установлена версия {(App.IsDevChannel ? InstalledFileVersion() : LauncherVersion)}.\n\n" +
                 "Скачать проверенное обновление и перезапустить Solaris?\n" +
                 "Аккаунт, Minecraft и настройки сохранятся.",
                 "Solaris — обновление",
@@ -120,13 +125,61 @@ public partial class MainWindow
         return best;
     }
 
+    private static Version InstalledFileVersion()
+    {
+        string exe = Environment.ProcessPath
+            ?? throw new InvalidOperationException("Не удалось определить версию Solaris.");
+        var file = FileVersionInfo.GetVersionInfo(exe);
+        return new Version(file.FileMajorPart, file.FileMinorPart,
+            file.FileBuildPart, file.FilePrivatePart);
+    }
+
+    private async Task<NeonUpdate?> FindLatestDevNeonUpdateAsync()
+    {
+        using var response = await _http.GetAsync(NeonReleasesUrl);
+        response.EnsureSuccessStatusCode();
+        await using Stream data = await response.Content.ReadAsStreamAsync();
+        using JsonDocument document = await JsonDocument.ParseAsync(data);
+
+        Version installed = InstalledFileVersion();
+        NeonUpdate? newest = null;
+        foreach (JsonElement release in document.RootElement.EnumerateArray())
+        {
+            if (release.TryGetProperty("draft", out JsonElement draft) && draft.GetBoolean())
+                continue;
+            string tag = release.GetProperty("tag_name").GetString() ?? "";
+            if (!tag.StartsWith(DevTagPrefix, StringComparison.OrdinalIgnoreCase) ||
+                !Version.TryParse(tag[DevTagPrefix.Length..], out Version? version) ||
+                version is null || version.Revision < 0 ||
+                version.CompareTo(installed) <= 0 ||
+                (newest is not null && newest.Version.CompareTo(version) >= 0))
+                continue;
+
+            string? executable = null, checksum = null;
+            foreach (JsonElement asset in release.GetProperty("assets").EnumerateArray())
+            {
+                string assetName = asset.GetProperty("name").GetString() ?? "";
+                string assetUrl = asset.GetProperty("browser_download_url").GetString() ?? "";
+                if (!Uri.TryCreate(assetUrl, UriKind.Absolute, out Uri? uri) ||
+                    uri.Scheme != Uri.UriSchemeHttps ||
+                    !uri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (assetName == "SolarisLauncher.exe") executable = assetUrl;
+                if (assetName == "SHA256SUMS.txt") checksum = assetUrl;
+            }
+            if (executable is not null && checksum is not null)
+                newest = new NeonUpdate(version, executable, checksum);
+        }
+        return newest;
+    }
+
     private async Task StartUpdateAsync(NeonUpdate update)
     {
         string currentPath = Environment.ProcessPath
             ?? throw new InvalidOperationException("Не найден файл запущенного лаунчера.");
         string updatesDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Solaris", "updates");
+            App.IsDevChannel ? "Solaris-Neon-Dev" : "Solaris", "updates");
         Directory.CreateDirectory(updatesDir);
         string incoming = Path.Combine(updatesDir, $"Solaris-{Guid.NewGuid():N}.exe");
         string attemptId = Guid.NewGuid().ToString("N");
@@ -169,6 +222,7 @@ public partial class MainWindow
             startInfo.ArgumentList.Add(incoming);
             startInfo.ArgumentList.Add(update.Version.ToString());
             startInfo.ArgumentList.Add(attemptId);
+            if (App.IsDevChannel) startInfo.ArgumentList.Add("--dev-channel");
 
             if (Process.Start(startInfo) is null)
                 throw new InvalidOperationException("Не удалось запустить помощник обновления.");
