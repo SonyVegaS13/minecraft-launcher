@@ -291,6 +291,10 @@ public partial class MainWindow : Window
         OpenControlButton.Visibility = _cloudSession?.IsAdmin == true && !_cloudOffline
             ? Visibility.Visible : Visibility.Collapsed;
         FullProfileName.Text = username;
+        // Refresh the square Minecraft face whenever an account is opened.
+        // Never display the previous user's head while the new skin loads.
+        SetProfileSkinHead(null);
+        _ = PrepareSkinPreviewAsync(username);
         _ = RefreshActivityAndProfileAsync(username);
         StatusText.Text = "Готов к запуску."; Progress.Value = 0;
         _ = UpdateServerStatusAsync();
