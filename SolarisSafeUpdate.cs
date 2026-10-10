@@ -15,8 +15,10 @@ namespace SolarisLauncher;
 /// </summary>
 internal static class SolarisSafeUpdate
 {
-    private static readonly string Root = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Solaris", "updates");
+    // DEV transactions and rollback files must never mix with stable 2.2.9.
+    private static string Root => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        App.IsDevChannel ? "Solaris-Neon-Dev" : "Solaris", "updates");
     private static string StatePath => Path.Combine(Root, "safe-update.json");
     private static string AckPath(string id) => Path.Combine(Root, "ready-" + id + ".ack");
     private sealed class UpdateState
@@ -103,6 +105,7 @@ internal static class SolarisSafeUpdate
         };
         info.ArgumentList.Add(mode);
         if (value is not null) info.ArgumentList.Add(value);
+        if (App.IsDevChannel) info.ArgumentList.Add("--dev-channel");
         return Process.Start(info) ?? throw new IOException("Не удалось перезапустить Solaris.");
     }
 
@@ -114,7 +117,9 @@ internal static class SolarisSafeUpdate
         Process? next = null;
         bool replaced = false;
         // Only one detached helper may mutate the installed executable.
-        using var mutex = new Mutex(false, @"Local\SolarisLauncher.SafeUpdate");
+        using var mutex = new Mutex(false, App.IsDevChannel
+            ? @"Local\SolarisLauncher.DevSafeUpdate"
+            : @"Local\SolarisLauncher.SafeUpdate");
         bool ownsMutex = false;
         try
         {
@@ -128,9 +133,11 @@ internal static class SolarisSafeUpdate
             if (!File.Exists(downloadedPath) || new FileInfo(downloadedPath).Length < 1_000_000)
                 throw new InvalidDataException("Файл обновления отсутствует или повреждён.");
             var exeVersion = FileVersionInfo.GetVersionInfo(downloadedPath);
+            Version expected = Version.Parse(expectedVersion);
+            if (expected.Revision < 0)
+                expected = new Version(expected.Major, expected.Minor, expected.Build, 0);
             if (new Version(exeVersion.FileMajorPart, exeVersion.FileMinorPart,
-                exeVersion.FileBuildPart, exeVersion.FilePrivatePart) !=
-                Version.Parse(expectedVersion + ".0"))
+                exeVersion.FileBuildPart, exeVersion.FilePrivatePart) != expected)
                 throw new InvalidDataException("Версия скачанного EXE не совпадает с релизом.");
 
             Save(new UpdateState { Version = expectedVersion, AttemptId = attemptId,
