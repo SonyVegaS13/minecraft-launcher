@@ -96,7 +96,18 @@ jobs:
             }
           }
           $version = '${{ steps.version.outputs.version }}'
-          dotnet publish SolarisLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:Version=$version -p:AssemblyVersion="$version.0" -p:FileVersion="$version.$revision" -o artifacts/publish
+          $publishArgs = @('publish', 'SolarisLauncher.csproj', '-c', 'Release', '-r', 'win-x64',
+              '--self-contained', 'true', '-p:PublishSingleFile=true',
+              '-p:PublishTrimmed=false', "-p:Version=$version",
+              "-p:AssemblyVersion=$version.0", "-p:FileVersion=$version.$revision",
+              '-o', 'artifacts/publish')
+          # Mark only automatic DEV builds so opening the EXE directly is safe:
+          # it installs its own DEV copy instead of touching Solaris stable.
+          if ($revision -ne '0') {
+            $publishArgs += '-p:SolarisChannel=dev'
+          }
+          & dotnet @publishArgs
+          if ($LASTEXITCODE -ne 0) { throw 'dotnet publish failed.' }
           if (-not (Test-Path artifacts/publish/SolarisLauncher.exe)) { throw 'SolarisLauncher.exe was not produced.' }
 
       - name: Create launcher ZIP
