@@ -15,21 +15,24 @@ internal static class SolarisBootstrapper
     internal static readonly string PermanentExePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Programs", "Solaris Launcher", "SolarisLauncher.exe");
+    internal static readonly string DevPermanentExePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "Programs", "Solaris Launcher DEV", "SolarisLauncher.exe");
 
     /// <summary>
     /// Returns true after handing off to the permanent EXE. Returns false only
     /// when already running the installed EXE; never creates a launch loop.
     /// </summary>
-    internal static bool RedirectToPermanentInstallation()
+    internal static bool RedirectToPermanentInstallation(bool devChannel = false)
     {
         string sourcePath = Path.GetFullPath(Environment.ProcessPath
             ?? throw new InvalidOperationException("Не удалось определить путь к SolarisLauncher.exe."));
-        string destinationPath = Path.GetFullPath(PermanentExePath);
+        string destinationPath = Path.GetFullPath(devChannel ? DevPermanentExePath : PermanentExePath);
 
         if (sourcePath.Equals(destinationPath, StringComparison.OrdinalIgnoreCase))
         {
             // Upgrade from 2.2.5 or recover deleted shortcuts without copying.
-            EnsureShortcuts(onlyMissing: true);
+            EnsureShortcuts(onlyMissing: true, devChannel);
             return false;
         }
 
@@ -65,7 +68,7 @@ internal static class SolarisBootstrapper
 
         // Failure to create one shortcut (e.g. a redirected OneDrive desktop)
         // is not allowed to break the newly installed launcher.
-        EnsureShortcuts(onlyMissing: false);
+        EnsureShortcuts(onlyMissing: false, devChannel);
 
         var start = new ProcessStartInfo
         {
@@ -73,6 +76,8 @@ internal static class SolarisBootstrapper
             WorkingDirectory = Path.GetDirectoryName(destinationPath)!,
             UseShellExecute = true
         };
+
+        if (devChannel) start.ArgumentList.Add("--dev-channel");
 
         if (Process.Start(start) is null)
             throw new InvalidOperationException("Не удалось запустить установленный Solaris.");
@@ -98,19 +103,20 @@ internal static class SolarisBootstrapper
         return FileVersion(candidatePath).CompareTo(FileVersion(installedPath));
     }
 
-    private static void EnsureShortcuts(bool onlyMissing)
+    private static void EnsureShortcuts(bool onlyMissing, bool devChannel)
     {
         string desktopLink = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-            "Solaris Launcher.lnk");
+            devChannel ? "Solaris Launcher DEV.lnk" : "Solaris Launcher.lnk");
         string programsLink = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.Programs),
-            "Solaris Launcher.lnk");
+            devChannel ? "Solaris Launcher DEV.lnk" : "Solaris Launcher.lnk");
 
         foreach (string linkPath in new[] { desktopLink, programsLink })
         {
             if (onlyMissing && File.Exists(linkPath)) continue;
-            try { CreateWindowsShortcut(linkPath, PermanentExePath); }
+            try { CreateWindowsShortcut(linkPath,
+                devChannel ? DevPermanentExePath : PermanentExePath, devChannel); }
             catch (Exception ex) { LogShortcutError(linkPath, ex); }
         }
     }
@@ -130,7 +136,7 @@ internal static class SolarisBootstrapper
 
     // A .lnk points at the stable EXE (not at Downloads). The Windows icon is
     // embedded in that EXE and can evolve with each future release.
-    private static void CreateWindowsShortcut(string linkPath, string executable)
+    private static void CreateWindowsShortcut(string linkPath, string executable, bool devChannel)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(linkPath)!);
         Type shellType = Type.GetTypeFromProgID("WScript.Shell")
@@ -145,9 +151,12 @@ internal static class SolarisBootstrapper
             {
                 dynamic shortcut = shortcutObject;
                 shortcut.TargetPath = executable;
+                shortcut.Arguments = devChannel ? "--dev-channel" : "";
                 shortcut.WorkingDirectory = Path.GetDirectoryName(executable)!;
                 shortcut.IconLocation = executable + ",0";
-                shortcut.Description = "Solaris Neon — Minecraft Launcher";
+                shortcut.Description = devChannel
+                    ? "Solaris Neon DEV — автоматические тестовые обновления"
+                    : "Solaris Neon — Minecraft Launcher";
                 shortcut.Save();
             }
             finally
