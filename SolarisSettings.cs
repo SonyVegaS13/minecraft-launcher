@@ -126,12 +126,14 @@ public partial class MainWindow
 
     private void SettingsNav_Click(object sender, RoutedEventArgs e)
     {
+        NewsView.Visibility = Visibility.Collapsed;
         ProfileView.Visibility = Visibility.Collapsed;
         SettingsView.Visibility = Visibility.Visible;
     }
 
     private void ProfileNav_Click(object sender, RoutedEventArgs e)
     {
+        NewsView.Visibility = Visibility.Collapsed;
         SettingsView.Visibility = Visibility.Collapsed;
         ProfileView.Visibility = Visibility.Visible;
         _ = RefreshActivityAndProfileAsync(WelcomeText.Text);
@@ -145,6 +147,7 @@ public partial class MainWindow
 
     private void BackToHome_Click(object sender, RoutedEventArgs e)
     {
+        NewsView.Visibility = Visibility.Collapsed;
         SettingsView.Visibility = Visibility.Collapsed;
         ProfileView.Visibility = Visibility.Collapsed;
         ControlView.Visibility = Visibility.Collapsed;
