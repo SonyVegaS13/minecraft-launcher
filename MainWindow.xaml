@@ -293,7 +293,23 @@
                         <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20">
                             <StackPanel>
                                 <TextBlock Text="ПРОФИЛЬ" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/>
-                                <Grid Margin="0,15,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="72"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border Width="66" Height="66" CornerRadius="33" Background="{StaticResource AccentBrush}" BorderBrush="#B89BFF" BorderThickness="2" Cursor="Hand" ToolTip="Открыть профиль Solaris" MouseLeftButtonUp="ProfileAvatar_Click"><Grid ClipToBounds="True"><TextBlock Text="◈" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/><Image x:Name="ProfileAvatarImage" Stretch="UniformToFill"/></Grid></Border><StackPanel Grid.Column="1" Margin="13,0,0,0" VerticalAlignment="Center"><TextBlock x:Name="ProfileName" Text="Игрок Solaris" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="● В сети" FontSize="10" Foreground="#86EFAC" Margin="0,5,0,0"/></StackPanel></Grid>
+                                <Grid Margin="0,15,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="72"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border Width="68" Height="68" CornerRadius="12"
+                                            Background="#201626" BorderBrush="#B89BFF" BorderThickness="2"
+                                            Cursor="Hand" ToolTip="Открыть профиль Solaris"
+                                            MouseLeftButtonUp="ProfileAvatar_Click">
+                                        <Grid ClipToBounds="True">
+                                            <!-- Visible only if no valid local or online skin could be loaded. -->
+                                            <Grid x:Name="ProfileAvatarFallback">
+                                                <Border CornerRadius="10" Background="{StaticResource AccentBrush}"/>
+                                                <TextBlock Text="◈" FontSize="30" FontWeight="Bold"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Grid>
+                                            <!-- Real 8x8 Minecraft skin head, including hat/second layer. -->
+                                            <Image x:Name="ProfileAvatarImage" Stretch="Fill"
+                                                   Visibility="Collapsed" SnapsToDevicePixels="True"
+                                                   RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                                        </Grid>
+                                    </Border><StackPanel Grid.Column="1" Margin="13,0,0,0" VerticalAlignment="Center"><TextBlock x:Name="ProfileName" Text="Игрок Solaris" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="● В сети" FontSize="10" Foreground="#86EFAC" Margin="0,5,0,0"/></StackPanel></Grid>
                                 <TextBlock x:Name="ProfileText" Text="Локальный аккаунт Solaris" Foreground="#A398B9" FontSize="10" Margin="0,13,0,0" TextWrapping="Wrap"/>
                                 <Button Content="↗  Открыть профиль" Style="{StaticResource SecondaryButton}" Margin="0,14,0,0" Height="36" FontSize="11" Click="ProfileNav_Click"/>
                                 <!-- Profile and activity share one panel. -->
