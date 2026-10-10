@@ -14,6 +14,7 @@ public partial class App : Application
     internal static string? PendingUpdateAcknowledgement { get; private set; }
     internal static bool LaunchedAfterRecovery { get; private set; }
     internal static bool IsDeveloperMode { get; private set; }
+    internal static bool IsDevChannel { get; private set; }
     private static readonly string CrashLogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Solaris", "logs", "launcher-crash.log");
@@ -67,6 +68,13 @@ public partial class App : Application
                 System.Windows.Interop.RenderMode.SoftwareOnly;
         }
 
+        // Recognize the isolated, persistently installed DEV channel even in
+        // updater and recovery subprocesses. --dev-test stays portable/offline.
+        IsDevChannel = Array.Exists(e.Args, arg =>
+            string.Equals(arg, "--dev-channel", StringComparison.OrdinalIgnoreCase));
+        IsDeveloperMode = IsDevChannel || Array.Exists(e.Args, arg =>
+            string.Equals(arg, "--dev-test", StringComparison.OrdinalIgnoreCase));
+
         if (e.Args.Length >= 5 &&
             string.Equals(e.Args[0], "--self-update", StringComparison.OrdinalIgnoreCase))
         {
@@ -84,22 +92,8 @@ public partial class App : Application
             return;
         }
 
-        // Opt-in isolated smoke testing: no self-install, no update prompts and
-        // no changes to the player's stable AppData/Solaris directory.
-        IsDeveloperMode = e.Args.Any(arg =>
-            string.Equals(arg, "--dev-test", StringComparison.OrdinalIgnoreCase));
-        string mutexName = IsDeveloperMode
-            ? @"Local\SolarisLauncher.DevTest"
-            : @"Local\SolarisLauncher.Main";
-        _launcherMutex = new System.Threading.Mutex(true, mutexName, out bool firstInstance);
-        if (!firstInstance)
-        {
-            _launcherMutex.Dispose();
-            _launcherMutex = null;
-            Shutdown(0);
-            return;
-        }
-
+        // Portable --dev-test never self-installs. Persistent --dev-channel
+        // installs under a completely different Windows path than stable.
         if (e.Args.Length >= 2 && string.Equals(e.Args[0], "--updated", StringComparison.OrdinalIgnoreCase))
             PendingUpdateAcknowledgement = e.Args[1];
         if (e.Args.Length >= 1 && string.Equals(e.Args[0], "--update-recovery", StringComparison.OrdinalIgnoreCase))
@@ -110,7 +104,8 @@ public partial class App : Application
         // If the installation cannot be completed, preserve portable mode.
         try
         {
-            if (!IsDeveloperMode && SolarisBootstrapper.RedirectToPermanentInstallation())
+            if ((!IsDeveloperMode || IsDevChannel) &&
+                SolarisBootstrapper.RedirectToPermanentInstallation(IsDevChannel))
             {
                 Shutdown(0);
                 return;
@@ -130,6 +125,21 @@ public partial class App : Application
                     MessageBoxButton.OK, MessageBoxImage.Warning);
             }
             catch { }
+        }
+
+        // Acquire the single-instance lock AFTER any installation handoff:
+        // otherwise the newly started permanent EXE can exit before this
+        // temporary bootstrapper has released its own mutex.
+        string mutexName = IsDevChannel ? @"Local\SolarisLauncher.DevChannel"
+            : IsDeveloperMode ? @"Local\SolarisLauncher.DevTest"
+            : @"Local\SolarisLauncher.Main";
+        _launcherMutex = new System.Threading.Mutex(true, mutexName, out bool firstInstance);
+        if (!firstInstance)
+        {
+            _launcherMutex.Dispose();
+            _launcherMutex = null;
+            Shutdown(0);
+            return;
         }
 
         try { base.OnStartup(e); }
@@ -161,13 +171,16 @@ public partial class App : Application
             newLauncherPath = Path.GetFullPath(newLauncherPath);
             string helperPath = Path.Combine(Path.GetTempPath(), $"SolarisUpdater-{Guid.NewGuid():N}.exe");
             File.Copy(Environment.ProcessPath ?? throw new InvalidOperationException("Missing executable path"), helperPath);
-            Process.Start(new ProcessStartInfo
+            var helper = new ProcessStartInfo
             {
                 FileName = helperPath,
                 ArgumentList = { "--apply-update", launcherPath, newLauncherPath, expectedVersion, attemptId },
                 WorkingDirectory = Path.GetDirectoryName(launcherPath)!,
                 UseShellExecute = false
-            });
+            };
+            if (IsDevChannel) helper.ArgumentList.Add("--dev-channel");
+            if (Process.Start(helper) is null)
+                throw new IOException("Не удалось запустить помощник обновления.");
         }
         catch (Exception ex)
         {
