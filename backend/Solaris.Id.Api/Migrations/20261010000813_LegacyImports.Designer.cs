@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Solaris.Id.Api;
@@ -11,9 +12,11 @@ using Solaris.Id.Api;
 namespace Solaris.Id.Api.Migrations
 {
     [DbContext(typeof(SolarisDbContext))]
-    partial class SolarisDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261010000813_LegacyImports")]
+    partial class LegacyImports
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
