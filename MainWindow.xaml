@@ -214,7 +214,7 @@
                         <StackPanel Orientation="Horizontal" Margin="2,0,0,12"><TextBlock Text="МИРЫ" FontSize="12" FontWeight="SemiBold" Foreground="#D1B0EB"/><Border Background="#1B1531" CornerRadius="8" Padding="8,3" Margin="10,0,0,0"><TextBlock Text="2 РЕЖИМА" FontSize="10" Foreground="#D8AEFF"/></Border></StackPanel>
 
                         <Border x:Name="VanillaCard" Background="#161023" BorderBrush="#FF954F" BorderThickness="1.5" CornerRadius="18" Margin="0,0,0,14" MouseEnter="VanillaCard_MouseEnter" MouseLeave="VanillaCard_MouseLeave">
-                            <Grid Height="222" ClipToBounds="True">
+                            <Grid Height="234" ClipToBounds="True">
                                 <Border CornerRadius="18" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#351742" Offset="0"/><GradientStop Color="#934177" Offset="0.52"/><GradientStop Color="#FF943F" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                                 <Image x:Name="VanillaArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0.94" IsHitTestVisible="False" CacheMode="BitmapCache" RenderOptions.BitmapScalingMode="Fant"/>
                                 <Image x:Name="VanillaArtworkSharp" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0" IsHitTestVisible="False" CacheMode="BitmapCache"/>
@@ -226,18 +226,19 @@
                                             <Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="42" Height="42" Stretch="Uniform"/>
                                             <StackPanel Margin="11,0,0,0"><TextBlock Text="SOLARIS VANILLA" FontSize="22" FontWeight="Bold"/><TextBlock Text="ОСНОВНОЙ РЕЖИМ" FontSize="10" Foreground="#D3BDD8"/></StackPanel>
                                         </StackPanel>
-                                        <TextBlock Text="Minecraft 26.2 • Survival" FontSize="13" Margin="0,13,0,0" Foreground="#F0E4EF"/>
+                                        <TextBlock x:Name="VanillaVersionText" Text="Minecraft 26.2 • Survival" FontSize="13" Margin="0,13,0,0" Foreground="#F0E4EF"/>
                                         <StackPanel Orientation="Horizontal" Margin="0,11,0,0"><Ellipse Width="8" Height="8" Fill="#3DFFA3" VerticalAlignment="Center"/><TextBlock Text=" Сервер готов" Foreground="#64FFAD" FontSize="11"/></StackPanel>
                                         <TextBlock Text="solarisplay.millida.host:25565" Foreground="#B5A1BC" FontSize="10" Margin="0,5,0,0"/>
                                         <TextBlock x:Name="VanillaHours" Text="В игре: 0 ч 0 мин" Foreground="#FFE2A1" FontSize="10" Margin="0,7,0,0"/>
+                                        <TextBlock x:Name="VanillaInstallStateText" Text="Проверяем установленную версию..." Foreground="#FFD586" FontSize="10" Margin="0,4,0,0"/>
                                     </StackPanel>
-                                    <Button x:Name="VanillaPlayButton" Grid.Column="1" Content="▶  ИГРАТЬ" Style="{StaticResource PrimaryButton}" Width="184" Height="58" VerticalAlignment="Center" Click="VanillaPlayButton_Click"/>
+                                    <Button x:Name="VanillaPlayButton" Grid.Column="1" Content="ПРОВЕРКА..." IsEnabled="False" Style="{StaticResource PrimaryButton}" Width="184" Height="58" VerticalAlignment="Center" Click="VanillaPlayButton_Click"/>
                                 </Grid>
                             </Grid>
                         </Border>
 
         <Border x:Name="ModdedCard" Background="#150D26" BorderBrush="#A445E5" BorderThickness="1.5" CornerRadius="18" MouseEnter="ModdedCard_MouseEnter" MouseLeave="ModdedCard_MouseLeave">
-                            <Grid Height="204" ClipToBounds="True">
+                            <Grid Height="219" ClipToBounds="True">
                                 <Border CornerRadius="18" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#210B31" Offset="0"/><GradientStop Color="#58258E" Offset="0.6"/><GradientStop Color="#871DA0" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                                 <Image x:Name="ModdedArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0.90" IsHitTestVisible="False" CacheMode="BitmapCache" RenderOptions.BitmapScalingMode="Fant"/>
                                 <Image x:Name="ModdedArtworkSharp" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0" IsHitTestVisible="False" CacheMode="BitmapCache"/>
@@ -257,8 +258,9 @@
                                         <TextBlock Text="Minecraft 1.20.1 • Forge 47.4.20" FontSize="13" Foreground="#E7D9F1" Margin="0,14,0,0"/>
                                         <TextBlock Text="Модовая сборка Solaris" FontSize="10" Foreground="#BB9BD0" Margin="0,9,0,0"/>
                                         <TextBlock x:Name="ModdedHours" Text="В игре: 0 ч 0 мин" Foreground="#E4C5FF" FontSize="10" Margin="0,7,0,0"/>
+                                        <TextBlock x:Name="ModdedInstallStateText" Text="Проверяем релиз и моды..." Foreground="#E6C0FF" FontSize="10" Margin="0,4,0,0"/>
                                     </StackPanel>
-                                    <Button x:Name="PlayButton" Grid.Column="1" Content="▶  ИГРАТЬ" Style="{StaticResource PrimaryButton}" Width="172" Height="56" VerticalAlignment="Center" Click="PlayButton_Click"/>
+                                    <Button x:Name="PlayButton" Grid.Column="1" Content="ПРОВЕРКА..." IsEnabled="False" Style="{StaticResource PrimaryButton}" Width="172" Height="56" VerticalAlignment="Center" Click="PlayButton_Click"/>
                                 </Grid>
                             </Grid>
                         </Border>
