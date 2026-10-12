@@ -151,17 +151,23 @@ public partial class MainWindow
         catch (OperationCanceledException) { throw; }
         catch (Exception)
         {
-            // Without GitHub, do not invent a release or download the wrong pack.
-            // An already-installed and hash-validated local pack may still play.
-            string stateFile = Path.Combine(_stateDir, "client-release.txt");
-            string localTag = File.Exists(stateFile)
-                ? (await File.ReadAllTextAsync(stateFile, token)).Trim() : "";
-            bool localReady = !string.IsNullOrWhiteSpace(localTag) &&
-                await ValidateManagedPackManifestAsync(localTag, token) &&
-                await HasModdedRuntimeAsync();
-            SetModdedState(localReady ? ServerClientState.Ready : ServerClientState.CheckFailed,
-                localReady ? "GitHub недоступен — локальная сборка готова"
-                    : "Не удалось проверить сборку — повторите");
+            // A release lookup can fail when offline or GitHub is throttling.
+            // Never silently install an unknown pack. Preserve offline play
+            // only for an existing client whose local hashes are valid.
+            try
+            {
+                string stateFile = Path.Combine(_stateDir, "client-release.txt");
+                string localTag = File.Exists(stateFile)
+                    ? (await File.ReadAllTextAsync(stateFile, token)).Trim() : "";
+                bool localReady = !string.IsNullOrWhiteSpace(localTag) &&
+                    await ValidateManagedPackManifestAsync(localTag, token) &&
+                    await HasModdedRuntimeAsync();
+                SetModdedState(localReady ? ServerClientState.Ready : ServerClientState.CheckFailed,
+                    localReady ? "GitHub недоступен — локальная сборка готова"
+                        : "Не удалось проверить сборку — повторите");
+            }
+            catch (OperationCanceledException) { throw; }
+            catch { SetModdedState(ServerClientState.CheckFailed, "Ошибка проверки — повторите"); }
         }
     }
 
