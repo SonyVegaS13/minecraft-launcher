@@ -52,6 +52,9 @@ public partial class MainWindow : Window
     private const string GitHubOwner = "SonyVegaS13";
     private const string GitHubRepo = "minecraft-launcher";
     private const string ClientPackAssetName = "SolarisClient.zip";
+    private static bool IsSupportedClientPackAsset(string name) =>
+        string.Equals(name, ClientPackAssetName, StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(name, "mods.2.zip", StringComparison.OrdinalIgnoreCase);
 
     private const string ServerHost = "solarisplay.millida.host";
     private const int ServerPort = 25565;
@@ -669,7 +672,7 @@ public partial class MainWindow : Window
         token.ThrowIfCancellationRequested();
         var release = await GetLatestClientReleaseAsync(token); string tag = release.TagName;
         string stateFile = Path.Combine(_stateDir, "client-release.txt"); string installedTag = File.Exists(stateFile) ? (await File.ReadAllTextAsync(stateFile, token)).Trim() : "";
-        string packUrl = release.Assets.FirstOrDefault(a => string.Equals(a.Name, ClientPackAssetName, StringComparison.OrdinalIgnoreCase))?.BrowserDownloadUrl ?? throw new InvalidOperationException($"В GitHub Release {tag} не найден файл {ClientPackAssetName}.");
+        string packUrl = release.Assets.FirstOrDefault(a => IsSupportedClientPackAsset(a.Name))?.BrowserDownloadUrl ?? throw new InvalidOperationException($"В GitHub Release {tag} не найден клиентский модпак.");
         VersionText.Text = $"Сборка: {tag}";
         if (string.Equals(installedTag, tag, StringComparison.OrdinalIgnoreCase) &&
             await ValidateManagedPackManifestAsync(tag, token))
@@ -687,7 +690,7 @@ public partial class MainWindow : Window
 
     private async Task<GitHubRelease> GetLatestClientReleaseAsync(CancellationToken token)
     {
-        string url = $"https://api.github.com/repos/{GitHubOwner}/{GitHubRepo}/releases?per_page=20";
+        string url = $"https://api.github.com/repos/{GitHubOwner}/{GitHubRepo}/releases?per_page=100";
         using HttpResponseMessage response = await _http.GetAsync(url, token);
         if (!response.IsSuccessStatusCode)
             throw new InvalidOperationException($"GitHub не вернул список релизов. HTTP {(int)response.StatusCode} {response.StatusCode}.");
@@ -699,12 +702,30 @@ public partial class MainWindow : Window
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
                 token) ?? new List<GitHubRelease>();
 
-        GitHubRelease? release = releases.FirstOrDefault(r =>
-            !string.IsNullOrWhiteSpace(r.TagName) &&
-            r.Assets.Any(a => string.Equals(a.Name, ClientPackAssetName, StringComparison.OrdinalIgnoreCase)));
+        GitHubRelease? release = releases
+            .Where(r => !string.IsNullOrWhiteSpace(r.TagName) &&
+                r.Assets.Any(a => IsSupportedClientPackAsset(a.Name)))
+            .OrderByDescending(r => r.PublishedAt ?? DateTimeOffset.MinValue)
+            .FirstOrDefault();
+
+        // If a long run of launcher-only DEV builds pushed the pack release
+        // outside the first 100 entries, keep the pinned Solaris 3.0.1 pack available.
+        if (release is null)
+        {
+            using HttpResponseMessage pinnedResponse = await _http.GetAsync(
+                $"https://api.github.com/repos/{GitHubOwner}/{GitHubRepo}/releases/tags/3.0.1", token);
+            if (pinnedResponse.IsSuccessStatusCode)
+            {
+                await using Stream pinnedStream = await pinnedResponse.Content.ReadAsStreamAsync(token);
+                release = await JsonSerializer.DeserializeAsync<GitHubRelease>(
+                    pinnedStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }, token);
+                if (release is not null && !release.Assets.Any(a => IsSupportedClientPackAsset(a.Name)))
+                    release = null;
+            }
+        }
 
         return release ?? throw new InvalidOperationException(
-            $"В GitHub Release не найден файл {ClientPackAssetName}.");
+            "В GitHub Releases не найден архив клиентской сборки Solaris.");
     }
 
     private async Task DownloadFileWithProgressAsync(string url, string destination,
@@ -763,6 +784,31 @@ public partial class MainWindow : Window
             if (!Directory.Exists(source)) continue;
             Directory.CreateDirectory(destination);
             CopyDirectory(source, destination, token, overwriteManaged: relative == "mods");
+            if (relative == "mods")
+                QuarantineUnlistedModJars(source, destination, token);
+        }
+    }
+
+    // Keep an exact server-compatible mod set. Move obsolete jars outside
+    // the game directory instead of deleting players' files permanently.
+    private void QuarantineUnlistedModJars(string source, string destination, CancellationToken token)
+    {
+        var expected = Directory.EnumerateFiles(source, "*.jar", SearchOption.AllDirectories)
+            .Select(path => Path.GetRelativePath(source, path))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        string backupRoot = Path.Combine(_stateDir, "old-mods",
+            DateTime.UtcNow.ToString("yyyyMMdd-HHmmss"));
+        foreach (string installed in Directory.EnumerateFiles(destination, "*.jar",
+            SearchOption.AllDirectories))
+        {
+            token.ThrowIfCancellationRequested();
+            string relative = Path.GetRelativePath(destination, installed);
+            if (expected.Contains(relative)) continue;
+            string backup = Path.Combine(backupRoot, relative);
+            Directory.CreateDirectory(Path.GetDirectoryName(backup)!);
+            if (File.Exists(backup))
+                backup = backup + "." + Guid.NewGuid().ToString("N");
+            File.Move(installed, backup);
         }
     }
 
@@ -854,6 +900,7 @@ public partial class MainWindow : Window
     private sealed class GitHubRelease
     {
         [JsonPropertyName("tag_name")] public string TagName { get; set; } = "";
+        [JsonPropertyName("published_at")] public DateTimeOffset? PublishedAt { get; set; }
         [JsonPropertyName("assets")] public List<GitHubAsset> Assets { get; set; } = new();
     }
 

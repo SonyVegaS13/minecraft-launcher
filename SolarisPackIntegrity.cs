@@ -51,6 +51,18 @@ public partial class MainWindow
 
         string modsBase = Path.GetFullPath(Path.Combine(_gameDir, "mods")) +
             Path.DirectorySeparatorChar;
+        var expected = manifest.Files
+            .Select(entry => Path.GetFullPath(Path.Combine(_gameDir, entry.RelativePath)))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        string modsDirectory = Path.Combine(_gameDir, "mods");
+        if (!Directory.Exists(modsDirectory)) return false;
+        foreach (string installed in Directory.EnumerateFiles(
+            modsDirectory, "*.jar", SearchOption.AllDirectories))
+        {
+            token.ThrowIfCancellationRequested();
+            if (!expected.Contains(Path.GetFullPath(installed))) return false;
+        }
+
         foreach (ManagedPackFile entry in manifest.Files)
         {
             token.ThrowIfCancellationRequested();
