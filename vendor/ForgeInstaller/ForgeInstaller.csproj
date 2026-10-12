@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+<PropertyGroup><TargetFramework>net8.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><LangVersion>12.0</LangVersion><AssemblyName>CmlLib.Core.Installer.Forge</AssemblyName></PropertyGroup>
+<ItemGroup><PackageReference Include="CmlLib.Core" Version="4.0.6"/><PackageReference Include="HtmlAgilityPack" Version="1.11.48"/></ItemGroup>
+</Project>
