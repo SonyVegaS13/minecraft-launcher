@@ -107,8 +107,8 @@ public partial class MainWindow : Window
                 {
                     int revision = System.Diagnostics.FileVersionInfo.GetVersionInfo(
                         Environment.ProcessPath!).FilePrivatePart;
-                    NeonBuildTag.Text += $"  •  DEV AUTO-UPDATE r{revision}";
-                    Title = $"Solaris Launcher - DEV AUTO-UPDATE r{revision}";
+                    NeonBuildTag.Text += $"  •  AUTO-UPDATE r{revision}";
+                    Title = $"Solaris Launcher - AUTO-UPDATE r{revision}";
                 }
                 else
                 {

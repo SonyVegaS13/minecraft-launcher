@@ -112,7 +112,8 @@ public partial class App : Application
         try
         {
             if ((!IsDeveloperMode || IsDevChannel) &&
-                SolarisBootstrapper.RedirectToPermanentInstallation(IsDevChannel))
+                SolarisBootstrapper.RedirectToPermanentInstallation(
+                    IsDevChannel, PendingUpdateAcknowledgement, LaunchedAfterRecovery))
             {
                 Shutdown(0);
                 return;
@@ -137,8 +138,8 @@ public partial class App : Application
         // Acquire the single-instance lock AFTER any installation handoff:
         // otherwise the newly started permanent EXE can exit before this
         // temporary bootstrapper has released its own mutex.
-        string mutexName = IsDevChannel ? @"Local\SolarisLauncher.DevChannel"
-            : IsDeveloperMode ? @"Local\SolarisLauncher.DevTest"
+        string mutexName = IsDeveloperMode && !IsDevChannel
+            ? @"Local\SolarisLauncher.DevTest"
             : @"Local\SolarisLauncher.Main";
         _launcherMutex = new System.Threading.Mutex(true, mutexName, out bool firstInstance);
         if (!firstInstance)
