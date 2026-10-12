@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -87,12 +88,32 @@ internal static class SolarisSafeUpdate
 
     internal static void PublishReady(string attemptId)
     {
-        try
+        // One-time bridge for existing stable (2.2.9) and DEV (2.2.10.x)
+        // updaters. Their helpers watch different transaction folders.
+        // The new shared EXE must ACK in whichever folder owns the attempt.
+        string local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        string[] roots =
         {
-            Directory.CreateDirectory(Root);
-            File.WriteAllText(AckPath(attemptId), DateTimeOffset.UtcNow.ToString("O"));
+            Root,
+            Path.Combine(local, "Solaris", "updates"),
+            Path.Combine(local, "Solaris-Neon-Dev", "updates")
+        };
+        foreach (string directory in roots.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            try
+            {
+                string state = Path.Combine(directory, "safe-update.json");
+                if (!File.Exists(state)) continue;
+                // Keep the ACK scoped to the exact pending transaction.
+                using JsonDocument document = JsonDocument.Parse(File.ReadAllText(state));
+                if (!document.RootElement.TryGetProperty("AttemptId", out JsonElement id) ||
+                    !string.Equals(id.GetString(), attemptId, StringComparison.Ordinal))
+                    continue;
+                File.WriteAllText(Path.Combine(directory, "ready-" + attemptId + ".ack"),
+                    DateTimeOffset.UtcNow.ToString("O"));
+            }
+            catch { /* Another channel must still be allowed to acknowledge. */ }
         }
-        catch { /* The detached helper will time out and preserve backup. */ }
     }
 
     private static Process StartInstalled(string path, string mode, string? value = null)

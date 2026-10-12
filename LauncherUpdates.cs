@@ -91,8 +91,7 @@ public partial class MainWindow
             finally
             {
                 _installingLauncherUpdate = false;
-                PlayButton.IsEnabled = true;
-                VanillaPlayButton.IsEnabled = true;
+                RefreshServerActionButtons();
             }
         }
         catch (Exception ex)
