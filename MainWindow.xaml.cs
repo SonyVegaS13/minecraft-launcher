@@ -177,17 +177,23 @@ public partial class MainWindow : Window
         if (App.PendingUpdateAcknowledgement is { } attempt)
         {
             SolarisSafeUpdate.PublishReady(attempt);
-            return;
         }
-        if (App.IsDeveloperMode && !App.IsDevChannel)
+        else if (App.IsDeveloperMode && !App.IsDevChannel)
         {
-            StatusText.Text = "Портативный DEV-тест: автоматические обновления отключены.";
-            return;
+            StatusText.Text = "Портативный DEV-тест: обновления лаунчера отключены.";
         }
-        if (App.IsDevChannel)
-            StatusText.Text = "Solaris DEV: проверяем автоматические обновления...";
-        if (!App.LaunchedAfterRecovery)
-            await CheckForUpdatesAsync();
+        else
+        {
+            if (App.IsDevChannel)
+                StatusText.Text = "Solaris DEV: проверяем обновления лаунчера...";
+            if (!App.LaunchedAfterRecovery)
+                await CheckForUpdatesAsync();
+        }
+
+        // Server updates are independent of the executable auto-updater.
+        // A fresh launch shows UPDATE until the selected client is installed.
+        if (!_installingLauncherUpdate && !Dispatcher.HasShutdownStarted)
+            await RefreshServerStatesAsync();
     }
 
     private async void AuthActionButton_Click(object sender, RoutedEventArgs e)
@@ -359,7 +365,9 @@ public partial class MainWindow : Window
 
         try
         {
-            bool online = await PingMinecraftServerAsync(ServerHost, ServerPort, CancellationToken.None);
+            (bool online, string? advertisedVersion) =
+                await PingMinecraftServerAsync(ServerHost, ServerPort, CancellationToken.None);
+            if (online) ApplyVanillaServerVersion(advertisedVersion);
             status.Text = online ? " Сервер онлайн" : " Сервер офлайн";
             if (dot is not null) dot.Fill = new SolidColorBrush(online ? Color.FromRgb(74, 222, 128) : Color.FromRgb(248, 113, 113));
         }
@@ -370,7 +378,8 @@ public partial class MainWindow : Window
         }
     }
 
-    private static async Task<bool> PingMinecraftServerAsync(string host, int port, CancellationToken token)
+    private static async Task<(bool Online, string? Version)> PingMinecraftServerAsync(
+        string host, int port, CancellationToken token)
     {
         using TcpClient client = new();
         await client.ConnectAsync(host, port).WaitAsync(TimeSpan.FromSeconds(4), token);
@@ -388,24 +397,33 @@ public partial class MainWindow : Window
         await WritePacketAsync(stream, new byte[] { 0 }, token);
 
         int packetLength = await ReadVarIntAsync(stream, token);
-        if (packetLength <= 0 || packetLength > 1_000_000) return false;
+        if (packetLength <= 0 || packetLength > 1_000_000) return (false, null);
         byte[] packet = await ReadExactAsync(stream, packetLength, token);
         using MemoryStream response = new(packet, writable: false);
         int packetId = ReadVarInt(response);
-        if (packetId != 0) return false;
+        if (packetId != 0) return (false, null);
         int jsonLength = ReadVarInt(response);
-        if (jsonLength <= 0 || jsonLength > response.Length - response.Position) return false;
+        if (jsonLength <= 0 || jsonLength > response.Length - response.Position) return (false, null);
         byte[] json = new byte[jsonLength];
         int read = 0;
         while (read < json.Length)
         {
             int chunk = await response.ReadAsync(json.AsMemory(read, json.Length - read), token);
-            if (chunk == 0) return false;
+            if (chunk == 0) return (false, null);
             read += chunk;
         }
 
         string statusJson = Encoding.UTF8.GetString(json);
-        return !string.IsNullOrWhiteSpace(statusJson);
+        if (string.IsNullOrWhiteSpace(statusJson)) return (false, null);
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(statusJson);
+            string? version = document.RootElement.TryGetProperty("version", out JsonElement info) &&
+                info.TryGetProperty("name", out JsonElement name)
+                ? name.GetString() : null;
+            return (true, version);
+        }
+        catch (JsonException) { return (true, null); }
     }
 
     private static async Task WritePacketAsync(Stream stream, byte[] payload, CancellationToken token)
@@ -566,80 +584,150 @@ public partial class MainWindow : Window
 
     private async void VanillaPlayButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button vanillaButton) return;
-        if (!TryBeginLaunch(vanillaButton, "ИГРАТЬ", out CancellationTokenSource? cancellation, out CancellationToken token)) return;
+        if (sender is not Button vanillaButton || _vanillaClientState == ServerClientState.Checking)
+            return;
+        if (_vanillaClientState == ServerClientState.CheckFailed)
+        {
+            await RefreshVanillaClientStateAsync();
+            return;
+        }
+        bool updateOnly = _vanillaClientState == ServerClientState.UpdateRequired;
+        if (!TryBeginLaunch(vanillaButton, "ИГРАТЬ",
+            out CancellationTokenSource? cancellation, out CancellationToken token)) return;
 
         try
         {
-            Directory.CreateDirectory(_stateDir); string vanillaDir = Path.Combine(_stateDir, "vanilla"); Directory.CreateDirectory(vanillaDir);
-            StatusText.Text = $"Проверяем Minecraft {VanillaVersion} и Java 25..."; Progress.Value = 4;
+            string version = _vanillaTargetVersion;
+            if (updateOnly)
+            {
+                await InstallVanillaClientAsync(version, token);
+                if (!string.Equals(version, _vanillaTargetVersion, StringComparison.Ordinal))
+                    SetVanillaState(ServerClientState.UpdateRequired,
+                        $"Сервер перешёл на {_vanillaTargetVersion} — обновите ещё раз");
+                return; // UPDATE never automatically starts the game.
+            }
+
+            if (!await IsVanillaClientInstalledAsync(version))
+            {
+                SetVanillaState(ServerClientState.UpdateRequired,
+                    "Файлы изменены — требуется обновление");
+                StatusText.Text = "Нажмите «Обновить» для восстановления Vanilla.";
+                return;
+            }
+
             string nickname = await GetCurrentLaunchUsernameAsync();
             token.ThrowIfCancellationRequested();
-            var path = new MinecraftPath(vanillaDir); var launcher = new MinecraftLauncher(path);
-            WireMinecraftProgress(launcher, "Vanilla", 25, 85);
-            string javaBefore = FindJavaForMode(vanillaDir, 25);
-            StatusText.Text = File.Exists(javaBefore)
-                ? "Java 25 найдена. Проверяем Minecraft..."
-                : "Java 25 отсутствует. Проверяем и загружаем необходимые компоненты...";
-            bool alreadyInstalled = Directory.Exists(Path.Combine(vanillaDir, "versions", VanillaVersion));
-            StatusText.Text = alreadyInstalled
-                ? $"Minecraft {VanillaVersion} найден. Проверяем файлы..."
-                : $"Minecraft {VanillaVersion} отсутствует. Устанавливаем...";
-            Progress.Value = 25;
-            // CmlLib checks local files and fetches only missing/corrupted libraries,
-            // assets, native dependencies and the runtime supplied by Mojang.
-            await launcher.InstallAsync(VanillaVersion, token);
-            token.ThrowIfCancellationRequested();
-            Progress.Value = 85;
-            string javaPath = await EnsureJavaForModeAsync(vanillaDir, 25, 86, 96, token);
-            StatusText.Text = "Java 25 готова. Все компоненты проверены. Запускаем Vanilla...";
+            string vanillaDir = Path.Combine(_stateDir, "vanilla");
+            string javaPath = FindJavaForMode(vanillaDir, 25);
             int ram = GetRamForMode("vanilla");
-            var options = new MLaunchOption { Session = MSession.CreateOfflineSession(nickname), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), ServerIp = ServerHost, ServerPort = ServerPort, GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
+            var launcher = new MinecraftLauncher(new MinecraftPath(vanillaDir));
+            var options = new MLaunchOption
+            {
+                Session = MSession.CreateOfflineSession(nickname),
+                JavaPath = javaPath,
+                MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram),
+                ServerIp = ServerHost, ServerPort = ServerPort,
+                GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0"
+            };
+            StatusText.Text = "Solaris Vanilla: запускаем Minecraft...";
+            Progress.Value = 96;
+            var process = await launcher.BuildProcessAsync(version, options);
             token.ThrowIfCancellationRequested();
-            var process = await launcher.BuildProcessAsync(VanillaVersion, options); token.ThrowIfCancellationRequested(); process.StartInfo.UseShellExecute = false;
+            process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            process.Start(); Progress.Value = 100; StatusText.Text = "Minecraft Vanilla запущен.";
+            process.Start();
+            Progress.Value = 100;
+            StatusText.Text = "Minecraft Vanilla запущен.";
             await TrackGameProcessAsync(process, nickname, "vanilla");
         }
         catch (OperationCanceledException)
         {
             Progress.Value = 0;
-            StatusText.Text = "Запуск Vanilla отменён.";
+            StatusText.Text = "Операция Vanilla отменена.";
         }
-        catch (Exception ex) { StatusText.Text = "Ошибка запуска Vanilla"; MessageBox.Show(ex.ToString(), "Solaris Launcher — Vanilla", MessageBoxButton.OK, MessageBoxImage.Error); }
+        catch (Exception ex)
+        {
+            Progress.Value = 0;
+            if (updateOnly)
+                SetVanillaState(ServerClientState.UpdateRequired, "Ошибка установки — повторите");
+            StatusText.Text = updateOnly ? "Ошибка обновления Vanilla" : "Ошибка запуска Vanilla";
+            MessageBox.Show(ex.ToString(), "Solaris Launcher — Vanilla",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
         finally
         {
             if (cancellation is not null) EndLaunch(vanillaButton, "ИГРАТЬ", cancellation);
+            RefreshServerActionButtons();
         }
     }
 
     private async void PlayButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!TryBeginLaunch(PlayButton, "ИГРАТЬ", out CancellationTokenSource? cancellation, out CancellationToken token)) return;
+        if (_moddedClientState == ServerClientState.Checking) return;
+        if (_moddedClientState == ServerClientState.CheckFailed)
+        {
+            await RefreshModdedClientStateAsync(CancellationToken.None);
+            return;
+        }
+
+        // A server pack can change while the launcher remains open.
+        // Even then, PLAY must change into UPDATE instead of downloading it silently.
+        if (_moddedClientState == ServerClientState.Ready &&
+            DateTimeOffset.UtcNow - _moddedLastRemoteCheck > TimeSpan.FromMinutes(5))
+        {
+            await RefreshModdedClientStateAsync(CancellationToken.None);
+            if (_moddedClientState != ServerClientState.Ready)
+            {
+                StatusText.Text = "Обновление Modded доступно — нажмите «Обновить».";
+                return;
+            }
+        }
+
+        bool updateOnly = _moddedClientState == ServerClientState.UpdateRequired;
+        if (!TryBeginLaunch(PlayButton, "ИГРАТЬ",
+            out CancellationTokenSource? cancellation, out CancellationToken token)) return;
 
         try
         {
-            Directory.CreateDirectory(_stateDir); Directory.CreateDirectory(_gameDir);
-            StatusText.Text = "Проверяем обновление сборки на GitHub..."; Progress.Value = 5;
-            await UpdateClientPackAsync(token); token.ThrowIfCancellationRequested();
-            StatusText.Text = "Проверяем Minecraft 1.20.1, Forge 47.4.20 и Java 17..."; Progress.Value = 41;
-            string java17 = await EnsureJavaForModeAsync(_gameDir, 17, 41, 47, token);
-            string versionName = await EnsureForgeAsync(java17, token); token.ThrowIfCancellationRequested();
-            string nickname = await GetCurrentLaunchUsernameAsync(); token.ThrowIfCancellationRequested();
-            StatusText.Text = "Все компоненты готовы. Запускаем Minecraft Modded..."; Progress.Value = 98;
-            await LaunchMinecraftAsync(versionName, nickname, ModdedServerHost, token);
-            StatusText.Text = "Minecraft запущен.";
+            if (updateOnly)
+            {
+                await InstallModdedClientAsync(token);
+                return; // Require a second explicit click on PLAY.
+            }
+
+            if (!HasForgeClientFiles())
+            {
+                SetModdedState(ServerClientState.UpdateRequired, "Forge отсутствует — обновите клиент");
+                StatusText.Text = "Нажмите «Обновить» для восстановления Modded.";
+                return;
+            }
+
+            string nickname = await GetCurrentLaunchUsernameAsync();
+            token.ThrowIfCancellationRequested();
+            StatusText.Text = "Solaris Modded: запускаем Minecraft...";
+            Progress.Value = 96;
+            await LaunchMinecraftAsync(ForgeClientVersionName, nickname, ModdedServerHost, token);
+            StatusText.Text = "Minecraft Modded запущен.";
         }
         catch (OperationCanceledException)
         {
             Progress.Value = 0;
-            StatusText.Text = "Запуск Modded отменён.";
+            StatusText.Text = "Операция Modded отменена.";
         }
-        catch (Exception ex) { StatusText.Text = "Ошибка"; MessageBox.Show(ex.ToString(), "Solaris Launcher — ошибка", MessageBoxButton.OK, MessageBoxImage.Error); }
+        catch (Exception ex)
+        {
+            Progress.Value = 0;
+            if (updateOnly)
+                SetModdedState(ServerClientState.UpdateRequired, "Ошибка обновления — повторите");
+            StatusText.Text = updateOnly ? "Ошибка обновления Modded" : "Ошибка запуска Modded";
+            MessageBox.Show(ex.ToString(), "Solaris Launcher — Modded",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
         finally
         {
             if (cancellation is not null) EndLaunch(PlayButton, "ИГРАТЬ", cancellation);
+            RefreshServerActionButtons();
         }
     }
 
