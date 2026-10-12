@@ -32,6 +32,7 @@
   <!-- The independent ASP.NET Core Solaris ID server has its own .csproj. -->
   <ItemGroup>
     <Compile Remove="backend\**\*.cs" />
+    <Compile Remove="vendor\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -49,7 +50,7 @@
   <ItemGroup>
     <PackageReference Include="CmlLib.Core" Version="4.0.6" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
-    <PackageReference Include="CmlLib.Core.Installer.Forge" Version="1.1.1" />
+    <ProjectReference Include="vendor\ForgeInstaller\ForgeInstaller.csproj" />
   </ItemGroup>
 
 </Project>
