@@ -103,8 +103,9 @@ public partial class MainWindow
         _vanillaTargetVersion = advertisedVersion;
         if (VanillaVersionText is not null)
             VanillaVersionText.Text = $"Minecraft {advertisedVersion} • Survival";
-        // Do not alter a running installation; the next idle check will catch it.
-        if (_launchCancellation is null && !_serverStateRefreshRunning)
+        // Update the Vanilla action even if Modded is still checking its pack.
+        // Separate server checks must not block one another.
+        if (_launchCancellation is null)
             _ = RefreshVanillaClientStateAsync();
     }
 
