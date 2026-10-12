@@ -15,6 +15,7 @@ public partial class App : Application
     internal static bool LaunchedAfterRecovery { get; private set; }
     internal static bool IsDeveloperMode { get; private set; }
     internal static bool IsDevChannel { get; private set; }
+    internal static bool IsLegacyUpdateHandoff { get; private set; }
     private static readonly string CrashLogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Solaris", "logs", "launcher-crash.log");
@@ -106,12 +107,17 @@ public partial class App : Application
         if (e.Args.Length >= 1 && string.Equals(e.Args[0], "--update-recovery", StringComparison.OrdinalIgnoreCase))
             LaunchedAfterRecovery = true;
 
-        // 2.2.6+ auto-installs on the first ordinary launch and reopens
-        // the permanent EXE. The update-helper modes above skip this step.
-        // If the installation cannot be completed, preserve portable mode.
+        // Existing DEV 2.2.10.166 updaters wait for an ACK from the process
+        // they launched, and may rollback if that process exits too early.
+        // Only during that specific handoff, ACK in-place first. Then
+        // migrate to the canonical path after the updater clears its marker.
+        IsLegacyUpdateHandoff = PendingUpdateAcknowledgement is not null &&
+            SolarisBootstrapper.IsRunningFromLegacyDevPath();
+
+        // Normal launches always redirect to the one permanent path.
         try
         {
-            if ((!IsDeveloperMode || IsDevChannel) &&
+            if ((!IsDeveloperMode || IsDevChannel) && !IsLegacyUpdateHandoff &&
                 SolarisBootstrapper.RedirectToPermanentInstallation(
                     IsDevChannel, PendingUpdateAcknowledgement, LaunchedAfterRecovery))
             {
@@ -138,8 +144,8 @@ public partial class App : Application
         // Acquire the single-instance lock AFTER any installation handoff:
         // otherwise the newly started permanent EXE can exit before this
         // temporary bootstrapper has released its own mutex.
-        string mutexName = IsDeveloperMode && !IsDevChannel
-            ? @"Local\SolarisLauncher.DevTest"
+        string mutexName = IsLegacyUpdateHandoff ? @"Local\SolarisLauncher.LegacyMigration"
+            : IsDeveloperMode && !IsDevChannel ? @"Local\SolarisLauncher.DevTest"
             : @"Local\SolarisLauncher.Main";
         _launcherMutex = new System.Threading.Mutex(true, mutexName, out bool firstInstance);
         if (!firstInstance)

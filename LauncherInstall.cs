@@ -20,6 +20,10 @@ internal static class SolarisBootstrapper
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Programs", "Solaris Launcher DEV", "SolarisLauncher.exe");
 
+    internal static bool IsRunningFromLegacyDevPath() =>
+        string.Equals(Path.GetFullPath(Environment.ProcessPath ?? ""),
+            Path.GetFullPath(LegacyDevExePath), StringComparison.OrdinalIgnoreCase);
+
     internal static bool RedirectToPermanentInstallation(bool devChannel = false,
         string? updatedAttemptId = null, bool recovery = false)
     {

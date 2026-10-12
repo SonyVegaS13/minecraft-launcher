@@ -177,6 +177,11 @@ public partial class MainWindow : Window
         if (App.PendingUpdateAcknowledgement is { } attempt)
         {
             SolarisSafeUpdate.PublishReady(attempt);
+            if (App.IsLegacyUpdateHandoff)
+            {
+                _ = CompleteLegacyUpdateMigrationAsync();
+                return;
+            }
         }
         else if (App.IsDeveloperMode && !App.IsDevChannel)
         {
@@ -194,6 +199,30 @@ public partial class MainWindow : Window
         // A fresh launch shows UPDATE until the selected client is installed.
         if (!_installingLauncherUpdate && !Dispatcher.HasShutdownStarted)
             await RefreshServerStatesAsync();
+    }
+
+    private async Task CompleteLegacyUpdateMigrationAsync()
+    {
+        string marker = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Solaris-Neon-Dev", "updates", "safe-update.json");
+        StatusText.Text = "Обновление установлено. Переносим Solaris в единую папку...";
+        for (int n = 0; n < 90; n++)
+        {
+            await Task.Delay(500);
+            if (File.Exists(marker)) continue;
+            try
+            {
+                if (SolarisBootstrapper.RedirectToPermanentInstallation(App.IsDevChannel))
+                    Application.Current.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Обновление готово, но перенос отложен: " + ex.Message;
+            }
+            return;
+        }
+        StatusText.Text = "Перенос Solaris отложен. Перезапустите лаунчер позже.";
     }
 
     private async void AuthActionButton_Click(object sender, RoutedEventArgs e)
