@@ -620,6 +620,26 @@ public partial class MainWindow : Window
             await RefreshVanillaClientStateAsync();
             return;
         }
+        // A live server may have changed version since the window opened.
+        // Compare again before PLAY; a mismatch switches to UPDATE.
+        if (_vanillaClientState == ServerClientState.Ready)
+        {
+            SetVanillaState(ServerClientState.Checking, "Сверяем версию Vanilla...");
+            try
+            {
+                (bool online, string? serverVersion) =
+                    await PingMinecraftServerAsync(ServerHost, ServerPort, CancellationToken.None);
+                if (online) ApplyVanillaServerVersion(serverVersion);
+            }
+            catch { /* Offline play can use locally prepared client. */ }
+            await RefreshVanillaClientStateAsync();
+            if (_vanillaClientState != ServerClientState.Ready)
+            {
+                StatusText.Text = "Vanilla обновился — сначала нажмите «Обновить».";
+                return;
+            }
+        }
+
         bool updateOnly = _vanillaClientState == ServerClientState.UpdateRequired;
         if (!TryBeginLaunch(vanillaButton, "ИГРАТЬ",
             out CancellationTokenSource? cancellation, out CancellationToken token)) return;
@@ -700,10 +720,10 @@ public partial class MainWindow : Window
             return;
         }
 
-        // A server pack can change while the launcher remains open.
-        // Even then, PLAY must change into UPDATE instead of downloading it silently.
-        if (_moddedClientState == ServerClientState.Ready &&
-            DateTimeOffset.UtcNow - _moddedLastRemoteCheck > TimeSpan.FromMinutes(5))
+        // Always verify the latest published modpack on PLAY, not just once
+        // every few minutes. A server-side update must switch the button to
+        // UPDATE rather than silently launching an outdated client.
+        if (_moddedClientState == ServerClientState.Ready)
         {
             await RefreshModdedClientStateAsync(CancellationToken.None);
             if (_moddedClientState != ServerClientState.Ready)
