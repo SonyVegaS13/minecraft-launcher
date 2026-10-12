@@ -16,13 +16,14 @@ public partial class MainWindow
     // Neon releases are independent of the legacy 2.1.x production channel.
     // Only deliberately published `neon-vX.Y.Z` releases are offered as updates.
     private const string NeonReleasesUrl =
-        "https://api.github.com/repos/SonyVegaS13/minecraft-launcher/releases?per_page=60";
+        "https://api.github.com/repos/SonyVegaS13/minecraft-launcher/releases?per_page=100";
     // Separate, opt-in channel. A DEV release is published on successful
     // Windows CI builds and never offered to installed production players.
     private const string DevTagPrefix = "neon-dev-v";
 
     private sealed record NeonUpdate(Version Version, string DownloadUrl, string ChecksumUrl);
     private bool _updateOperationRunning;
+    private bool _installingLauncherUpdate;
 
     private async Task CheckForUpdatesAsync()
     {
@@ -34,37 +35,70 @@ public partial class MainWindow
             NeonUpdate? update = App.IsDevChannel
                 ? await FindLatestDevNeonUpdateAsync()
                 : await FindLatestNeonUpdateAsync();
-            if (update is null || !SolarisSafeUpdate.CanOffer(update.Version.ToString()))
-                return;
-
-            MessageBoxResult answer = MessageBox.Show(
-                $"Доступна новая версия Solaris Neon {(App.IsDevChannel ? "DEV " : "")}{update.Version}.\n\n" +
-                $"Установлена версия {(App.IsDevChannel ? InstalledFileVersion() : LauncherVersion)}.\n\n" +
-                "Скачать проверенное обновление и перезапустить Solaris?\n" +
-                "Аккаунт, Minecraft и настройки сохранятся.",
-                "Solaris — обновление",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Information);
-
-            if (answer == MessageBoxResult.Yes)
+            if (update is null)
             {
-                try
-                {
-                    await StartUpdateAsync(update);
-                }
-                catch (Exception ex)
-                {
-                    StatusText.Text = "Не удалось обновить Solaris — можно продолжать играть.";
-                    MessageBox.Show(
-                        "Обновление не установлено. Текущая версия сохранена.\n\n" + ex.Message,
-                        "Solaris — ошибка обновления",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
-                }
+                if (_launchCancellation is null)
+                    StatusText.Text = "Solaris актуален. Готов к запуску.";
+                return;
+            }
+            if (!SolarisSafeUpdate.CanOffer(update.Version.ToString()))
+            {
+                if (_launchCancellation is null)
+                    StatusText.Text = "Обновление временно отложено после предыдущей попытки.";
+                return;
+            }
+
+            // Only the dedicated DEV channel auto-accepts new signed-off
+            // release assets. The stable channel still asks the player first.
+            // Never close Solaris while Minecraft is being prepared.
+            if (App.IsDevChannel && _launchCancellation is not null)
+            {
+                StatusText.Text = $"Обновление Solaris {update.Version} будет установлено при следующем запуске.";
+                return;
+            }
+
+            if (!App.IsDevChannel)
+            {
+                MessageBoxResult answer = MessageBox.Show(
+                    $"Доступна новая версия Solaris Neon {update.Version}.\n\n" +
+                    $"Установлена версия {LauncherVersion}.\n\n" +
+                    "Скачать проверенное обновление и перезапустить Solaris?\n" +
+                    "Аккаунт, Minecraft и настройки сохранятся.",
+                    "Solaris — обновление",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information);
+                if (answer != MessageBoxResult.Yes)
+                    return;
+            }
+
+            try
+            {
+                _installingLauncherUpdate = true;
+                PlayButton.IsEnabled = false;
+                VanillaPlayButton.IsEnabled = false;
+                StatusText.Text = $"Solaris {(App.IsDevChannel ? "DEV " : "")}{update.Version}: загружаем обновление...";
+                await StartUpdateAsync(update);
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Не удалось обновить Solaris — текущая версия работает.";
+                MessageBox.Show(
+                    "Обновление не установлено. Текущая версия сохранена.\n\n" + ex.Message,
+                    "Solaris — ошибка обновления",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+            finally
+            {
+                _installingLauncherUpdate = false;
+                PlayButton.IsEnabled = true;
+                VanillaPlayButton.IsEnabled = true;
             }
         }
         catch (Exception ex)
         {
+            if (_launchCancellation is null)
+                StatusText.Text = "Не удалось проверить обновления. Играть можно без обновления.";
             // Offline mode / API rate limits must never prevent using Solaris.
             try
             {

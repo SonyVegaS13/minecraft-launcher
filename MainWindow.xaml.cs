@@ -515,6 +515,14 @@ public partial class MainWindow : Window
 
     private bool TryBeginLaunch(Button button, string playText, out CancellationTokenSource? cancellation, out CancellationToken token)
     {
+        if (_installingLauncherUpdate)
+        {
+            StatusText.Text = "Solaris обновляется. Дождись перезапуска лаунчера.";
+            cancellation = null;
+            token = CancellationToken.None;
+            return false;
+        }
+
         if (_launchCancellation is not null)
         {
             if (ReferenceEquals(_activeLaunchButton, button))
@@ -740,17 +748,28 @@ public partial class MainWindow : Window
             FileShare.None, 1024 * 64, useAsync: true);
         byte[] buffer = new byte[1024 * 128];
         long readTotal = 0;
-        int read;
-        while ((read = await input.ReadAsync(buffer.AsMemory(0, buffer.Length), token)) > 0)
+        DateTime lastUiUpdate = DateTime.MinValue;
+        try
         {
-            await output.WriteAsync(buffer.AsMemory(0, read), token);
-            readTotal += read;
-            if (total is > 0)
+            int read;
+            while ((read = await input.ReadAsync(buffer.AsMemory(0, buffer.Length), token)) > 0)
             {
-                double fraction = Math.Clamp((double)readTotal / total.Value, 0, 1);
-                Progress.Value = min + (max - min) * fraction;
-                IgnitionPercent.Text = $"{fraction * 100:0}%";
+                await output.WriteAsync(buffer.AsMemory(0, read), token);
+                readTotal += read;
+                if (total is > 0 &&
+                    ((DateTime.UtcNow - lastUiUpdate).TotalMilliseconds >= 120 ||
+                     readTotal >= total.Value))
+                {
+                    lastUiUpdate = DateTime.UtcNow;
+                    double fraction = Math.Clamp((double)readTotal / total.Value, 0, 1);
+                    Progress.Value = min + (max - min) * fraction;
+                    SetIgnitionDetail($"ЗАГРУЗКА {fraction * 100:0}%");
+                }
             }
+        }
+        finally
+        {
+            SetIgnitionDetail(null);
         }
     }
 

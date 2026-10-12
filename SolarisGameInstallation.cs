@@ -20,8 +20,11 @@ public partial class MainWindow
             double fraction = Math.Clamp((double)e.ProgressedBytes / e.TotalBytes, 0, 1);
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                Progress.Value = percentFrom + (percentTo - percentFrom) * fraction;
-                IgnitionPercent.Text = $"{fraction * 100:0}%";
+                // Ignore stale callbacks queued after this phase has completed.
+                if (Progress.Value > percentTo + 0.5) return;
+                Progress.Value = Math.Max(Progress.Value,
+                    percentFrom + (percentTo - percentFrom) * fraction);
+                SetIgnitionDetail(fraction >= 1 ? null : $"ФАЙЛЫ {fraction * 100:0}%");
                 StatusText.Text = fraction < 1
                     ? $"{phase}: загрузка Minecraft, библиотек и Java — " +
                         $"{e.ProgressedBytes / 1048576} / {e.TotalBytes / 1048576} МБ"

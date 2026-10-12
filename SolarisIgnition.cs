@@ -14,6 +14,16 @@ public partial class MainWindow
     private readonly Random _ignitionRandom = new();
     private readonly List<IgnitionSpark> _ignitionSparks = new();
     private DispatcherTimer? _ignitionTimer;
+    private double _ignitionTargetWidth;
+    private double _ignitionDisplayedWidth;
+    private bool _ignitionPulseActive;
+    private string? _ignitionDetail;
+
+    private void SetIgnitionDetail(string? text)
+    {
+        _ignitionDetail = text;
+        RefreshIgnitionPosition();
+    }
     private sealed class IgnitionSpark
     {
         public Ellipse Shape { get; init; } = null!;
@@ -26,7 +36,7 @@ public partial class MainWindow
 
     private void InitializeIgnition()
     {
-        for (int i = 0; i < 13; i++)
+        for (int i = 0; i < 9; i++)
         {
             var spark = new Ellipse
             {
@@ -40,17 +50,21 @@ public partial class MainWindow
             IgnitionParticles.Children.Add(spark);
             _ignitionSparks.Add(new IgnitionSpark { Shape = spark });
         }
-        _ignitionTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(50),
+        _ignitionTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(60),
             DispatcherPriority.Background, (_, _) => AdvanceIgnition(), Dispatcher);
         _ignitionTimer.Stop();
-        IgnitionFront.BeginAnimation(OpacityProperty, new DoubleAnimation(0.55, 1.0,
-            TimeSpan.FromMilliseconds(550))
-            { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
+        IgnitionFront.Opacity = 0;
         RefreshIgnitionPosition();
     }
 
-    private void IgnitionTrack_SizeChanged(object sender, SizeChangedEventArgs e) =>
+    private void IgnitionTrack_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // Window resizing should relocate the front immediately.
+        double pct = Math.Clamp(Progress?.Value ?? 0, 0, 100);
+        _ignitionDisplayedWidth = Math.Max(0, IgnitionTrack.ActualWidth - 2) * pct / 100.0;
         RefreshIgnitionPosition();
+        DrawIgnitionFront();
+    }
 
     private bool _ignitionCelebrated;
 
@@ -98,33 +112,76 @@ public partial class MainWindow
             return;
         double pct = Math.Clamp(Progress?.Value ?? 0, 0, 100);
         double width = Math.Max(0, IgnitionTrack.ActualWidth - 2);
-        IgnitionFill.Width = width * pct / 100.0;
-        double leading = Math.Clamp(IgnitionFill.Width - 3, 0, width);
-        IgnitionFront.Margin = new Thickness(leading, 0, 0, 0);
-        // Progress.Value controls the visual multi-stage plasma position.
-        // It is NOT a truthful overall byte percentage. Only report numeric
-        // percentages for downloads with known ProgressedBytes/TotalBytes.
-        IgnitionPercent.Text = pct >= 99.99 ? "100%" : pct <= 0.01
-            ? "ГОТОВО" : "ПРОВЕРКА";
-        bool active = pct > 0.01 && pct < 99.99;
-        if (active) _ignitionTimer?.Start();
+        _ignitionTargetWidth = width * pct / 100.0;
+        IgnitionPercent.Text = _ignitionDetail ?? (pct >= 99.99
+            ? "ГОТОВО" : pct <= 0.01 ? "ГОТОВО" : "ПОДГОТОВКА");
+
+        if (pct <= 0.01)
+        {
+            _ignitionDisplayedWidth = 0;
+            _ignitionTimer?.Stop();
+            StopIgnitionPulse();
+            DrawIgnitionFront();
+            foreach (IgnitionSpark spark in _ignitionSparks) spark.Shape.Opacity = 0;
+        }
         else
         {
-            _ignitionTimer?.Stop();
-            foreach (IgnitionSpark spark in _ignitionSparks)
-                spark.Shape.Opacity = 0;
+            StartIgnitionPulse();
+            _ignitionTimer?.Start();
+            DrawIgnitionFront();
         }
+    }
+
+    private void StartIgnitionPulse()
+    {
+        if (_ignitionPulseActive) return;
+        _ignitionPulseActive = true;
+        IgnitionFront.BeginAnimation(OpacityProperty, new DoubleAnimation(0.55, 1.0,
+            TimeSpan.FromMilliseconds(550))
+        { AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever });
+    }
+
+    private void StopIgnitionPulse()
+    {
+        if (!_ignitionPulseActive) return;
+        _ignitionPulseActive = false;
+        IgnitionFront.BeginAnimation(OpacityProperty, null);
+        IgnitionFront.Opacity = 0;
+    }
+
+    private void DrawIgnitionFront()
+    {
+        if (IgnitionFill is null || IgnitionFront is null) return;
+        IgnitionFill.Width = _ignitionDisplayedWidth;
+        double width = Math.Max(0, IgnitionTrack.ActualWidth - 2);
+        double leading = Math.Clamp(_ignitionDisplayedWidth - 3, 0, width);
+        IgnitionFront.Margin = new Thickness(leading, 0, 0, 0);
     }
 
     private void AdvanceIgnition()
     {
-        double leading = IgnitionFill.Width;
+        // Smoothly interpolate progress reported by downloads and the installer.
+        // The visual fill may lag the actual stage by a few frames, never lead it.
+        double remaining = _ignitionTargetWidth - _ignitionDisplayedWidth;
+        _ignitionDisplayedWidth = Math.Abs(remaining) < 0.6
+            ? _ignitionTargetWidth : _ignitionDisplayedWidth + remaining * 0.34;
+        DrawIgnitionFront();
+
+        if (Progress.Value >= 99.99 && Math.Abs(remaining) < 0.6)
+        {
+            _ignitionTimer?.Stop();
+            StopIgnitionPulse();
+            foreach (IgnitionSpark spark in _ignitionSparks) spark.Shape.Opacity = 0;
+            return;
+        }
+
+        double leading = _ignitionDisplayedWidth;
         foreach (IgnitionSpark spark in _ignitionSparks)
         {
             spark.Life -= 0.08;
             if (spark.Life <= 0)
             {
-                spark.X = leading + (_ignitionRandom.NextDouble() - 0.5) * 10;
+                spark.X = Math.Max(1, leading - 7) + (_ignitionRandom.NextDouble() - 0.5) * 9;
                 spark.Y = 8;
                 spark.VX = (_ignitionRandom.NextDouble() - 0.45) * 6;
                 spark.VY = (_ignitionRandom.NextDouble() - 0.55) * 8;
