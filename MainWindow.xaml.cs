@@ -21,6 +21,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace SolarisLauncher;
 
@@ -56,9 +57,15 @@ public partial class MainWindow : Window
         string.Equals(name, ClientPackAssetName, StringComparison.OrdinalIgnoreCase) ||
         string.Equals(name, "mods.2.zip", StringComparison.OrdinalIgnoreCase);
 
-    private const string ServerHost = "solarisplay.millida.host";
+    // Modded is the hosted server; Vanilla currently has no hosted endpoint.
+    // Confirm this existing Millida address in the host panel before a stable release.
+    private const string ModdedStatusHost = "solarisplay.millida.host";
     private const int ServerPort = 25565;
+    // Status checks must not silently change the established Modded launch behavior.
     private const string ModdedServerHost = "";
+
+    private readonly DispatcherTimer _moddedStatusTimer = new() { Interval = TimeSpan.FromSeconds(60) };
+    private bool _moddedStatusCheckRunning;
 
     private readonly string _gameDir = Path.Combine(SolarisDirectories.StateDir, "game");
     private readonly string _stateDir = SolarisDirectories.StateDir;
@@ -153,6 +160,9 @@ public partial class MainWindow : Window
             stage = "UpdateServerStatusAsync";
             TraceStartup(stage);
             _ = UpdateServerStatusAsync();
+            _moddedStatusTimer.Tick += async (_, _) => await UpdateServerStatusAsync();
+            _moddedStatusTimer.Start();
+            Closed += (_, _) => _moddedStatusTimer.Stop();
             Loaded += MainWindow_Loaded;
 
             TraceStartup("MainWindow constructor COMPLETE");
@@ -383,32 +393,56 @@ public partial class MainWindow : Window
 
     // Individual memory settings are maintained by SolarisSettings.cs.
 
+    // Status polling never blocks the play buttons or local client.
     private async Task UpdateServerStatusAsync()
     {
-        if (MainView is null) return;
-        TextBlock? status = FindTextBlock(VanillaCard, " Сервер готов");
-        Ellipse? dot = FindElement<Ellipse>(VanillaCard);
-        if (status is null) return;
+        if (_moddedStatusCheckRunning || Dispatcher.HasShutdownStarted || ModdedStatusText is null)
+            return;
 
-        status.Text = " Проверяем сервер...";
-        if (dot is not null) dot.Fill = new SolidColorBrush(Color.FromRgb(250, 204, 21));
+        _moddedStatusCheckRunning = true;
+        ModdedStatusText.Text = " Проверяем сервер...";
+        ModdedStatusText.Foreground = new SolidColorBrush(Color.FromRgb(253, 230, 138));
+        ModdedStatusDot.Fill = new SolidColorBrush(Color.FromRgb(250, 204, 21));
 
         try
         {
-            (bool online, string? advertisedVersion) =
-                await PingMinecraftServerAsync(ServerHost, ServerPort, CancellationToken.None);
-            if (online) ApplyVanillaServerVersion(advertisedVersion);
-            status.Text = online ? " Сервер онлайн" : " Сервер офлайн";
-            if (dot is not null) dot.Fill = new SolidColorBrush(online ? Color.FromRgb(74, 222, 128) : Color.FromRgb(248, 113, 113));
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(6));
+            (bool online, int? players, int? capacity) =
+                await PingMinecraftServerAsync(ModdedStatusHost, ServerPort, timeout.Token);
+            if (Dispatcher.HasShutdownStarted) return;
+
+            if (online)
+            {
+                ModdedStatusText.Text = players.HasValue && capacity.HasValue
+                    ? $" Сервер онлайн · игроков: {players}/{capacity}"
+                    : " Сервер онлайн · число игроков скрыто";
+                ModdedStatusText.Foreground = new SolidColorBrush(Color.FromRgb(130, 255, 196));
+                ModdedStatusDot.Fill = new SolidColorBrush(Color.FromRgb(74, 222, 128));
+            }
+            else
+            {
+                ShowModdedOfflineStatus();
+            }
         }
-        catch
+        catch (Exception)
         {
-            status.Text = " Сервер офлайн";
-            if (dot is not null) dot.Fill = new SolidColorBrush(Color.FromRgb(248, 113, 113));
+            if (!Dispatcher.HasShutdownStarted) ShowModdedOfflineStatus();
+        }
+        finally
+        {
+            _moddedStatusCheckRunning = false;
         }
     }
 
-    private static async Task<(bool Online, string? Version)> PingMinecraftServerAsync(
+    private void ShowModdedOfflineStatus()
+    {
+        ModdedStatusText.Text = " Сервер недоступен";
+        ModdedStatusText.Foreground = new SolidColorBrush(Color.FromRgb(252, 165, 165));
+        ModdedStatusDot.Fill = new SolidColorBrush(Color.FromRgb(248, 113, 113));
+    }
+
+    // Vanilla Java status protocol, used to show live availability and player counts.
+    private static async Task<(bool Online, int? Players, int? Capacity)> PingMinecraftServerAsync(
         string host, int port, CancellationToken token)
     {
         using TcpClient client = new();
@@ -423,37 +457,41 @@ public partial class MainWindow : Window
         handshake.WriteByte((byte)(port & 0xFF));
         WriteVarInt(handshake, 1);
         await WritePacketAsync(stream, handshake.ToArray(), token);
-
         await WritePacketAsync(stream, new byte[] { 0 }, token);
 
         int packetLength = await ReadVarIntAsync(stream, token);
-        if (packetLength <= 0 || packetLength > 1_000_000) return (false, null);
+        if (packetLength <= 0 || packetLength > 1_000_000) return (false, null, null);
         byte[] packet = await ReadExactAsync(stream, packetLength, token);
         using MemoryStream response = new(packet, writable: false);
         int packetId = ReadVarInt(response);
-        if (packetId != 0) return (false, null);
+        if (packetId != 0) return (false, null, null);
         int jsonLength = ReadVarInt(response);
-        if (jsonLength <= 0 || jsonLength > response.Length - response.Position) return (false, null);
-        byte[] json = new byte[jsonLength];
-        int read = 0;
-        while (read < json.Length)
-        {
-            int chunk = await response.ReadAsync(json.AsMemory(read, json.Length - read), token);
-            if (chunk == 0) return (false, null);
-            read += chunk;
-        }
+        if (jsonLength <= 0 || jsonLength > response.Length - response.Position)
+            return (false, null, null);
 
-        string statusJson = Encoding.UTF8.GetString(json);
-        if (string.IsNullOrWhiteSpace(statusJson)) return (false, null);
+        byte[] json = await ReadExactAsync(response, jsonLength, token);
         try
         {
-            using JsonDocument document = JsonDocument.Parse(statusJson);
-            string? version = document.RootElement.TryGetProperty("version", out JsonElement info) &&
-                info.TryGetProperty("name", out JsonElement name)
-                ? name.GetString() : null;
-            return (true, version);
+            using JsonDocument document = JsonDocument.Parse(json);
+            JsonElement root = document.RootElement;
+            int? onlineCount = null, maxCount = null;
+            if (root.TryGetProperty("players", out JsonElement players) &&
+                players.ValueKind == JsonValueKind.Object)
+            {
+                if (players.TryGetProperty("online", out JsonElement count) &&
+                    count.ValueKind == JsonValueKind.Number && count.TryGetInt32(out int on) && on >= 0)
+                    onlineCount = on;
+                if (players.TryGetProperty("max", out JsonElement max) &&
+                    max.ValueKind == JsonValueKind.Number && max.TryGetInt32(out int limit) && limit >= 0)
+                    maxCount = limit;
+            }
+            return (true, onlineCount, maxCount);
         }
-        catch (JsonException) { return (true, null); }
+        catch (JsonException)
+        {
+            // Valid ping packet, but player counts are unavailable or hidden.
+            return (true, null, null);
+        }
     }
 
     private static async Task WritePacketAsync(Stream stream, byte[] payload, CancellationToken token)
@@ -629,22 +667,14 @@ public partial class MainWindow : Window
             await RefreshVanillaClientStateAsync();
             return;
         }
-        // A live server may have changed version since the window opened.
-        // Compare again before PLAY; a mismatch switches to UPDATE.
+        // Vanilla currently has no server; verify the installed client, not the Modded host.
         if (_vanillaClientState == ServerClientState.Ready)
         {
-            SetVanillaState(ServerClientState.Checking, "Сверяем версию Vanilla...");
-            try
-            {
-                (bool online, string? serverVersion) =
-                    await PingMinecraftServerAsync(ServerHost, ServerPort, CancellationToken.None);
-                if (online) ApplyVanillaServerVersion(serverVersion);
-            }
-            catch { /* Offline play can use locally prepared client. */ }
+            SetVanillaState(ServerClientState.Checking, "Проверяем Vanilla...");
             await RefreshVanillaClientStateAsync();
             if (_vanillaClientState != ServerClientState.Ready)
             {
-                StatusText.Text = "Vanilla обновился — сначала нажмите «Обновить».";
+                StatusText.Text = "Файлы Vanilla изменились — сначала нажмите «Обновить».";
                 return;
             }
         }
@@ -684,7 +714,7 @@ public partial class MainWindow : Window
                 Session = MSession.CreateOfflineSession(nickname),
                 JavaPath = javaPath,
                 MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram),
-                ServerIp = ServerHost, ServerPort = ServerPort,
+                // Vanilla has no hosted server: start Minecraft at its main menu.
                 GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0"
             };
             StatusText.Text = "Solaris Vanilla: запускаем Minecraft...";

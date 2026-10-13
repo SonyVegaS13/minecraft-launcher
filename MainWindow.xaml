@@ -304,8 +304,8 @@
                   </Grid>
                   <StackPanel Grid.Row="1" VerticalAlignment="Bottom" Margin="1,0,0,10">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,7">
-                      <Ellipse Width="8" Height="8" Fill="#39F394" VerticalAlignment="Center"/>
-                      <TextBlock Text=" Сервер готов" FontSize="11" Foreground="#82FFC4"/>
+                      <Ellipse Width="8" Height="8" Fill="#F87171" VerticalAlignment="Center"/>
+                      <TextBlock Text=" Сервер офлайн" FontSize="11" Foreground="#FCA5A5"/>
                     </StackPanel>
                     <TextBlock x:Name="VanillaVersionText" Text="Minecraft 26.2 • Survival"
                                FontSize="13" Foreground="#FFF2E7"/>
@@ -376,6 +376,10 @@
                     </StackPanel>
                   </Grid>
                   <StackPanel Grid.Row="1" VerticalAlignment="Bottom" Margin="1,0,0,10">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,7">
+                      <Ellipse x:Name="ModdedStatusDot" Width="8" Height="8" Fill="#FACC15" VerticalAlignment="Center"/>
+                      <TextBlock x:Name="ModdedStatusText" Text=" Проверяем сервер..." FontSize="11" Foreground="#FDE68A"/>
+                    </StackPanel>
                     <TextBlock Text="Minecraft 1.20.1 • Forge 47.4.20"
                                FontSize="13" Foreground="#F9EFFF"/>
                     <TextBlock Text="Технические моды, магия, автоматизация"
