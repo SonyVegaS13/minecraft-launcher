@@ -61,6 +61,8 @@ public partial class MainWindow : Window
     // Confirm this existing Millida address in the host panel before a stable release.
     private const string ModdedStatusHost = "solarisplay.millida.host";
     private const int ServerPort = 25565;
+    // Configured hosted Modded capacity; some hosts report a different query max.
+    private const int ModdedServerSlots = 200;
     // Status checks must not silently change the established Modded launch behavior.
     private const string ModdedServerHost = "";
 
@@ -407,14 +409,14 @@ public partial class MainWindow : Window
         try
         {
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(6));
-            (bool online, int? players, int? capacity) =
+            (bool online, int? players, _) =
                 await PingMinecraftServerAsync(ModdedStatusHost, ServerPort, timeout.Token);
             if (Dispatcher.HasShutdownStarted) return;
 
             if (online)
             {
-                ModdedStatusText.Text = players.HasValue && capacity.HasValue
-                    ? $" Сервер онлайн · игроков: {players}/{capacity}"
+                ModdedStatusText.Text = players.HasValue
+                    ? $" Сервер онлайн · игроков: {players}/{ModdedServerSlots}"
                     : " Сервер онлайн · число игроков скрыто";
                 ModdedStatusText.Foreground = new SolidColorBrush(Color.FromRgb(130, 255, 196));
                 ModdedStatusDot.Fill = new SolidColorBrush(Color.FromRgb(74, 222, 128));
