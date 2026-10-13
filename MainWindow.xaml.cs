@@ -106,6 +106,10 @@ public partial class MainWindow : Window
             TraceStartup("START " + LauncherVersion + " [RAMFIX-R2]");
             InitializeComponent();
 
+            stage = "InitializePlanetaryHome";
+            TraceStartup(stage);
+            InitializePlanetaryHome();
+
             // The sliders no longer wire ValueChanged in XAML: events can
             // arrive while WPF is still constructing other named controls.
             // Subscribe only after all elements and RAM settings are ready.
@@ -329,6 +333,7 @@ public partial class MainWindow : Window
 
     private void ShowMainView(string username)
     {
+        PlanetaryScene.ResetSelection();
         AuthView.Visibility = Visibility.Collapsed; MainView.Visibility = Visibility.Visible;
         AboutOverlay.Visibility = Visibility.Collapsed;
         NewsView.Visibility = Visibility.Collapsed;
@@ -1106,49 +1111,5 @@ public partial class MainWindow : Window
     {
         [JsonPropertyName("name")] public string Name { get; set; } = "";
         [JsonPropertyName("browser_download_url")] public string BrowserDownloadUrl { get; set; } = "";
-    }
-    private bool _vanillaRevealed;
-    private bool _moddedRevealed;
-
-    private void VanillaCard_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-    {
-        if (_vanillaRevealed) return;
-        _vanillaRevealed = true;
-        AnimateArtworkReveal(VanillaArtworkSharp, true);
-    }
-
-    private void VanillaCard_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-    {
-        if (!_vanillaRevealed) return;
-        _vanillaRevealed = false;
-        AnimateArtworkReveal(VanillaArtworkSharp, false);
-    }
-
-    private void ModdedCard_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-    {
-        if (_moddedRevealed) return;
-        _moddedRevealed = true;
-        AnimateArtworkReveal(ModdedArtworkSharp, true);
-    }
-
-    private void ModdedCard_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-    {
-        if (!_moddedRevealed) return;
-        _moddedRevealed = false;
-        AnimateArtworkReveal(ModdedArtworkSharp, false);
-    }
-
-    // Only fade in/out an already-cached image; the blurred card is static.
-    // Repeated MouseEnter events inside a card do not restart its animation.
-    private static void AnimateArtworkReveal(System.Windows.Controls.Image image, bool reveal)
-    {
-        var animation = new DoubleAnimation
-        {
-            To = reveal ? 0.92 : 0.0,
-            Duration = TimeSpan.FromMilliseconds(reveal ? 185 : 235),
-            EasingFunction = new SineEase { EasingMode = EasingMode.EaseOut },
-            FillBehavior = FillBehavior.HoldEnd
-        };
-        image.BeginAnimation(UIElement.OpacityProperty, animation, HandoffBehavior.SnapshotAndReplace);
     }
 }

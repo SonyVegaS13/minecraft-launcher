@@ -1,0 +1,62 @@
+name: Animated Planets Home Preview
+
+on:
+  push:
+    branches:
+      - feature/animated-planets-home
+  pull_request:
+    branches:
+      - solaris-2.2-dev
+    paths:
+      - 'PlanetaryHome.*'
+      - 'MainWindow*'
+      - 'scripts/PreviewAnimatedPlanets.cmd'
+      - '.github/workflows/animated-planets-home-ci.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: animated-planets-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare existing approved artwork
+        run: |
+          python -m pip install --disable-pip-version-check Pillow==12.3.0
+          python scripts/generate_icon.py
+          python scripts/prepare_neon_art.py
+          python scripts/prepare_card_art.py
+      - name: Restore and build Release
+        run: |
+          dotnet restore SolarisLauncher.csproj
+          dotnet build SolarisLauncher.csproj -c Release --no-restore
+      - name: Publish separate preview artifact
+        run: >
+          dotnet publish SolarisLauncher.csproj -c Release --no-restore
+          -r win-x64 --self-contained true
+          -p:SolarisChannel=dev -p:PublishSingleFile=true -p:PublishTrimmed=false
+          -o artifacts/animated-planets-preview
+      - name: Add portable preview launcher
+        shell: pwsh
+        run: |
+          if (-not (Test-Path artifacts/animated-planets-preview/SolarisLauncher.exe)) {
+            throw 'Preview EXE was not produced.'
+          }
+          Copy-Item scripts/PreviewAnimatedPlanets.cmd artifacts/animated-planets-preview/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SolarisLauncher-animated-planets-preview
+          path: artifacts/animated-planets-preview/
+          if-no-files-found: error
+
