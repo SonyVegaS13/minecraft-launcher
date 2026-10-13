@@ -226,21 +226,33 @@
                 </StackPanel>
             </Grid>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,18,0,12">
-                <Grid>
+        <ScrollViewer x:Name="WorldsScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,12,0,10">
+                <!-- Fill the viewport at any window height; scroll only on compact displays. -->
+                <Grid MinHeight="{Binding ElementName=WorldsScrollViewer, Path=ActualHeight}">
                     <!-- Profile statistics live in Profile, not alongside the server cards. -->
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="0"/><ColumnDefinition Width="0"/></Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
-                        <Grid Margin="2,0,0,15">
+                    <Grid Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*" MinHeight="354"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Margin="2,0,0,12">
                             <TextBlock Text="ВЫБЕРИ СВОЙ МИР" FontSize="14" FontWeight="SemiBold" Foreground="#E9DDFC"/>
                             <TextBlock Text="2 сервера" HorizontalAlignment="Right" FontSize="11" Foreground="#A69AB8"/>
                         </Grid>
 
-                        <!-- Original approved wide image cards, stacked like concept #2. -->
-                        <StackPanel>
-                        <Border x:Name="VanillaCard" Background="#161023" BorderBrush="#FF9A50" BorderThickness="1.5" CornerRadius="15" Margin="0,0,0,12" MouseEnter="VanillaCard_MouseEnter" MouseLeave="VanillaCard_MouseLeave">
-                            <Grid Height="186" ClipToBounds="True">
+                        <!-- Each banner receives half of the remaining vertical space. -->
+                        <Grid Grid.Row="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" MinHeight="170"/>
+                                <RowDefinition Height="12"/>
+                                <RowDefinition Height="*" MinHeight="170"/>
+                            </Grid.RowDefinitions>
+                        <Border x:Name="VanillaCard" Grid.Row="0" Background="#161023" BorderBrush="#FF9A50" BorderThickness="1.5" CornerRadius="15" MouseEnter="VanillaCard_MouseEnter" MouseLeave="VanillaCard_MouseLeave">
+                            <Grid MinHeight="170" ClipToBounds="True">
                                 <Border CornerRadius="18" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#351742" Offset="0"/><GradientStop Color="#934177" Offset="0.52"/><GradientStop Color="#FF943F" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                                 <Image x:Name="VanillaArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0.94" IsHitTestVisible="False" CacheMode="BitmapCache" RenderOptions.BitmapScalingMode="Fant"/>
                                 <Image x:Name="VanillaArtworkSharp" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0" IsHitTestVisible="False" CacheMode="BitmapCache"/>
@@ -263,8 +275,8 @@
                             </Grid>
                         </Border>
 
-        <Border x:Name="ModdedCard" Background="#150D26" BorderBrush="#9E49D8" BorderThickness="1.5" CornerRadius="15" MouseEnter="ModdedCard_MouseEnter" MouseLeave="ModdedCard_MouseLeave">
-                            <Grid Height="184" ClipToBounds="True">
+        <Border x:Name="ModdedCard" Grid.Row="2" Background="#150D26" BorderBrush="#9E49D8" BorderThickness="1.5" CornerRadius="15" MouseEnter="ModdedCard_MouseEnter" MouseLeave="ModdedCard_MouseLeave">
+                            <Grid MinHeight="170" ClipToBounds="True">
                                 <Border CornerRadius="18" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#210B31" Offset="0"/><GradientStop Color="#58258E" Offset="0.6"/><GradientStop Color="#871DA0" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                                 <Image x:Name="ModdedArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0.90" IsHitTestVisible="False" CacheMode="BitmapCache" RenderOptions.BitmapScalingMode="Fant"/>
                                 <Image x:Name="ModdedArtworkSharp" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0" IsHitTestVisible="False" CacheMode="BitmapCache"/>
@@ -290,9 +302,9 @@
                                 </Grid>
                             </Grid>
                         </Border>
-                        </StackPanel>
+                        </Grid>
 
-        <Border Background="#141322" BorderBrush="#332B47" BorderThickness="1" CornerRadius="12" Padding="15" Margin="0,18,0,0">
+        <Border Grid.Row="2" Background="#141322" BorderBrush="#332B47" BorderThickness="1" CornerRadius="12" Padding="15" Margin="0,12,0,0">
                             <StackPanel>
                                 <Grid Margin="0,0,0,9">
                                     <TextBlock Text="☀  СОСТОЯНИЕ SOLARIS" Foreground="#FFD56A" FontWeight="SemiBold" FontSize="11"/>
@@ -314,7 +326,29 @@
                             </StackPanel>
                         </Border>
 
-                    </StackPanel>
+                        <!-- Functional shortcuts from approved concept #2, never decorative placeholders. -->
+                        <Grid Grid.Row="3" Margin="0,12,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" Content="⚙  Настройки   ·   Память и Java"
+                                    Style="{StaticResource SecondaryButton}" Background="#E51A172A"
+                                    BorderBrush="#554066" BorderThickness="1" Height="68"
+                                    FontSize="12" ToolTip="Настройки Minecraft" Click="SettingsNav_Click"/>
+                            <Button Grid.Column="2" Content="▤  Новости   ·   Solaris"
+                                    Style="{StaticResource SecondaryButton}" Background="#E51A172A"
+                                    BorderBrush="#554066" BorderThickness="1" Height="68"
+                                    FontSize="12" ToolTip="Новости и сообщество" Click="NewsNav_Click"/>
+                            <Button Grid.Column="4" Content="◈  Профиль   ·   Скины и активность"
+                                    Style="{StaticResource SecondaryButton}" Background="#E51A172A"
+                                    BorderBrush="#554066" BorderThickness="1" Height="68"
+                                    FontSize="12" ToolTip="Открыть свой профиль" Click="ProfileNav_Click"/>
+                        </Grid>
+                    </Grid>
 
                     <StackPanel Grid.Column="2" Visibility="Collapsed">
                         <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20">
