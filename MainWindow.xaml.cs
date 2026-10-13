@@ -318,6 +318,7 @@ public partial class MainWindow : Window
     private void ShowMainView(string username)
     {
         AuthView.Visibility = Visibility.Collapsed; MainView.Visibility = Visibility.Visible;
+        AboutOverlay.Visibility = Visibility.Collapsed;
         NewsView.Visibility = Visibility.Collapsed;
         WelcomeText.Text = username;
         ProfileName.Text = username;
@@ -385,8 +386,8 @@ public partial class MainWindow : Window
     private async Task UpdateServerStatusAsync()
     {
         if (MainView is null) return;
-        TextBlock? status = FindTextBlock(MainView, " Сервер готов");
-        Ellipse? dot = FindElement<Ellipse>(MainView);
+        TextBlock? status = FindTextBlock(VanillaCard, " Сервер готов");
+        Ellipse? dot = FindElement<Ellipse>(VanillaCard);
         if (status is null) return;
 
         status.Text = " Проверяем сервер...";

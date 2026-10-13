@@ -177,205 +177,295 @@
             </ScrollViewer>
         </Grid>
 
-        <Grid x:Name="MainView" Visibility="Collapsed"><Grid.Background><ImageBrush ImageSource="pack://application:,,,/Assets/SolarisEmber.bmp" Opacity="0.11" Stretch="UniformToFill"/></Grid.Background>
-            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
 
-            <Grid>
-                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="52" Height="52" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/><StackPanel VerticalAlignment="Center" Margin="9,0,0,0"><TextBlock Text="SOLARIS" FontSize="25" FontWeight="ExtraBold"/><TextBlock Text="Открой свой мир возможностей." Foreground="#FFE8C4"
-                                           FontSize="11" FontWeight="Light" Margin="0,2,0,0">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect Color="#FFD58A" BlurRadius="12" ShadowDepth="0" Opacity="0.62"/>
-                                    </TextBlock.Effect>
-                                </TextBlock></StackPanel></StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <Border Padding="16,10" CornerRadius="9" Background="#492685" BorderBrush="#8C60CD" BorderThickness="1">
-                        <TextBlock Text="◈  Миры" FontSize="12" FontWeight="SemiBold" Foreground="White"/>
-                    </Border>
-                    <Button Content="⚙  Настройки" Margin="9,0,0,0" Style="{StaticResource MinimalTopNav}"
-                            ToolTip="Настройки памяти и оформления" Click="SettingsNav_Click"/>
-                    <Button Content="▤  Новости" Margin="9,0,0,0" Style="{StaticResource MinimalTopNav}"
-                            ToolTip="Новости и сообщество" Click="NewsNav_Click"/>
-                </StackPanel>
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
-                            HorizontalAlignment="Right" Margin="8,0,0,0">
-                    <Border Width="42" Height="42" CornerRadius="9"
-                            Background="#211C30" BorderBrush="#8561A7" BorderThickness="1"
-                            Cursor="Hand" ToolTip="Открыть профиль Solaris" MouseLeftButtonUp="ProfileAvatar_Click">
-                        <Grid ClipToBounds="True">
-                            <Grid x:Name="ProfileAvatarFallback">
-                                <Border Background="{StaticResource AccentBrush}" CornerRadius="8"/>
-                                <TextBlock Text="◈" FontSize="19" FontWeight="Bold"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Grid>
-                            <Image x:Name="ProfileAvatarImage" Stretch="Fill"
-                                   Visibility="Collapsed" SnapsToDevicePixels="True"
-                                   RenderOptions.BitmapScalingMode="NearestNeighbor"/>
-                        </Grid>
-                    </Border>
-                    <StackPanel VerticalAlignment="Center" Margin="10,0,0,0">
-                        <Button x:Name="ProfileTopButton" Content="Профиль" Style="{StaticResource NavButton}"
-                                FontSize="11" FontWeight="SemiBold" Height="24" HorizontalAlignment="Left"
-                                Padding="0" Click="ProfileNav_Click" ToolTip="Открыть профиль и скины"/>
-                        <TextBlock x:Name="WelcomeText" Foreground="#BFB2CE"
-                                   FontSize="10" TextTrimming="CharacterEllipsis" MaxWidth="144"/>
-                    </StackPanel>
-                    <Button Content="↪" Style="{StaticResource NavButton}" FontSize="15"
-                            Height="32" Width="32" Margin="10,0,0,0"
-                            ToolTip="Выйти из аккаунта" Click="LogoutButton_Click"/>
-                </StackPanel>
-            </Grid>
-
-        <!-- Non-scrolling, responsive worlds view. All action buttons stay visible. -->
-        <Grid Grid.Row="1" Margin="0,8,0,6" MaxWidth="1160" HorizontalAlignment="Center">
-                <Grid>
-                    <!-- Profile statistics live in Profile, not alongside the server cards. -->
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="0"/><ColumnDefinition Width="0"/></Grid.ColumnDefinitions>
-
-                    <Grid Grid.Column="0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Grid Grid.Row="0" Margin="2,0,0,12">
-                            <TextBlock Text="ВЫБЕРИ СВОЙ МИР" FontSize="14" FontWeight="SemiBold" Foreground="#E9DDFC"/>
-                            <TextBlock Text="2 сервера" HorizontalAlignment="Right" FontSize="11" Foreground="#A69AB8"/>
-                        </Grid>
-
-                        <!-- Balanced banner heights, centered with a hard cap. -->
-                        <Grid Grid.Row="1" VerticalAlignment="Center" MaxHeight="342">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*" MinHeight="135" MaxHeight="165"/>
-                                <RowDefinition Height="12"/>
-                                <RowDefinition Height="*" MinHeight="135" MaxHeight="165"/>
-                            </Grid.RowDefinitions>
-                        <Border x:Name="VanillaCard" Grid.Row="0" Background="#161023" BorderBrush="#FF9A50" BorderThickness="1.5" CornerRadius="15" MouseEnter="VanillaCard_MouseEnter" MouseLeave="VanillaCard_MouseLeave">
-                            <Grid MinHeight="135" ClipToBounds="True">
-                                <Border CornerRadius="18" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#351742" Offset="0"/><GradientStop Color="#934177" Offset="0.52"/><GradientStop Color="#FF943F" Offset="1"/></LinearGradientBrush></Border.Background></Border>
-                                <Image x:Name="VanillaArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0.94" IsHitTestVisible="False" CacheMode="BitmapCache" RenderOptions.BitmapScalingMode="Fant"/>
-                                <Image x:Name="VanillaArtworkSharp" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0" IsHitTestVisible="False" CacheMode="BitmapCache"/>
-                                <Border IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#D70C091A" Offset="0"/><GradientStop Color="#57110E23" Offset="0.49"/><GradientStop Color="#25130621" Offset="1"/></LinearGradientBrush></Border.Background></Border>
-                                <Grid Margin="23,18">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <StackPanel VerticalAlignment="Center">
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="42" Height="42" Stretch="Uniform"/>
-                                            <StackPanel Margin="11,0,0,0"><TextBlock Text="SOLARIS VANILLA" FontSize="22" FontWeight="Bold"/><TextBlock Text="ОСНОВНОЙ РЕЖИМ" FontSize="10" Foreground="#D3BDD8"/></StackPanel>
-                                        </StackPanel>
-                                        <TextBlock x:Name="VanillaVersionText" Text="Minecraft 26.2 • Survival" FontSize="13" Margin="0,13,0,0" Foreground="#F0E4EF"/>
-                                        <StackPanel Orientation="Horizontal" Margin="0,11,0,0"><Ellipse Width="8" Height="8" Fill="#3DFFA3" VerticalAlignment="Center"/><TextBlock Text=" Сервер готов" Foreground="#64FFAD" FontSize="11"/></StackPanel>
-                                        <TextBlock Text="solarisplay.millida.host:25565" Foreground="#B5A1BC" FontSize="10" Margin="0,5,0,0" Visibility="Collapsed"/>
-                                        <TextBlock x:Name="VanillaHours" Text="В игре: 0 ч 0 мин" Foreground="#FFE2A1" FontSize="10" Margin="0,7,0,0" Visibility="Collapsed"/>
-                                        <TextBlock x:Name="VanillaInstallStateText" Text="Проверяем установленную версию..." Foreground="#FFD586" FontSize="10" Margin="0,4,0,0"/>
-                                    </StackPanel>
-                                    <Button x:Name="VanillaPlayButton" Grid.Column="1" Content="ПРОВЕРКА..." IsEnabled="False" Style="{StaticResource PrimaryButton}" Width="184" Height="58" VerticalAlignment="Center" Click="VanillaPlayButton_Click"/>
-                                </Grid>
-                            </Grid>
-                        </Border>
-
-        <Border x:Name="ModdedCard" Grid.Row="2" Background="#150D26" BorderBrush="#9E49D8" BorderThickness="1.5" CornerRadius="15" MouseEnter="ModdedCard_MouseEnter" MouseLeave="ModdedCard_MouseLeave">
-                            <Grid MinHeight="135" ClipToBounds="True">
-                                <Border CornerRadius="18" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#210B31" Offset="0"/><GradientStop Color="#58258E" Offset="0.6"/><GradientStop Color="#871DA0" Offset="1"/></LinearGradientBrush></Border.Background></Border>
-                                <Image x:Name="ModdedArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0.90" IsHitTestVisible="False" CacheMode="BitmapCache" RenderOptions.BitmapScalingMode="Fant"/>
-                                <Image x:Name="ModdedArtworkSharp" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0" IsHitTestVisible="False" CacheMode="BitmapCache"/>
-                                <Border IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#DA0D0620" Offset="0"/><GradientStop Color="#642C0B4B" Offset="0.5"/><GradientStop Color="#3C200437" Offset="1"/></LinearGradientBrush></Border.Background></Border>
-                                <Grid Margin="23,16">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <StackPanel VerticalAlignment="Center">
-                                        <StackPanel Orientation="Horizontal">
-                                            <Border Width="52" Height="52" CornerRadius="13" Background="#28143E"
-                                                     BorderBrush="#7D4BC9" BorderThickness="1" SnapsToDevicePixels="True">
-                                                <Image Source="pack://application:,,,/Assets/SolarisModdedIcon.png"
-                                                       Width="50" Height="50" Stretch="Uniform" IsHitTestVisible="False"
-                                                       RenderOptions.BitmapScalingMode="HighQuality"/>
-                                            </Border>
-                                            <StackPanel Margin="11,0,0,0"><TextBlock Text="SOLARIS MODDED" FontSize="22" FontWeight="Bold"/><TextBlock Text="FORGE СБОРКА" FontSize="10" Foreground="#C3A5DE"/></StackPanel>
-                                        </StackPanel>
-                                        <TextBlock Text="Minecraft 1.20.1 • Forge 47.4.20" FontSize="13" Foreground="#E7D9F1" Margin="0,14,0,0"/>
-                                        <TextBlock Text="Модовая сборка Solaris" FontSize="10" Foreground="#BB9BD0" Margin="0,9,0,0"/>
-                                        <TextBlock x:Name="ModdedHours" Text="В игре: 0 ч 0 мин" Foreground="#E4C5FF" FontSize="10" Margin="0,7,0,0" Visibility="Collapsed"/>
-                                        <TextBlock x:Name="ModdedInstallStateText" Text="Проверяем релиз и моды..." Foreground="#E6C0FF" FontSize="10" Margin="0,4,0,0"/>
-                                    </StackPanel>
-                                    <Button x:Name="PlayButton" Grid.Column="1" Content="ПРОВЕРКА..." IsEnabled="False" Style="{StaticResource PrimaryButton}" Width="172" Height="56" VerticalAlignment="Center" Click="PlayButton_Click"/>
-                                </Grid>
-                            </Grid>
-                        </Border>
-                        </Grid>
-
-        <Border Grid.Row="2" Background="#141322" BorderBrush="#332B47" BorderThickness="1" CornerRadius="12" Padding="15" Margin="0,12,0,0">
-                            <StackPanel>
-                                <Grid Margin="0,0,0,9">
-                                    <TextBlock Text="☀  СОСТОЯНИЕ SOLARIS" Foreground="#FFD56A" FontWeight="SemiBold" FontSize="11"/>
-                                    <TextBlock x:Name="IgnitionPercent" Text="ГОТОВО" Visibility="Collapsed" Foreground="#FFE99B" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold"/>
-                                </Grid>
-                                <Grid x:Name="IgnitionTrack" Height="9" Visibility="Collapsed" ClipToBounds="True" SizeChanged="IgnitionTrack_SizeChanged">
-                                    <Border Background="#282032" BorderBrush="#735031" BorderThickness="1" CornerRadius="8"/>
-                                    <Border x:Name="IgnitionFill" HorizontalAlignment="Left" Width="0" CornerRadius="7" IsHitTestVisible="False">
-                                        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFF4B1" Offset="0"/><GradientStop Color="#FFE63A" Offset="0.25"/><GradientStop Color="#FF9F11" Offset="0.75"/><GradientStop Color="#B45805" Offset="1"/></LinearGradientBrush></Border.Background>
-                                    </Border>
-                                    <Border x:Name="IgnitionFront" Width="5" HorizontalAlignment="Left" Background="#FFFFCE" Opacity="0.8" CornerRadius="3" IsHitTestVisible="False"/>
-                                    <Canvas x:Name="IgnitionParticles" IsHitTestVisible="False" ClipToBounds="True"/>
-                                    <ProgressBar x:Name="Progress" Minimum="0" Maximum="100" Value="0" Visibility="Collapsed" ValueChanged="IgnitionProgress_ValueChanged"/>
-                                </Grid>
-                                <Grid Margin="0,6,0,0">
-                                    <TextBlock x:Name="StatusText" Text="Готов к запуску." Foreground="#CEC3D1" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,0,72,0"/>
-                                    <TextBlock x:Name="VersionText" Text="" HorizontalAlignment="Right" Foreground="#7E7185" FontSize="10"/>
-                                </Grid>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Functional shortcuts from approved concept #2, never decorative placeholders. -->
-                        <Grid Grid.Row="3" Margin="0,12,0,5">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="12"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="12"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Button Grid.Column="0" Content="⚙  Настройки   ·   Память и Java"
-                                    Style="{StaticResource SecondaryButton}" Background="#E51A172A"
-                                    BorderBrush="#554066" BorderThickness="1" Height="68"
-                                    FontSize="12" ToolTip="Настройки Minecraft" Click="SettingsNav_Click"/>
-                            <Button Grid.Column="2" Content="▤  Новости   ·   Solaris"
-                                    Style="{StaticResource SecondaryButton}" Background="#E51A172A"
-                                    BorderBrush="#554066" BorderThickness="1" Height="68"
-                                    FontSize="12" ToolTip="Новости и сообщество" Click="NewsNav_Click"/>
-                            <Button Grid.Column="4" Content="◈  Профиль   ·   Скины и активность"
-                                    Style="{StaticResource SecondaryButton}" Background="#E51A172A"
-                                    BorderBrush="#554066" BorderThickness="1" Height="68"
-                                    FontSize="12" ToolTip="Открыть свой профиль" Click="ProfileNav_Click"/>
-                        </Grid>
+        <!-- The approved no-character cosmic UI. Fixed footer and two equal columns; never scroll. -->
+        <Grid x:Name="MainView" Visibility="Collapsed" ClipToBounds="True" Background="#0A0619">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="1.5*" MinHeight="125"/>
+            <RowDefinition Height="4*" MinHeight="290"/>
+            <RowDefinition Height="88"/>
+            <RowDefinition Height="64"/>
+          </Grid.RowDefinitions>
+          <!-- Existing approved world images replace this brush in NeonArtwork.cs -->
+          <Border Grid.RowSpan="4" Background="#36060819" IsHitTestVisible="False"/>
+          <Grid Grid.Row="0" Margin="16,8,16,4">
+            <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="44"/></Grid.RowDefinitions>
+            <!-- Two painted accretion discs: decorative Borders, not status Ellipses. -->
+            <Border Width="120" Height="120" CornerRadius="70" HorizontalAlignment="Center" Margin="-500,0,0,0"
+                    BorderBrush="#4184FF" BorderThickness="6" IsHitTestVisible="False">
+              <Border.Background><RadialGradientBrush>
+                <GradientStop Color="#00020B" Offset="0"/><GradientStop Color="#00020B" Offset="0.52"/>
+                <GradientStop Color="#0056D8" Offset="0.79"/><GradientStop Color="#090920" Offset="1"/>
+              </RadialGradientBrush></Border.Background>
+              <Border.Effect><DropShadowEffect Color="#009DFF" BlurRadius="19" ShadowDepth="0" Opacity="0.8"/></Border.Effect>
+            </Border>
+            <Border Width="120" Height="120" CornerRadius="70" HorizontalAlignment="Center" Margin="500,0,0,0"
+                    BorderBrush="#FF8A1D" BorderThickness="6" IsHitTestVisible="False">
+              <Border.Background><RadialGradientBrush>
+                <GradientStop Color="#040205" Offset="0"/><GradientStop Color="#040205" Offset="0.52"/>
+                <GradientStop Color="#CA4807" Offset="0.79"/><GradientStop Color="#270709" Offset="1"/>
+              </RadialGradientBrush></Border.Background>
+              <Border.Effect><DropShadowEffect Color="#FF6800" BlurRadius="20" ShadowDepth="0" Opacity="0.8"/></Border.Effect>
+            </Border>
+            <TextBlock Text="SOLARIS" FontSize="60" FontWeight="Black" HorizontalAlignment="Center"
+                       VerticalAlignment="Center" IsHitTestVisible="False">
+              <TextBlock.Foreground><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                <GradientStop Color="#FF962C" Offset="0"/><GradientStop Color="#FFF7D8" Offset="0.45"/>
+                <GradientStop Color="#78C9FF" Offset="0.76"/><GradientStop Color="#FFAF4A" Offset="1"/>
+              </LinearGradientBrush></TextBlock.Foreground>
+              <TextBlock.Effect><DropShadowEffect Color="#EA741B" BlurRadius="13" ShadowDepth="0" Opacity="0.85"/></TextBlock.Effect>
+            </TextBlock>
+            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center" Margin="12,0,0,0">
+              <TextBlock Text="S O L A R I S" FontSize="11" Foreground="#FFF0D9" FontWeight="Bold"/>
+              <TextBlock Text="БОЛЬШЕ" FontSize="11" Foreground="White" Margin="0,8,0,0"/>
+              <TextBlock Text="ЧЕМ MINECRAFT" FontSize="11" Foreground="White" Margin="0,2,0,0"/>
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0">
+              <Border Background="#EA100E22" BorderBrush="#8D679D" BorderThickness="1" CornerRadius="10" Padding="7">
+                <StackPanel Orientation="Horizontal">
+                  <Border Width="38" Height="38" CornerRadius="7" Background="#28203B" Cursor="Hand"
+                          MouseLeftButtonUp="ProfileAvatar_Click">
+                    <Grid ClipToBounds="True">
+                      <Grid x:Name="ProfileAvatarFallback">
+                        <TextBlock Text="◈" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="22"/>
+                      </Grid>
+                      <Image x:Name="ProfileAvatarImage" Visibility="Collapsed" Stretch="Fill"
+                             RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                     </Grid>
+                  </Border>
+                  <StackPanel Margin="8,0,0,0" VerticalAlignment="Center">
+                    <Button x:Name="ProfileTopButton" Content="Профиль" Style="{StaticResource NavButton}"
+                            FontSize="11" FontWeight="SemiBold" Height="23" Padding="0"
+                            HorizontalAlignment="Left" Click="ProfileNav_Click"/>
+                    <TextBlock x:Name="WelcomeText" FontSize="10" Foreground="#9BFBBE"
+                               TextTrimming="CharacterEllipsis" MaxWidth="100"/>
+                  </StackPanel>
+                  <Button Content="↪" Width="29" Height="35" Background="Transparent" Foreground="White"
+                          BorderThickness="0" Click="LogoutButton_Click" ToolTip="Выйти из аккаунта"/>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+            <Border Grid.Row="1" Background="#E90A0C1C" HorizontalAlignment="Center"
+                    VerticalAlignment="Center" CornerRadius="10" Padding="4"
+                    BorderBrush="#514565" BorderThickness="1">
+              <StackPanel Orientation="Horizontal">
+                <Border Background="#BD661D" CornerRadius="8" Padding="16,9">
+                  <TextBlock Text="◎  Миры" FontSize="12" FontWeight="SemiBold" Foreground="White"/>
+                </Border>
+                <Button Content="⚙  Настройки" Style="{StaticResource MinimalTopNav}" Click="SettingsNav_Click"/>
+                <Button Content="▤  Новости" Style="{StaticResource MinimalTopNav}" Click="NewsNav_Click"/>
+                <Button Content="♧  Сообщество" Style="{StaticResource MinimalTopNav}"
+                        Click="NewsTelegram_Click" ToolTip="Сообщество Solaris"/>
+                <Button Content="ⓘ  О проекте" Style="{StaticResource MinimalTopNav}" Click="AboutNav_Click"/>
+              </StackPanel>
+            </Border>
+          </Grid>
 
-                    <StackPanel Grid.Column="2" Visibility="Collapsed">
-                        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="18" Padding="20">
-                            <StackPanel>
-                                <TextBlock Text="ПРОФИЛЬ" FontSize="11" FontWeight="SemiBold" Foreground="#737C8D"/>
-                                <Grid Margin="0,15,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="72"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border Width="68" Height="68" CornerRadius="12" Background="#201626"
-                                    BorderBrush="#564062" BorderThickness="1">
-                                    <TextBlock Text="◉" Foreground="#B89BFF" FontSize="24"
-                                               VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                </Border><StackPanel Grid.Column="1" Margin="13,0,0,0" VerticalAlignment="Center"><TextBlock x:Name="ProfileName" Text="Игрок Solaris" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="● В сети" FontSize="10" Foreground="#86EFAC" Margin="0,5,0,0"/></StackPanel></Grid>
-                                <TextBlock x:Name="ProfileText" Text="Локальный аккаунт Solaris" Foreground="#A398B9" FontSize="10" Margin="0,13,0,0" TextWrapping="Wrap"/>
-                                <Button Content="↗  Открыть профиль" Style="{StaticResource SecondaryButton}" Margin="0,14,0,0" Height="36" FontSize="11" Click="ProfileNav_Click"/>
-                                <!-- Profile and activity share one panel. -->
-                                <Border BorderBrush="#564062" BorderThickness="0,1,0,0" Margin="0,19,0,17"/>
-                                 <TextBlock Text="☀  SOLARIS ACTIVITY" FontSize="11" FontWeight="SemiBold" Foreground="#FFCF73"/>
-                                 <TextBlock Text="ПОСЛЕДНЯЯ ИГРА" FontSize="9" Foreground="#998CA8" Margin="0,15,0,4"/>
-                                 <TextBlock x:Name="ActivityLastGame" Text="Вы ещё не играли" FontSize="14" FontWeight="SemiBold"/>
-                                 <TextBlock Text="ПОСЛЕДНИЙ СЕАНС" FontSize="9" Foreground="#998CA8" Margin="0,13,0,4"/>
-                                 <TextBlock x:Name="ActivityLastDuration" Text="0 ч 0 мин" FontSize="13" Foreground="#FFE0A0"/>
-                                 <TextBlock Text="ПОСЛЕДНИЙ ЗАПУСК" FontSize="9" Foreground="#998CA8" Margin="0,13,0,4"/>
-                                 <TextBlock x:Name="ActivityLastLaunch" Text="—" FontSize="12" Foreground="#D3C6DD"/>
-                             </StackPanel>
-                         </Border>
+          <Grid Grid.Row="1" Margin="18,0,18,8">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <Border x:Name="VanillaCard" Grid.Column="0" Background="#100812" BorderBrush="#FF9B36"
+                    BorderThickness="2" CornerRadius="16" ClipToBounds="True"
+                    MouseEnter="VanillaCard_MouseEnter" MouseLeave="VanillaCard_MouseLeave">
+              <Grid ClipToBounds="True">
+                <Image x:Name="VanillaArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp"
+                       Stretch="UniformToFill" Opacity="0.9" CacheMode="BitmapCache" IsHitTestVisible="False"/>
+                <Image x:Name="VanillaArtworkSharp" Source="pack://application:,,,/Assets/SolarisEmber.bmp"
+                       Stretch="UniformToFill" Opacity="0" CacheMode="BitmapCache" IsHitTestVisible="False"/>
+                <Border IsHitTestVisible="False">
+                  <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#D90E0715" Offset="0"/><GradientStop Color="#360E0715" Offset="0.42"/>
+                    <GradientStop Color="#D80B0715" Offset="0.87"/><GradientStop Color="#ED0C0613" Offset="1"/>
+                  </LinearGradientBrush></Border.Background>
+                </Border>
+                <Grid Margin="13,13,13,12">
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="60"/><RowDefinition Height="*"/><RowDefinition Height="53"/><RowDefinition Height="57"/>
+                  </Grid.RowDefinitions>
+                  <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="52"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Height="49" Width="49"/>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="6,0,0,0">
+                      <TextBlock Text="SOLARIS VANILLA" FontWeight="ExtraBold" FontSize="21"/>
+                      <TextBlock Text="ОСНОВНОЙ РЕЖИМ" FontSize="10" Foreground="#FFE4B3"/>
                     </StackPanel>
+                  </Grid>
+                  <StackPanel Grid.Row="1" VerticalAlignment="Bottom" Margin="1,0,0,10">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,7">
+                      <Ellipse Width="8" Height="8" Fill="#39F394" VerticalAlignment="Center"/>
+                      <TextBlock Text=" Сервер готов" FontSize="11" Foreground="#82FFC4"/>
+                    </StackPanel>
+                    <TextBlock x:Name="VanillaVersionText" Text="Minecraft 26.2 • Survival"
+                               FontSize="13" Foreground="#FFF2E7"/>
+                    <TextBlock Text="Классическое выживание, экономика, кланы"
+                               FontSize="11" Foreground="#FFFFFF" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                    <TextBlock Text="и большое сообщество." FontSize="11" Foreground="#ECE3E8"/>
+                    <TextBlock x:Name="VanillaInstallStateText" Text="Проверяем клиент..." FontSize="10"
+                               Foreground="#FFE0A0" Margin="0,6,0,0" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock x:Name="VanillaHours" Visibility="Collapsed" FontSize="10"/>
+                  </StackPanel>
+                  <UniformGrid Grid.Row="2" Columns="3" Margin="0,0,0,5">
+                    <Border Background="#D3090C18" BorderBrush="#A36A39" BorderThickness="1" CornerRadius="8" Margin="0,0,3,0" Padding="3">
+                      <TextBlock Text="⚒ Классическое выживание" FontSize="10" TextAlignment="Center"
+                                 TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </Border>
+                    <Border Background="#D3090C18" BorderBrush="#A36A39" BorderThickness="1" CornerRadius="8" Margin="3,0" Padding="3">
+                      <TextBlock Text="▥ Экономика и кланы" FontSize="10" TextAlignment="Center"
+                                 TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </Border>
+                    <Border Background="#D3090C18" BorderBrush="#A36A39" BorderThickness="1" CornerRadius="8" Margin="3,0,0,0" Padding="3">
+                      <TextBlock Text="♧ Сообщество" FontSize="10" TextAlignment="Center"
+                                 TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </Border>
+                  </UniformGrid>
+                  <Button x:Name="VanillaPlayButton" Grid.Row="3" Content="▶   ИГРАТЬ   →" IsEnabled="False"
+                          Style="{StaticResource PrimaryButton}" FontSize="18" FontWeight="Bold"
+                          Height="51" Background="#F78C19" Click="VanillaPlayButton_Click"/>
                 </Grid>
-            </Grid>
-            <TextBlock Grid.Row="2" Text="SOLARIS  •  VANILLA / MODDED  •  ОБНОВЛЕНИЯ АВТОМАТИЧЕСКИ" FontSize="9" Foreground="#777184" Margin="4,0,0,3"/>
+              </Grid>
+            </Border>
+            <Border x:Name="ModdedCard" Grid.Column="2" Background="#0C071E" BorderBrush="#BC4BFF"
+                    BorderThickness="2" CornerRadius="16" ClipToBounds="True"
+                    MouseEnter="ModdedCard_MouseEnter" MouseLeave="ModdedCard_MouseLeave">
+              <Grid ClipToBounds="True">
+                <Image x:Name="ModdedArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp"
+                       Stretch="UniformToFill" Opacity="0.9" CacheMode="BitmapCache" IsHitTestVisible="False"/>
+                <Image x:Name="ModdedArtworkSharp" Source="pack://application:,,,/Assets/SolarisEmber.bmp"
+                       Stretch="UniformToFill" Opacity="0" CacheMode="BitmapCache" IsHitTestVisible="False"/>
+                <Border IsHitTestVisible="False">
+                  <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#DD120323" Offset="0"/><GradientStop Color="#42100328" Offset="0.42"/>
+                    <GradientStop Color="#D80B041F" Offset="0.87"/><GradientStop Color="#F00D041B" Offset="1"/>
+                  </LinearGradientBrush></Border.Background>
+                </Border>
+                <Grid Margin="13,13,13,12">
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="60"/><RowDefinition Height="*"/><RowDefinition Height="53"/><RowDefinition Height="57"/>
+                  </Grid.RowDefinitions>
+                  <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="52"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Image Source="pack://application:,,,/Assets/SolarisModdedIcon.png" Height="49" Width="49"/>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="6,0,0,0">
+                      <TextBlock Text="SOLARIS MODDED" FontWeight="ExtraBold" FontSize="21"/>
+                      <TextBlock Text="FORGE СБОРКА" FontSize="10" Foreground="#EBC3FF"/>
+                    </StackPanel>
+                  </Grid>
+                  <StackPanel Grid.Row="1" VerticalAlignment="Bottom" Margin="1,0,0,10">
+                    <TextBlock Text="Minecraft 1.20.1 • Forge 47.4.20"
+                               FontSize="13" Foreground="#F9EFFF"/>
+                    <TextBlock Text="Технические моды, магия, автоматизация"
+                               FontSize="11" Foreground="#FFFFFF" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                    <TextBlock Text="и бесконечные возможности." FontSize="11" Foreground="#E8DDF0"/>
+                    <TextBlock x:Name="ModdedInstallStateText" Text="Проверяем моды..." FontSize="10"
+                               Foreground="#F1C9FF" Margin="0,6,0,0" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock x:Name="ModdedHours" Visibility="Collapsed" FontSize="10"/>
+                  </StackPanel>
+                  <UniformGrid Grid.Row="2" Columns="3" Margin="0,0,0,5">
+                    <Border Background="#D310081D" BorderBrush="#8F49AF" BorderThickness="1" CornerRadius="8" Margin="0,0,3,0" Padding="3">
+                      <TextBlock Text="⚙ Технические моды" FontSize="10" TextAlignment="Center"
+                                 TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </Border>
+                    <Border Background="#D310081D" BorderBrush="#8F49AF" BorderThickness="1" CornerRadius="8" Margin="3,0" Padding="3">
+                      <TextBlock Text="✧ Магия и автоматизация" FontSize="10" TextAlignment="Center"
+                                 TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </Border>
+                    <Border Background="#D310081D" BorderBrush="#8F49AF" BorderThickness="1" CornerRadius="8" Margin="3,0,0,0" Padding="3">
+                      <TextBlock Text="∞ Возможности" FontSize="10" TextAlignment="Center"
+                                 TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </Border>
+                  </UniformGrid>
+                  <Button x:Name="PlayButton" Grid.Row="3" Content="▶   ИГРАТЬ   →" IsEnabled="False"
+                          Style="{StaticResource PrimaryButton}" FontSize="18" FontWeight="Bold"
+                          Height="51" Background="#981DEB" Click="PlayButton_Click"/>
+                </Grid>
+              </Grid>
+            </Border>
+          </Grid>
+
+          <Grid Grid.Row="2" Margin="18,0,18,7">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="#F00D101D" BorderBrush="#6D647E" BorderThickness="1"
+                    CornerRadius="12" Padding="12,9">
+              <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                  <TextBlock Text="◉  СОСТОЯНИЕ / ОБНОВЛЕНИЕ SOLARIS" FontSize="11" FontWeight="SemiBold" Foreground="#FFD57A"/>
+                  <TextBlock x:Name="StatusText" Text="Готов к запуску." FontSize="11" Foreground="#F1E5F6"
+                             TextTrimming="CharacterEllipsis" Margin="0,5,0,0"/>
+                  <Grid x:Name="IgnitionTrack" Height="8" Visibility="Collapsed" Margin="0,6,0,0"
+                        SizeChanged="IgnitionTrack_SizeChanged" ClipToBounds="True">
+                    <Border Background="#30283B" CornerRadius="5"/>
+                    <Border x:Name="IgnitionFill" HorizontalAlignment="Left" Width="0" CornerRadius="4" IsHitTestVisible="False"
+                            Background="#FFC341"/>
+                    <Border x:Name="IgnitionFront" Width="4" HorizontalAlignment="Left" Background="#FFFFBC" IsHitTestVisible="False"/>
+                    <Canvas x:Name="IgnitionParticles" IsHitTestVisible="False"/>
+                    <ProgressBar x:Name="Progress" Minimum="0" Maximum="100" Value="0" Visibility="Collapsed"
+                                 ValueChanged="IgnitionProgress_ValueChanged"/>
+                  </Grid>
+                  <TextBlock x:Name="VersionText" FontSize="9" Foreground="#C9ABC8" Margin="0,3,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                  <TextBlock x:Name="IgnitionPercent" Visibility="Collapsed" Foreground="#FFDD76"
+                             HorizontalAlignment="Center" FontSize="11"/>
+                  <Button Content="↻ Проверить" Style="{StaticResource SecondaryButton}" Width="115" Height="34"
+                          FontSize="11" Click="ManualUpdateCheck_Click" ToolTip="Проверить обновление лаунчера"/>
+                </StackPanel>
+              </Grid>
+            </Border>
+            <Border Grid.Column="2" Background="#F00D101D" BorderBrush="#6D647E" BorderThickness="1"
+                    CornerRadius="12" Padding="9,8">
+              <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="96"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Border CornerRadius="8" ClipToBounds="True" Margin="0,0,9,0">
+                  <Image Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill"/>
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                  <TextBlock Text="▤ НОВОСТИ SOLARIS" FontWeight="SemiBold" FontSize="11" Foreground="#E8CFFF"/>
+                  <TextBlock Text="Обновления, планы и события" FontSize="11" Margin="0,5,0,0"
+                             TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Text="Новости проекта и сообщества" Foreground="#C0ACD3" FontSize="10"
+                             TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+                <Button Grid.Column="2" Content="Читать →" Style="{StaticResource NavButton}" FontSize="11"
+                        Foreground="#FFD596" Click="NewsNav_Click" Margin="7,0,0,0"/>
+              </Grid>
+            </Border>
+          </Grid>
+
+          <UniformGrid Grid.Row="3" Columns="5" Margin="18,0,18,9">
+            <Button Content="⚙ Настройки" Style="{StaticResource SecondaryButton}" Height="51"
+                    Background="#E7101024" FontSize="11" Margin="0,0,4,0" Click="SettingsNav_Click"/>
+            <Button Content="▣ Память и Java" Style="{StaticResource SecondaryButton}" Height="51"
+                    Background="#E7101024" FontSize="11" Margin="4,0" Click="SettingsNav_Click"/>
+            <Button Content="▤ Папка игры" Style="{StaticResource SecondaryButton}" Height="51"
+                    Background="#E7101024" FontSize="11" Margin="4,0" Click="OpenGameFolder_Click"/>
+            <Button Content="♧ Наше сообщество" Style="{StaticResource SecondaryButton}" Height="51"
+                    Background="#E7101024" FontSize="11" Margin="4,0" Click="NewsTelegram_Click"/>
+            <Button Content="◎ Карта Solaris • скоро" Style="{StaticResource SecondaryButton}" Height="51"
+                    Background="#E7101024" FontSize="11" Margin="4,0,0,0" IsEnabled="False"
+                    ToolTip="Официальная карта появится позже"/>
+          </UniformGrid>
+
+          <!-- Keep existing code-behind profile and activity bindings. -->
+          <StackPanel Visibility="Collapsed">
+            <TextBlock x:Name="ProfileName"/><TextBlock x:Name="ProfileText"/>
+            <TextBlock x:Name="ActivityLastGame"/><TextBlock x:Name="ActivityLastDuration"/>
+            <TextBlock x:Name="ActivityLastLaunch"/>
+          </StackPanel>
+          <Grid x:Name="AboutOverlay" Grid.RowSpan="4" Visibility="Collapsed" Background="#F009081C" Panel.ZIndex="40">
+            <StackPanel Width="520" VerticalAlignment="Center" HorizontalAlignment="Center">
+              <Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png"
+                     Width="75" Height="75" HorizontalAlignment="Center"/>
+              <TextBlock Text="SOLARIS" FontSize="36" FontWeight="Black" HorizontalAlignment="Center"
+                         Foreground="#FFE0A0" Margin="0,10"/>
+              <TextBlock Text="БОЛЬШЕ ЧЕМ MINECRAFT" Foreground="#D6BDFA" FontSize="14"
+                         HorizontalAlignment="Center"/>
+              <TextBlock Text="Vanilla — классическое выживание. Modded — Forge, механизмы, магия и автоматизация. Обновления лаунчера и игровых клиентов устанавливаются независимо."
+                         FontSize="13" TextAlignment="Center" TextWrapping="Wrap" Foreground="#E3DCEB"
+                         Margin="0,25,0,22"/>
+              <Button Content="← К МИРАМ" Style="{StaticResource PrimaryButton}" Width="210"
+                      HorizontalAlignment="Center" Click="AboutBack_Click"/>
+            </StackPanel>
+          </Grid>
         </Grid>
         </Grid>
 

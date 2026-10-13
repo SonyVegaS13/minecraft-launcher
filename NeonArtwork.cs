@@ -75,7 +75,7 @@ public partial class MainWindow
                         ?? main;
 
                     LoginBackdrop.Background = new ImageBrush(login.Bitmap) { Stretch = Stretch.UniformToFill };
-                    MainView.Background = new ImageBrush(main.Bitmap) { Stretch = Stretch.UniformToFill, Opacity = 0.30 };
+                    MainView.Background = new ImageBrush(main.Bitmap) { Stretch = Stretch.UniformToFill, Opacity = 0.82 };
                     // Pre-render soft thumbnails once on import. GPU only crossfades
                     // the frozen sharp artwork thereafter; no per-frame blur shaders.
                     VanillaArtwork.Source = CreateSoftThumbnail(vanilla.Bitmap, 280, 2);
@@ -159,7 +159,7 @@ public partial class MainWindow
             MainView.Background = new ImageBrush(world)
             {
                 Stretch = Stretch.UniformToFill,
-                Opacity = 0.30
+                Opacity = 0.82
             };
 
             VanillaArtwork.Source = CreateSoftThumbnail(world, 280, 2);
