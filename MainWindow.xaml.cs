@@ -644,6 +644,7 @@ public partial class MainWindow : Window
         if (!TryBeginLaunch(vanillaButton, "ИГРАТЬ",
             out CancellationTokenSource? cancellation, out CancellationToken token)) return;
 
+        SolarisMinecraftLaunchSplash? launchSplash = null;
         try
         {
             string version = _vanillaTargetVersion;
@@ -680,6 +681,8 @@ public partial class MainWindow : Window
             };
             StatusText.Text = "Solaris Vanilla: запускаем Minecraft...";
             Progress.Value = 96;
+            launchSplash = new SolarisMinecraftLaunchSplash(this, "vanilla");
+            launchSplash.Show();
             var process = await launcher.BuildProcessAsync(version, options);
             token.ThrowIfCancellationRequested();
             process.StartInfo.UseShellExecute = false;
@@ -688,6 +691,10 @@ public partial class MainWindow : Window
             process.Start();
             Progress.Value = 100;
             StatusText.Text = "Minecraft Vanilla запущен.";
+            launchSplash.SetPhase("Ожидаем игровое окно...");
+            await launchSplash.WaitForGameWindowAsync(process);
+            launchSplash.Close();
+            launchSplash = null;
             await TrackGameProcessAsync(process, nickname, "vanilla");
         }
         catch (OperationCanceledException)
@@ -706,6 +713,7 @@ public partial class MainWindow : Window
         }
         finally
         {
+            launchSplash?.Close();
             if (cancellation is not null) EndLaunch(vanillaButton, "ИГРАТЬ", cancellation);
             RefreshServerActionButtons();
         }
@@ -799,17 +807,46 @@ public partial class MainWindow : Window
     private async Task LaunchMinecraftAsync(string versionName, string nick, string serverHost, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        var launcher = new MinecraftLauncher(new MinecraftPath(_gameDir));
-        string javaPath = await EnsureJavaForModeAsync(_gameDir, 17, 90, 96, token);
-        int ram = GetRamForMode("modded");
-        var options = new MLaunchOption { Session = MSession.CreateOfflineSession(nick), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
-        if (!string.IsNullOrWhiteSpace(serverHost)) { options.ServerIp = serverHost; options.ServerPort = ServerPort; }
-        token.ThrowIfCancellationRequested();
-        var process = await launcher.BuildProcessAsync(versionName, options); token.ThrowIfCancellationRequested(); process.StartInfo.UseShellExecute = false;
+        var splash = new SolarisMinecraftLaunchSplash(this, "modded");
+        splash.Show();
+        Process? process = null;
+        try
+        {
+            var launcher = new MinecraftLauncher(new MinecraftPath(_gameDir));
+            splash.SetPhase("Проверяем Java и подготавливаем Forge...");
+            string javaPath = await EnsureJavaForModeAsync(_gameDir, 17, 90, 96, token);
+            int ram = GetRamForMode("modded");
+            var options = new MLaunchOption
+            {
+                Session = MSession.CreateOfflineSession(nick),
+                JavaPath = javaPath, MaximumRamMb = ram,
+                MinimumRamMb = Math.Min(2048, ram),
+                GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0"
+            };
+            if (!string.IsNullOrWhiteSpace(serverHost))
+            {
+                options.ServerIp = serverHost;
+                options.ServerPort = ServerPort;
+            }
+            token.ThrowIfCancellationRequested();
+            splash.SetPhase("Создаём процесс Minecraft...");
+            process = await launcher.BuildProcessAsync(versionName, options);
+            token.ThrowIfCancellationRequested();
+            process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             process.Start();
-        await TrackGameProcessAsync(process, nick, "modded");
+            splash.SetPhase("Ожидаем игровое окно...");
+            await splash.WaitForGameWindowAsync(process);
+        }
+        finally
+        {
+            splash.Close();
+        }
+
+        // The launch artwork is not displayed for the entire game session.
+        if (process is not null)
+            await TrackGameProcessAsync(process, nick, "modded");
     }
 
     private async Task UpdateClientPackAsync(CancellationToken token)
