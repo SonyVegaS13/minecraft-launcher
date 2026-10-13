@@ -15,7 +15,7 @@
             <Setter Property="Foreground" Value="White"/><Setter Property="Cursor" Value="Hand"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="VerticalContentAlignment" Value="Stretch"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
-                <Grid><ContentPresenter/><Ellipse x:Name="FocusRing" Width="334" Height="334" Margin="0,0,0,24" Stroke="#E3D8FF" StrokeThickness="2" StrokeDashArray="2 3" Visibility="Collapsed" IsHitTestVisible="False"/></Grid>
+                <Grid Background="{TemplateBinding Background}"><ContentPresenter/><Ellipse x:Name="FocusRing" Width="334" Height="334" Margin="0,0,0,70" Stroke="#E3D8FF" StrokeThickness="2" StrokeDashArray="2 3" Visibility="Collapsed" IsHitTestVisible="False"/></Grid>
                 <ControlTemplate.Triggers><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="FocusRing" Property="Visibility" Value="Visible"/></Trigger></ControlTemplate.Triggers>
             </ControlTemplate></Setter.Value></Setter>
         </Style>
@@ -34,20 +34,20 @@
             <Canvas x:Name="SpaceBackdrop" Width="1304" Height="624" Canvas.Left="-12" Canvas.Top="-12"
                     IsHitTestVisible="False" CacheMode="BitmapCache">
                 <Canvas.RenderTransform><TranslateTransform x:Name="SpaceParallax"/></Canvas.RenderTransform>
-                <Rectangle Width="1304" Height="624"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#090F24" Offset="0"/><GradientStop Color="#050914" Offset="0.4"/><GradientStop Color="#201125" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle>
+                <Canvas x:Name="SpaceVectorFallback" Width="1304" Height="624"><Rectangle Width="1304" Height="624"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#090F24" Offset="0"/><GradientStop Color="#050914" Offset="0.4"/><GradientStop Color="#201125" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle>
                 <Ellipse Width="750" Height="470" Canvas.Left="-120" Canvas.Top="-60"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#244548AE" Offset="0"/><GradientStop Color="#006B39CC" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
                 <Ellipse Width="770" Height="450" Canvas.Left="720" Canvas.Top="-70"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#354D2512" Offset="0"/><GradientStop Color="#00F4802E" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
                 <Path Fill="#99CDD9FF" Data="M42,57h2v2h-2z M96,162h2v2h-2z M147,93h3v3h-3z M213,180h2v2h-2z M292,49h2v2h-2z M332,109h2v2h-2z M420,32h2v2h-2z M489,154h2v2h-2z M548,54h2v2h-2z M627,120h2v2h-2z M693,30h2v2h-2z M734,141h2v2h-2z M805,60h2v2h-2z M858,194h2v2h-2z M915,40h2v2h-2z M1038,120h2v2h-2z M1107,57h3v3h-3z M1192,91h2v2h-2z M1250,168h2v2h-2z M76,276h2v2h-2z M182,323h2v2h-2z M650,226h2v2h-2z M691,333h2v2h-2z M1175,286h2v2h-2z M1230,387h3v3h-3z M173,438h2v2h-2z M531,400h2v2h-2z M974,430h2v2h-2z M57,384h2v2h-2z"/>
                 <Path Fill="#526B80B1" Data="M82,104h1v1h-1z M115,238h1v1h-1z M241,130h1v1h-1z M369,74h1v1h-1z M454,193h1v1h-1z M570,99h1v1h-1z M616,51h1v1h-1z M700,173h1v1h-1z M780,112h1v1h-1z M830,33h1v1h-1z M892,133h1v1h-1z M998,76h1v1h-1z M1152,170h1v1h-1z M1210,42h1v1h-1z M83,349h1v1h-1z M625,278h1v1h-1z M744,395h1v1h-1z M1110,358h1v1h-1z"/>
                 <!-- The two accretion discs are static vector art, not per-frame particle systems. -->
-                <Grid Width="265" Height="158" Canvas.Left="134" Canvas.Top="42" RenderTransformOrigin="0.5,0.5">
+                <Grid Width="265" Height="158" Canvas.Left="57" Canvas.Top="22" RenderTransformOrigin="0.5,0.5">
                     <Grid.RenderTransform><RotateTransform Angle="-24"/></Grid.RenderTransform>
                     <Ellipse Width="245" Height="132"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#00000000" Offset="0.26"/><GradientStop Color="#224072FF" Offset="0.36"/><GradientStop Color="#AA0CA3FF" Offset="0.44"/><GradientStop Color="#725A49EA" Offset="0.52"/><GradientStop Color="#004681FF" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
                     <Ellipse Width="169" Height="83" Stroke="#40546CFF" StrokeThickness="3"/><Ellipse Width="129" Height="69" Stroke="#9841BEFF" StrokeThickness="2"/>
                     <Ellipse Width="102" Height="63" Fill="#020611" Stroke="#AF99ECFF" StrokeThickness="2"/>
                     <Path Stroke="#BF60E6FF" StrokeThickness="3" Data="M13,96 C67,39 154,147 250,67"/>
                 </Grid>
-                <Grid Width="288" Height="160" Canvas.Left="916" Canvas.Top="36" RenderTransformOrigin="0.5,0.5">
+                <Grid Width="288" Height="160" Canvas.Left="598" Canvas.Top="13" RenderTransformOrigin="0.5,0.5">
                     <Grid.RenderTransform><RotateTransform Angle="-29"/></Grid.RenderTransform>
                     <Ellipse Width="280" Height="144"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#00000000" Offset="0.2"/><GradientStop Color="#38FF5D16" Offset="0.35"/><GradientStop Color="#C9FF8F28" Offset="0.43"/><GradientStop Color="#80DA431E" Offset="0.54"/><GradientStop Color="#00FD661B" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
                     <Ellipse Width="180" Height="87" Stroke="#84E06528" StrokeThickness="3"/><Ellipse Width="148" Height="77" Stroke="#BCFFB04C" StrokeThickness="2"/>
@@ -56,8 +56,11 @@
                 </Grid>
                 <!-- Horizon below the panoramic window. -->
                 <Ellipse Width="1120" Height="315" Canvas.Left="95" Canvas.Top="463" Stroke="#8D72B6FA" StrokeThickness="2"><Ellipse.Fill><RadialGradientBrush GradientOrigin="0.5,0" Center="0.5,0" RadiusX="0.7" RadiusY="0.9"><GradientStop Color="#6B365991" Offset="0"/><GradientStop Color="#1815253E" Offset="0.55"/><GradientStop Color="#050A13" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
+                </Canvas>
+                <Image x:Name="SpaceBackgroundImage" Width="1304" Height="624" Stretch="Fill" IsHitTestVisible="False"/>
             </Canvas>
             <Canvas IsHitTestVisible="False" Width="1280" Height="600" CacheMode="BitmapCache">
+                <Canvas x:Name="BridgeVectorFallback" Width="1280" Height="600">
                 <Path Fill="#101522" Stroke="#36415F" StrokeThickness="1.5" Data="M0,0 L32,0 51,28 143,42 1120,42 1240,20 1256,0 1280,0 1254,69 1101,77 176,77 27,53z"/>
                 <Path Fill="#090D17" Stroke="#465374" StrokeThickness="1.5" Data="M0,50 L19,54 38,423 100,475 50,480 10,447z M1280,50 L1261,54 1242,423 1180,475 1230,480 1270,447z"/>
                 <Path Stroke="#B5622C" StrokeThickness="3" Data="M25,64 L37,219 M1255,64 L1243,219 M76,466 L298,485 M1204,466 L982,485"/>
@@ -77,110 +80,168 @@
                     <Path Stroke="#625781" Data="M16,86 L187,86 M16,30 L16,86"/>
                     <Path Fill="#AB5C64A8" Data="M27,61h12v23h-12z M47,49h12v35h-12z M67,35h12v49h-12z M87,54h12v30h-12z M107,42h12v42h-12z M127,31h12v53h-12z M147,53h12v31h-12z M167,44h12v40h-12z"/>
                 </Canvas></Border>
-                <Border Width="95" Height="61" Canvas.Left="450" Canvas.Top="501" CornerRadius="7" BorderBrush="#425588" BorderThickness="2" Background="#090D21"><Canvas><Ellipse Width="42" Height="29" Canvas.Left="26" Canvas.Top="16" Stroke="#668DDF"/><Path Stroke="#6FADF0" Data="M13,30 L82,30 M47,8 L47,52"/><Ellipse Width="8" Height="8" Canvas.Left="43" Canvas.Top="26" Fill="#B097EE"/></Canvas></Border>
-                <Border Width="95" Height="61" Canvas.Left="735" Canvas.Top="501" CornerRadius="7" BorderBrush="#5B4981" BorderThickness="2" Background="#120A21"><Canvas><Ellipse Width="42" Height="29" Canvas.Left="26" Canvas.Top="16" Stroke="#9160D6"/><Path Stroke="#9C69D5" Data="M13,30 L82,30 M47,8 L47,52"/><Ellipse Width="8" Height="8" Canvas.Left="43" Canvas.Top="26" Fill="#CD8DEE"/></Canvas></Border>
+                <Border Width="95" Height="61" Canvas.Left="260" Canvas.Top="501" CornerRadius="7" BorderBrush="#425588" BorderThickness="2" Background="#090D21"><Canvas><Ellipse Width="42" Height="29" Canvas.Left="26" Canvas.Top="16" Stroke="#668DDF"/><Path Stroke="#6FADF0" Data="M13,30 L82,30 M47,8 L47,52"/><Ellipse Width="8" Height="8" Canvas.Left="43" Canvas.Top="26" Fill="#B097EE"/></Canvas></Border>
+                <Border Width="95" Height="61" Canvas.Left="565" Canvas.Top="501" CornerRadius="7" BorderBrush="#5B4981" BorderThickness="2" Background="#120A21"><Canvas><Ellipse Width="42" Height="29" Canvas.Left="26" Canvas.Top="16" Stroke="#9160D6"/><Path Stroke="#9C69D5" Data="M13,30 L82,30 M47,8 L47,52"/><Ellipse Width="8" Height="8" Canvas.Left="43" Canvas.Top="26" Fill="#CD8DEE"/></Canvas></Border>
+                </Canvas>
+                <Image x:Name="BridgeForegroundImage" Width="1280" Height="600" Stretch="Fill" IsHitTestVisible="False"/>
             </Canvas>
-            <StackPanel Width="590" Canvas.Left="345" Canvas.Top="76" IsHitTestVisible="False">
-                <TextBlock Text="SOLARIS" FontSize="61" FontWeight="Black" FontFamily="Segoe UI" TextAlignment="Center" Foreground="#FFF1DF"/>
+            <StackPanel Width="470" Canvas.Left="230" Canvas.Top="0" IsHitTestVisible="False">
+                <TextBlock Text="SOLARIS" FontSize="50" FontWeight="Black" FontFamily="Segoe UI" TextAlignment="Center" Foreground="#FFF1DF"/>
                 <Grid Width="240" Height="5" HorizontalAlignment="Center"><Grid.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#00FF9C36" Offset="0"/><GradientStop Color="#F8B057" Offset="0.25"/><GradientStop Color="#CCA0FF" Offset="0.75"/><GradientStop Color="#00A957FF" Offset="1"/></LinearGradientBrush></Grid.Background></Grid>
                 <TextBlock x:Name="SceneInstruction" Text="ВЫБЕРИ СВОЙ МИР" FontSize="12" FontWeight="SemiBold" TextAlignment="Center" Foreground="#B7B5CF" Margin="0,13,0,0"/>
             </StackPanel>
-            <TextBlock x:Name="SceneHint" Text="Два мира. Одна вселенная Solaris." FontSize="12" Foreground="#89889E" Canvas.Left="40" Canvas.Top="110" IsHitTestVisible="False"/>
-            <TextBlock x:Name="SceneCoordinates" Text="КОМАНДНЫЙ ЦЕНТР&#x0a;СЕКТОР SOL / 02" TextAlignment="Right" FontSize="10" Foreground="#89889E" Canvas.Left="1082" Canvas.Top="109" IsHitTestVisible="False"/>
+            <TextBlock x:Name="SceneHint" Text="Два мира. Одна вселенная Solaris." FontSize="11" Foreground="#89889E" Canvas.Left="43" Canvas.Top="148" IsHitTestVisible="False"/>
+            <TextBlock x:Name="SceneCoordinates" Text="КОМАНДНЫЙ ЦЕНТР&#x0a;СЕКТОР SOL / 02" TextAlignment="Right" FontSize="10" Foreground="#89889E" Canvas.Left="1082" Canvas.Top="19" IsHitTestVisible="False"/>
+            <!-- A short vertical connector links each planet to its own compact card.
+                 It stays behind the buttons and never crosses the other world. -->
+            <Border x:Name="HoverBridge" Canvas.Left="69" Canvas.Top="194" Width="350" Height="20"
+                    Background="Transparent" Visibility="Collapsed" MouseEnter="Card_MouseEnter" MouseLeave="Card_MouseLeave"/>
             <!-- Buttons, not mouse-only shapes: Tab, Enter, Space and screen readers work. -->
-            <Button x:Name="VanillaPlanet" Width="350" Height="350" Canvas.Left="224" Canvas.Top="183"
+            <Button x:Name="VanillaPlanet" Width="350" Height="382" Canvas.Left="69" Canvas.Top="173"
                     Style="{StaticResource PlanetButton}" Click="VanillaPlanet_Click" TabIndex="0"
-                    MouseEnter="Planet_MouseEnter" MouseLeave="Planet_MouseLeave" RenderTransformOrigin="0.5,0.45"
+                    MouseEnter="Planet_MouseEnter" MouseLeave="Planet_MouseLeave" GotKeyboardFocus="Planet_GotKeyboardFocus" LostKeyboardFocus="Planet_LostKeyboardFocus" RenderTransformOrigin="0.5,0.411"
                     AutomationProperties.Name="Solaris Vanilla. Minecraft 26.2. Сервер офлайн. Открыть информацию."
-                    AutomationProperties.HelpText="Выберите планету клавишей Enter или пробелом. Назад — Escape.">
-                <Button.RenderTransform><TransformGroup><ScaleTransform x:Name="VanillaHover"/><ScaleTransform x:Name="VanillaFocus"/><TranslateTransform x:Name="VanillaPosition"/></TransformGroup></Button.RenderTransform>
+                    AutomationProperties.HelpText="Выберите планету клавишей Enter или пробелом. Закрепить карточку — Enter, закрыть — Escape.">
+                <Button.RenderTransform><TransformGroup><ScaleTransform x:Name="VanillaHover"/><ScaleTransform x:Name="VanillaFocus"/><TranslateTransform x:Name="VanillaParallax"/></TransformGroup></Button.RenderTransform>
                 <Grid>
-                    <Ellipse x:Name="VanillaGlow" Width="336" Height="336" Margin="0,0,0,38" Fill="{StaticResource WarmAura}" Opacity="0.56" IsHitTestVisible="False"/>
+                    <Ellipse x:Name="VanillaAmbientGlow" Width="352" Height="352" VerticalAlignment="Top" Margin="0,-19,0,0" Fill="{StaticResource WarmAura}" Opacity="0.18" IsHitTestVisible="False"/>
+                    <Ellipse x:Name="VanillaGlow" Width="336" Height="336" VerticalAlignment="Top" Margin="0,-11,0,0" Fill="{StaticResource WarmAura}" Opacity="0.56" IsHitTestVisible="False"/>
                     <Grid Width="246" Height="246" VerticalAlignment="Top" Margin="0,34,0,0">
                         <Ellipse Fill="{StaticResource WarmSurface}"/>
                         <Grid x:Name="VanillaSurface" Width="246" Height="246" RenderTransformOrigin="0.5,0.5" CacheMode="BitmapCache" IsHitTestVisible="False">
                             <Grid.Clip><EllipseGeometry Center="123,123" RadiusX="123" RadiusY="123"/></Grid.Clip>
                             <Grid.RenderTransform><RotateTransform x:Name="VanillaRotation"/></Grid.RenderTransform>
-                            <Path Fill="#52934220" Data="M-20,52 C18,14 52,65 82,48 116,30 163,69 174,96 143,97 99,82 80,102 58,126 25,92 -20,101z M74,177 C127,159 184,189 273,160 L273,211 C213,212 166,240 109,220 76,208 20,220 3,192z"/>
+                            <Grid x:Name="VanillaTextureFallback"><Path Fill="#52934220" Data="M-20,52 C18,14 52,65 82,48 116,30 163,69 174,96 143,97 99,82 80,102 58,126 25,92 -20,101z M74,177 C127,159 184,189 273,160 L273,211 C213,212 166,240 109,220 76,208 20,220 3,192z"/>
                             <Path Fill="#39FFE0A1" Data="M-12,104 C36,70 63,109 104,98 144,83 164,121 214,112 L259,142 C205,151 176,129 132,141 83,146 59,134 12,149z M32,15 C74,-3 112,30 169,18 L198,45 C140,51 86,20 28,41z"/>
                             <Path Stroke="#33852318" StrokeThickness="3" Data="M0,166 C50,138 86,176 124,161 S194,154 246,173 M13,78 C65,46 95,80 142,66 S210,68 244,89"/>
                             <Ellipse Width="53" Height="27" Fill="#2989231B" Margin="100,101,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                            <!-- Static rocky details are cached with the rotating layer. -->
+                            <Path Stroke="#3CF5C590" StrokeThickness="1.1" Data="M52,43 A13,9 0 1 1 52,61 A13,9 0 1 1 52,43 M182,113 A19,13 0 1 1 182,139 A19,13 0 1 1 182,113 M55,161 A9,7 0 1 1 55,175 A9,7 0 1 1 55,161 M109,203 A14,8 0 1 1 109,219 A14,8 0 1 1 109,203 M184,50 A8,6 0 1 1 184,62 A8,6 0 1 1 184,50"/>
+                            <Path Stroke="#39FFE4A4" StrokeThickness="1.5" Data="M-9,119 C25,87 44,124 89,117 S170,146 255,128 M24,182 C65,153 113,198 154,185 S209,192 241,201"/>
+                            <Path Fill="#448D3522" Data="M38,107h3v2h-3z M70,88h5v3h-5z M153,68h3v3h-3z M187,81h5v2h-5z M91,164h4v2h-4z M150,182h3v3h-3z M54,216h4v2h-4z M198,174h3v3h-3z"/>
+                        </Grid>
+                            <Image x:Name="VanillaSurfaceImage" Stretch="Fill" Width="246" Height="246"/>
                         </Grid>
                         <Ellipse Fill="{StaticResource PlanetShade}" Stroke="#AAFFBD79" StrokeThickness="1.5" IsHitTestVisible="False"/>
                         <Path Stroke="#B6FFD69A" StrokeThickness="2" Data="M27,64 C50,29 84,11 118,10" IsHitTestVisible="False"/>
                     </Grid>
-                    <StackPanel x:Name="VanillaLabel" VerticalAlignment="Bottom" Margin="-15,0,-15,1" IsHitTestVisible="False">
-                        <TextBlock Text="SOLARIS VANILLA" FontSize="22" FontWeight="Bold" TextAlignment="Center" Foreground="#FFE3BE"/>
-                        <TextBlock Text="Minecraft 26.2  ·  Выживание" FontSize="14" TextAlignment="Center" Foreground="#B8AB9D" Margin="0,3,0,0"/>
-                        <TextBlock Text="{Binding VanillaStatus, ElementName=Home}" FontSize="14" TextAlignment="Center" TextWrapping="Wrap" Foreground="#BA8E72" Margin="0,7,0,0"/>
-                    </StackPanel>
+                    <Image x:Name="VanillaAtmosphereImage" Width="336" Height="336" VerticalAlignment="Top" Margin="0,-11,0,0" Stretch="Fill" IsHitTestVisible="False"/>
+                    <Ellipse x:Name="VanillaSelectionRing" Width="259" Height="259" VerticalAlignment="Top" Margin="0,27,0,0" Stroke="#DDFCB764" StrokeThickness="1.5" Opacity="0" IsHitTestVisible="False"/>
+                    <Border VerticalAlignment="Bottom" Margin="-8,0,-8,0" Background="#BF090C18" CornerRadius="12" Padding="8,7" IsHitTestVisible="False">
+                        <StackPanel x:Name="VanillaLabel">
+                            <TextBlock Text="SOLARIS VANILLA" FontSize="22" FontWeight="Bold" TextAlignment="Center" Foreground="#FFE3BE"/>
+                            <TextBlock Text="Minecraft 26.2" FontSize="13" TextAlignment="Center" Foreground="#C3B29F" Margin="0,2,0,0"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0"><Ellipse Width="7" Height="7" Fill="#FF6A78" Margin="0,0,7,0"/><TextBlock Text="{Binding VanillaStatus, ElementName=Home}" FontSize="13" Foreground="#E5B8B1"/></StackPanel>
+                            <TextBlock Text="{Binding VanillaPlayers, ElementName=Home}" FontSize="12" TextAlignment="Center" Foreground="#AAA4B6" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Button>
-            <Button x:Name="ModdedPlanet" Width="350" Height="350" Canvas.Left="706" Canvas.Top="183"
+            <Button x:Name="ModdedPlanet" Width="350" Height="382" Canvas.Left="473" Canvas.Top="173"
                     Style="{StaticResource PlanetButton}" Click="ModdedPlanet_Click" TabIndex="1"
-                    MouseEnter="Planet_MouseEnter" MouseLeave="Planet_MouseLeave" RenderTransformOrigin="0.5,0.45"
+                    MouseEnter="Planet_MouseEnter" MouseLeave="Planet_MouseLeave" GotKeyboardFocus="Planet_GotKeyboardFocus" LostKeyboardFocus="Planet_LostKeyboardFocus" RenderTransformOrigin="0.5,0.411"
                     AutomationProperties.Name="Solaris Modded. Minecraft 1.20.1, Forge 47.4.20. Открыть информацию."
-                    AutomationProperties.HelpText="Выберите планету клавишей Enter или пробелом. Назад — Escape.">
-                <Button.RenderTransform><TransformGroup><ScaleTransform x:Name="ModdedHover"/><ScaleTransform x:Name="ModdedFocus"/><TranslateTransform x:Name="ModdedPosition"/></TransformGroup></Button.RenderTransform>
+                    AutomationProperties.HelpText="Выберите планету клавишей Enter или пробелом. Закрепить карточку — Enter, закрыть — Escape.">
+                <Button.RenderTransform><TransformGroup><ScaleTransform x:Name="ModdedHover"/><ScaleTransform x:Name="ModdedFocus"/><TranslateTransform x:Name="ModdedParallax"/></TransformGroup></Button.RenderTransform>
                 <Grid>
-                    <Ellipse x:Name="ModdedGlow" Width="336" Height="336" Margin="0,0,0,38" Fill="{StaticResource PurpleAura}" Opacity="0.61" IsHitTestVisible="False"/>
-                    <Grid Width="330" Height="300" VerticalAlignment="Top" Margin="0,6,0,0" IsHitTestVisible="False">
-                        <Grid.RenderTransform><RotateTransform x:Name="RingRotation" CenterX="165" CenterY="151"/></Grid.RenderTransform>
-                        <Ellipse Width="325" Height="101" Margin="0,0,0,-1" Stroke="#587B43D5" StrokeThickness="11" RenderTransformOrigin="0.5,0.5"><Ellipse.RenderTransform><RotateTransform Angle="-23"/></Ellipse.RenderTransform></Ellipse>
+                    <Ellipse x:Name="ModdedAmbientGlow" Width="352" Height="352" VerticalAlignment="Top" Margin="0,-19,0,0" Fill="{StaticResource PurpleAura}" Opacity="0.18" IsHitTestVisible="False"/>
+                    <Ellipse x:Name="ModdedGlow" Width="336" Height="336" VerticalAlignment="Top" Margin="0,-11,0,0" Fill="{StaticResource PurpleAura}" Opacity="0.61" IsHitTestVisible="False"/>
+                    <Grid Width="350" Height="300" VerticalAlignment="Top" Margin="0,6,0,0" IsHitTestVisible="False">
+                        <Grid.RenderTransform><RotateTransform x:Name="RingRotation" CenterX="175" CenterY="151"/></Grid.RenderTransform>
+                        <Grid x:Name="ModdedRingsBackFallback"><Ellipse Width="325" Height="101" Margin="0,0,0,-1" Stroke="#587B43D5" StrokeThickness="11" RenderTransformOrigin="0.5,0.5"><Ellipse.RenderTransform><RotateTransform Angle="-23"/></Ellipse.RenderTransform></Ellipse>
                         <Ellipse Width="322" Height="111" Stroke="#B9BF83FF" StrokeThickness="1.3" RenderTransformOrigin="0.5,0.5"><Ellipse.RenderTransform><RotateTransform Angle="-23"/></Ellipse.RenderTransform></Ellipse>
-                        <Ellipse Width="344" Height="138" Stroke="#4359CFFF" StrokeThickness="1" StrokeDashArray="10 15" RenderTransformOrigin="0.5,0.5"><Ellipse.RenderTransform><RotateTransform Angle="-23"/></Ellipse.RenderTransform></Ellipse>
+                        <Ellipse Width="344" Height="138" Stroke="#4359CFFF" StrokeThickness="1" StrokeDashArray="10 15" RenderTransformOrigin="0.5,0.5"><Ellipse.RenderTransform><RotateTransform Angle="-23"/></Ellipse.RenderTransform></Ellipse></Grid>
+                        <Image x:Name="ModdedRingsBackImage" Width="350" Height="300" Stretch="Fill"/>
                     </Grid>
                     <Grid Width="246" Height="246" VerticalAlignment="Top" Margin="0,34,0,0">
                         <Ellipse Fill="{StaticResource PurpleSurface}"/>
                         <Grid x:Name="ModdedSurface" Width="246" Height="246" RenderTransformOrigin="0.5,0.5" CacheMode="BitmapCache" IsHitTestVisible="False">
                             <Grid.Clip><EllipseGeometry Center="123,123" RadiusX="123" RadiusY="123"/></Grid.Clip>
                             <Grid.RenderTransform><RotateTransform x:Name="ModdedRotation"/></Grid.RenderTransform>
-                            <Path Fill="#55531D86" Data="M-4,60 C42,16 67,36 88,56 L99,82 140,101 171,149 155,172 117,169 74,123 46,140 18,108z M154,22 L188,2 222,37 206,73 240,104 210,130 174,96 158,67z M30,214 L72,179 114,197 133,230 103,262 38,246z"/>
+                            <Grid x:Name="ModdedTextureFallback"><Path Fill="#55531D86" Data="M-4,60 C42,16 67,36 88,56 L99,82 140,101 171,149 155,172 117,169 74,123 46,140 18,108z M154,22 L188,2 222,37 206,73 240,104 210,130 174,96 158,67z M30,214 L72,179 114,197 133,230 103,262 38,246z"/>
                             <Path Stroke="#93D895FF" StrokeThickness="1.5" Data="M41,56 L73,70 82,102 115,114 130,143 154,154 M173,42 L184,62 171,86 198,99 M48,217 L73,206 90,223 124,233"/>
                             <Path Stroke="#50916CEE" StrokeThickness="3" Data="M-10,152 C55,133 100,179 140,147 S202,129 259,168 M11,42 C54,21 108,29 123,44"/>
                             <Path Fill="#CFE1ACFF" Data="M71,66h4v4h-4z M112,111h4v4h-4z M128,139h4v4h-4z M170,83h4v4h-4z M197,96h4v4h-4z M72,203h4v4h-4z"/>
+                            <Path Stroke="#32857CF1" StrokeThickness="1" Data="M16,125 L38,117 52,139 83,146 M137,20 L152,37 141,51 M146,192 L171,175 190,183 213,164 M26,81 L40,70 55,78 M111,174 L128,181 129,198"/>
+                            <Path Fill="#6077CFFF" Data="M35,114h3v3h-3z M81,143h3v3h-3z M140,48h3v3h-3z M169,173h3v3h-3z M211,162h3v3h-3z M127,195h3v3h-3z"/>
+                        </Grid>
+                            <Image x:Name="ModdedSurfaceImage" Stretch="Fill" Width="246" Height="246"/>
                         </Grid>
                         <Ellipse Fill="{StaticResource PlanetShade}" Stroke="#A7D0A3FC" StrokeThickness="1.5" IsHitTestVisible="False"/>
                         <Path Stroke="#BEF4D5FF" StrokeThickness="2" Data="M27,64 C50,29 84,11 118,10" IsHitTestVisible="False"/>
                     </Grid>
+                    <Image x:Name="ModdedAtmosphereImage" Width="336" Height="336" VerticalAlignment="Top" Margin="0,-11,0,0" Stretch="Fill" IsHitTestVisible="False"/>
                     <!-- Only the front half of the orbit crosses the lit planet. -->
-                    <Path Stroke="#ACB977F3" StrokeThickness="3" Data="M22,207 C71,242 256,170 326,99" IsHitTestVisible="False"/>
-                    <StackPanel x:Name="ModdedLabel" VerticalAlignment="Bottom" Margin="-15,0,-15,1" IsHitTestVisible="False">
-                        <TextBlock Text="SOLARIS MODDED" FontSize="22" FontWeight="Bold" TextAlignment="Center" Foreground="#EADBFF"/>
-                        <TextBlock Text="Minecraft 1.20.1  ·  Forge 47.4.20" FontSize="14" TextAlignment="Center" Foreground="#AFA2C7" Margin="0,3,0,0"/>
-                        <TextBlock Text="{Binding ModdedStatus, ElementName=Home}" FontSize="14" TextAlignment="Center" TextWrapping="Wrap" Foreground="#BEABE7" Margin="0,7,0,0"/>
-                    </StackPanel>
+                    <Path x:Name="ModdedRingsFrontFallback" Stroke="#ACB977F3" StrokeThickness="3" Data="M22,207 C71,242 256,170 326,99" IsHitTestVisible="False"/>
+                    <Image x:Name="ModdedRingsFrontImage" Width="350" Height="300" VerticalAlignment="Top" Margin="0,6,0,0" Stretch="Fill" IsHitTestVisible="False"/>
+                    <Ellipse x:Name="ModdedSelectionRing" Width="259" Height="259" VerticalAlignment="Top" Margin="0,27,0,0" Stroke="#DED5AAFF" StrokeThickness="1.5" Opacity="0" IsHitTestVisible="False"/>
+                    <Border VerticalAlignment="Bottom" Margin="-8,0,-8,0" Background="#BF090C18" CornerRadius="12" Padding="8,7" IsHitTestVisible="False">
+                        <StackPanel x:Name="ModdedLabel">
+                            <TextBlock Text="SOLARIS MODDED" FontSize="22" FontWeight="Bold" TextAlignment="Center" Foreground="#EADBFF"/>
+                            <TextBlock Text="Minecraft 1.20.1  /  Forge 47.4.20" FontSize="13" TextAlignment="Center" Foreground="#BFB0D9" Margin="0,2,0,0"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0"><Ellipse Width="7" Height="7" Fill="{Binding ModdedStatusBrush, ElementName=Home}" Margin="0,0,7,0"/><TextBlock Text="{Binding ModdedPresence, ElementName=Home}" FontSize="13" Foreground="{Binding ModdedStatusBrush, ElementName=Home}"/></StackPanel>
+                            <TextBlock Text="{Binding ModdedPlayers, ElementName=Home}" FontSize="12" TextAlignment="Center" Foreground="#BBB0D1" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Button>
-            <Canvas x:Name="Operator" Width="150" Height="151" Canvas.Left="565" Canvas.Top="452" IsHitTestVisible="False">
-                <Path x:Name="OperatorBody" Fill="#171725" Stroke="#6F4A34" StrokeThickness="2" Data="M47,39 L105,39 130,61 139,104 119,120 112,89 112,151 38,151 38,89 29,119 9,104 20,63z"/>
+            <Canvas x:Name="Operator" Width="150" Height="151" Canvas.Left="371" Canvas.Top="449" IsHitTestVisible="False">
+                <Canvas x:Name="OperatorBodyFallback" Width="150" Height="151"><Path x:Name="OperatorBody" Fill="#171725" Stroke="#6F4A34" StrokeThickness="2" Data="M47,39 L105,39 130,61 139,104 119,120 112,89 112,151 38,151 38,89 29,119 9,104 20,63z"/>
                 <Path Fill="#262633" Data="M45,51 L105,51 114,113 101,135 48,135 35,113z"/>
                 <Path Stroke="#A96632" StrokeThickness="2" Data="M33,68 L25,96 M118,68 L126,96 M49,61 L48,91 M101,61 L102,91"/>
-                <Grid x:Name="OperatorHead" Width="54" Height="53" Canvas.Left="48" Canvas.Top="0" RenderTransformOrigin="0.5,0.78">
-                    <Grid.RenderTransform><TransformGroup><RotateTransform x:Name="HeadTurn"/><TranslateTransform x:Name="HeadShift"/></TransformGroup></Grid.RenderTransform>
-                    <Ellipse Width="47" Height="49" VerticalAlignment="Top" Stroke="#796047" StrokeThickness="1"><Ellipse.Fill><LinearGradientBrush StartPoint="0,0.3" EndPoint="1,0.4"><GradientStop Color="#49382C" Offset="0"/><GradientStop Color="#211E25" Offset="0.45"/><GradientStop Color="#171721" Offset="0.8"/><GradientStop Color="#514052" Offset="1"/></LinearGradientBrush></Ellipse.Fill></Ellipse>
-                    <Path Fill="#151520" Data="M5,15 L9,5 17,1 35,1 46,10 48,25 41,19 39,11 22,13 11,22z"/>
-                    <Border Width="21" Height="13" Background="#44342D" CornerRadius="0,0,4,4" VerticalAlignment="Bottom"/>
-                    <Path Stroke="#8B7863" StrokeThickness="2" Data="M6,29 L7,35 M48,29 L47,35"/>
-                </Grid>
                 <Path Fill="#0C111C" Stroke="#57432D" StrokeThickness="2" Data="M41,87 L109,87 119,151 31,151z"/>
                 <Path Stroke="#E59B45" StrokeThickness="2" Data="M54,100 L96,100 M52,138 L75,117 98,138"/>
                 <Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="28" Height="28" Canvas.Left="61" Canvas.Top="111"/>
+                </Canvas>
+                <Image x:Name="OperatorBodyImage" Width="150" Height="151" Stretch="Fill"/>
+                <Grid x:Name="OperatorHead" Width="54" Height="53" Canvas.Left="48" Canvas.Top="0" RenderTransformOrigin="0.5,0.78">
+                    <Grid.RenderTransform><TransformGroup><RotateTransform x:Name="HeadTurn"/><TranslateTransform x:Name="HeadShift"/></TransformGroup></Grid.RenderTransform>
+                    <Grid x:Name="OperatorHeadFallback"><Ellipse Width="47" Height="49" VerticalAlignment="Top" Stroke="#796047" StrokeThickness="1"><Ellipse.Fill><LinearGradientBrush StartPoint="0,0.3" EndPoint="1,0.4"><GradientStop Color="#49382C" Offset="0"/><GradientStop Color="#211E25" Offset="0.45"/><GradientStop Color="#171721" Offset="0.8"/><GradientStop Color="#514052" Offset="1"/></LinearGradientBrush></Ellipse.Fill></Ellipse>
+                    <Path Fill="#151520" Data="M5,15 L9,5 17,1 35,1 46,10 48,25 41,19 39,11 22,13 11,22z"/>
+                    <Border Width="21" Height="13" Background="#44342D" CornerRadius="0,0,4,4" VerticalAlignment="Bottom"/>
+                    <Path Stroke="#8B7863" StrokeThickness="2" Data="M6,29 L7,35 M48,29 L47,35"/></Grid>
+                    <Image x:Name="OperatorHeadImage" Width="54" Height="53" Stretch="Fill"/>
+                </Grid>
             </Canvas>
-            <Border x:Name="DetailsPanel" Width="440" Height="374" Canvas.Left="760" Canvas.Top="166"
-                    Visibility="Collapsed" Opacity="0" CornerRadius="18" BorderBrush="#8B7D53AC" BorderThickness="1.5"
-                    Background="#F00B1020" Padding="24,18,24,18">
+            <!-- Reserved right rail never overlays a planet, including its hover envelope. -->
+            <Border x:Name="HoverCard" Canvas.Left="69" Canvas.Top="74" Width="350" Height="120"
+                    Visibility="Collapsed" Opacity="0" CornerRadius="13" BorderThickness="1.5"
+                    Background="#EC0B1020" Padding="10,8" BorderBrush="#8B7D53AC"
+                    MouseEnter="Card_MouseEnter" MouseLeave="Card_MouseLeave">
                 <Grid>
-                    <Grid.RowDefinitions><RowDefinition Height="30"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                    <TextBlock x:Name="DetailsEyebrow" Text="ПЛАНЕТА / SOLARIS" FontSize="10" FontWeight="SemiBold" Foreground="#BCB1D1" VerticalAlignment="Top"/>
-                    <ContentPresenter x:Name="VanillaDetailsPresenter" Grid.Row="1" Content="{Binding VanillaDetails, ElementName=Home}" Visibility="Collapsed"/>
-                    <ContentPresenter x:Name="ModdedDetailsPresenter" Grid.Row="1" Content="{Binding ModdedDetails, ElementName=Home}" Visibility="Collapsed"/>
+                    <Grid.RowDefinitions><RowDefinition Height="27"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <TextBlock x:Name="HoverTitle" FontSize="20" FontWeight="Bold" Foreground="#FFE3BE"/>
+                    <StackPanel x:Name="VanillaSummary" Grid.Row="1" Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal"><Ellipse Width="7" Height="7" Fill="#FF6A78" Margin="0,0,7,0"/><TextBlock Text="{Binding VanillaStatus, ElementName=Home}" Foreground="#E5B8B1" FontSize="13"/></StackPanel>
+                        <TextBlock Text="{Binding VanillaPlayers, ElementName=Home}" Foreground="#B5ADC3" FontSize="13" Margin="0,2,0,0"/>
+                        <TextBlock Text="Классическое выживание, экономика и кланы. Мир готовится к открытию." Foreground="#D2CBDD" FontSize="11" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    <StackPanel x:Name="ModdedSummary" Grid.Row="1" Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal"><Ellipse Width="7" Height="7" Fill="{Binding ModdedStatusBrush, ElementName=Home}" Margin="0,0,7,0"/><TextBlock Text="{Binding ModdedPresence, ElementName=Home}" Foreground="{Binding ModdedStatusBrush, ElementName=Home}" FontSize="13"/></StackPanel>
+                        <TextBlock Text="{Binding ModdedPlayers, ElementName=Home}" Foreground="#B5ADC3" FontSize="13" Margin="0,2,0,0"/>
+                        <TextBlock Text="Технические моды, магия и автоматизация. Исследуй мир с Forge." Foreground="#D2CBDD" FontSize="11" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                    </StackPanel>
                 </Grid>
             </Border>
-            <Button x:Name="ReturnButton" Canvas.Left="62" Canvas.Top="168" Content="←   Назад к мирам" Style="{StaticResource BackButton}"
-                    Visibility="Collapsed" Click="ReturnButton_Click" TabIndex="2" AutomationProperties.Name="Назад к двум планетам"/>
-            <TextBlock x:Name="SelectedPlanetCaption" Canvas.Left="209" Canvas.Top="509" Width="390" TextAlignment="Center"
-                       FontSize="12" Foreground="#BCB4CE" Visibility="Collapsed" IsHitTestVisible="False"/>
+            <Border x:Name="DetailsPanel" Width="390" Height="508" Canvas.Left="864" Canvas.Top="66"
+                    Visibility="Collapsed" Opacity="0" CornerRadius="18" BorderBrush="#8B7D53AC" BorderThickness="1.5"
+                    Background="#F00B1020" Padding="15,13,15,13">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="26"/><RowDefinition Height="120"/><RowDefinition Height="8"/><RowDefinition Height="310"/></Grid.RowDefinitions>
+                    <TextBlock x:Name="DetailsEyebrow" Text="КАРТОЧКА ЗАКРЕПЛЕНА" FontSize="10" FontWeight="SemiBold" Foreground="#BCB1D1" VerticalAlignment="Center"/>
+                    <Button x:Name="CloseCardButton" Content="×" Width="28" Height="24" HorizontalAlignment="Right" Style="{StaticResource BackButton}" Padding="0" Click="CloseCardButton_Click" AutomationProperties.Name="Закрыть закреплённую карточку" TabIndex="2"/>
+                    <Border Grid.Row="1" CornerRadius="9" ClipToBounds="True" Background="#121626">
+                        <Grid>
+                            <!-- Only approved individual server art is presented here; controls stay WPF. -->
+                            <Image x:Name="VanillaArtworkImage" Source="{Binding VanillaArtwork, ElementName=Home}" Stretch="UniformToFill" Visibility="Collapsed"/>
+                            <Image x:Name="ModdedArtworkImage" Source="{Binding ModdedArtwork, ElementName=Home}" Stretch="UniformToFill" Visibility="Collapsed"/>
+                            <StackPanel x:Name="ArtworkFallback" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock x:Name="ArtworkFallbackTitle" Text="SOLARIS" FontSize="28" FontWeight="Black" Foreground="#DFAFEB" TextAlignment="Center"/><TextBlock Text="АРТ МИРА" FontSize="10" Foreground="#958AAE" TextAlignment="Center" Margin="0,8,0,0"/></StackPanel>
+                        </Grid>
+                    </Border>
+                    <ContentPresenter x:Name="VanillaDetailsPresenter" Grid.Row="3" Content="{Binding VanillaDetails, ElementName=Home}" Visibility="Collapsed"/>
+                    <ContentPresenter x:Name="ModdedDetailsPresenter" Grid.Row="3" Content="{Binding ModdedDetails, ElementName=Home}" Visibility="Collapsed"/>
+                </Grid>
+            </Border>
             <TextBlock Text="SOLARIS  /  EXPERIMENTAL PLANETARY HOME" Canvas.Left="39" Canvas.Top="580" FontSize="8" Foreground="#5C6077" IsHitTestVisible="False"/>
         </Canvas>
     </Viewbox>

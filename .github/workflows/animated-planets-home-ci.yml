@@ -9,7 +9,12 @@ on:
       - solaris-2.2-dev
     paths:
       - 'PlanetaryHome.*'
+      - 'Planetary*.cs'
       - 'MainWindow*'
+      - 'SolarisLauncher.csproj'
+      - 'Assets/Planetary/**'
+      - 'tests/**'
+      - 'scripts/prepare_planetary_art.py'
       - 'scripts/PreviewAnimatedPlanets.cmd'
       - '.github/workflows/animated-planets-home-ci.yml'
 
@@ -37,6 +42,11 @@ jobs:
           python scripts/generate_icon.py
           python scripts/prepare_neon_art.py
           python scripts/prepare_card_art.py
+          python scripts/prepare_planetary_art.py
+      - name: Verify artwork preparation and interaction behavior
+        run: |
+          python -m unittest discover -s tests -p "test_prepare_planetary_art.py" -v
+          dotnet run --project tests/PlanetaryInteraction.Tests/PlanetaryInteraction.Tests.csproj -c Release
       - name: Restore and build Release
         run: |
           dotnet restore SolarisLauncher.csproj
@@ -47,6 +57,15 @@ jobs:
           -r win-x64 --self-contained true
           -p:SolarisChannel=dev -p:PublishSingleFile=true -p:PublishTrimmed=false
           -o artifacts/animated-planets-preview
+      - name: Exercise real WPF scene on an isolated Windows STA thread
+        run: dotnet run --project tests/PlanetaryWpf.Tests/PlanetaryWpf.Tests.csproj -c Release -- --screenshots artifacts/planetary-wpf-smoke
+      - name: Upload static WPF snapshots for visual review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Solaris-planetary-wpf-smoke
+          path: artifacts/planetary-wpf-smoke/
+          if-no-files-found: ignore
       - name: Add portable preview launcher
         shell: pwsh
         run: |
@@ -56,6 +75,6 @@ jobs:
           Copy-Item scripts/PreviewAnimatedPlanets.cmd artifacts/animated-planets-preview/
       - uses: actions/upload-artifact@v4
         with:
-          name: SolarisLauncher-animated-planets-preview
+          name: SolarisLauncher-animated-planets-stage2-preview
           path: artifacts/animated-planets-preview/
           if-no-files-found: error

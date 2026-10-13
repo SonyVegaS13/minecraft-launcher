@@ -247,21 +247,21 @@
           </Grid>
 
           <local:PlanetaryHome x:Name="PlanetaryScene" Grid.Row="1" Margin="4,0,4,4"
-                              VanillaStatus="Сервер офлайн · хостинг не подключён"/>
+                              VanillaStatus="Сервер офлайн"/>
           <!-- Declare actions in MainWindow's namescope, then move these same
                instances to the scene after InitializeComponent completes. -->
           <Grid x:Name="PlanetaryDetailsStorage" Visibility="Collapsed">
-              <Grid x:Name="VanillaPlanetDetails" Height="294">
+              <Grid x:Name="VanillaPlanetDetails" Height="310">
                 <Grid.RowDefinitions>
                   <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
-                  <RowDefinition Height="*"/><RowDefinition Height="52"/>
+                  <RowDefinition Height="*"/><RowDefinition Height="48"/><RowDefinition Height="34"/>
                 </Grid.RowDefinitions>
                 <StackPanel>
-                  <TextBlock Text="SOLARIS VANILLA" FontSize="25" FontWeight="ExtraBold" Foreground="#FFE4B9"/>
+                  <TextBlock Text="SOLARIS VANILLA" FontSize="23" FontWeight="ExtraBold" Foreground="#FFE4B9"/>
                   <TextBlock x:Name="VanillaVersionText" Text="Minecraft 26.2 • Survival"
                              FontSize="14" Foreground="#F3D9B7" Margin="0,5,0,0"/>
                 </StackPanel>
-                <StackPanel Grid.Row="1" Margin="0,17,0,0">
+                <StackPanel Grid.Row="1" Margin="0,10,0,0">
                   <TextBlock Text="Классическое выживание в мире Solaris." TextWrapping="Wrap" FontSize="14"/>
                   <TextBlock Text="Строй, исследуй и развивай свой мир."
                              TextWrapping="Wrap" FontSize="14" Foreground="#CEC2CE" Margin="0,5,0,0"/>
@@ -271,7 +271,7 @@
                     <Ellipse Width="8" Height="8" Fill="#F87171" VerticalAlignment="Center"/>
                     <TextBlock Text=" Сервер офлайн" FontSize="14" Foreground="#FCA5A5"/>
                   </StackPanel>
-                  <TextBlock Text="Хостинг пока не подключён · игроков: —" FontSize="12"
+                  <TextBlock Text="Онлайн: — · хостинг пока не подключён" FontSize="12"
                              Foreground="#BCAFBC" Margin="0,6,0,0"/>
                   <TextBlock x:Name="VanillaInstallStateText" Text="Проверяем клиент..." FontSize="12"
                              Foreground="#FFE0A0" Margin="0,10,0,0" TextTrimming="CharacterEllipsis"/>
@@ -281,18 +281,21 @@
                 <Button x:Name="VanillaPlayButton" Grid.Row="3" Content="▶ ИГРАТЬ" IsEnabled="False"
                         Style="{StaticResource PrimaryButton}" FontSize="17" FontWeight="Bold"
                         Height="48" Background="#F78C19" Click="VanillaPlayButton_Click"/>
+                <Button x:Name="VanillaPlanetAuditButton" Grid.Row="4" Content="Проверить файлы"
+                        Style="{StaticResource SecondaryButton}" Height="30" FontSize="12" Margin="0,4,0,0"
+                        Click="PlanetaryAudit_Click" ToolTip="Проверить установленные игровые клиенты. Повторное нажатие отменяет проверку."/>
               </Grid>
-              <Grid x:Name="ModdedPlanetDetails" Height="294">
+              <Grid x:Name="ModdedPlanetDetails" Height="310">
                 <Grid.RowDefinitions>
                   <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
-                  <RowDefinition Height="*"/><RowDefinition Height="52"/>
+                  <RowDefinition Height="*"/><RowDefinition Height="48"/><RowDefinition Height="34"/>
                 </Grid.RowDefinitions>
                 <StackPanel>
-                  <TextBlock Text="SOLARIS MODDED" FontSize="25" FontWeight="ExtraBold" Foreground="#EBCBFF"/>
+                  <TextBlock Text="SOLARIS MODDED" FontSize="23" FontWeight="ExtraBold" Foreground="#EBCBFF"/>
                   <TextBlock Text="Minecraft 1.20.1 • Forge 47.4.20" FontSize="14"
                              Foreground="#DDBAF7" Margin="0,5,0,0"/>
                 </StackPanel>
-                <StackPanel Grid.Row="1" Margin="0,17,0,0">
+                <StackPanel Grid.Row="1" Margin="0,10,0,0">
                   <TextBlock Text="Технические моды, магия и автоматизация."
                              TextWrapping="Wrap" FontSize="14"/>
                   <TextBlock Text="Открой новые возможности мира Solaris."
@@ -304,7 +307,7 @@
                     <TextBlock x:Name="ModdedStatusText" Text=" Проверяем сервер..." FontSize="13"
                                Foreground="#FDE68A" TextWrapping="Wrap" MaxWidth="345"/>
                   </StackPanel>
-                  <TextBlock Text="Вместимость сервера: 200 слотов" FontSize="12"
+                  <TextBlock x:Name="ModdedPlanetPlayersText" Text="Игроки: — / 200" FontSize="12"
                              Foreground="#BCAFBC" Margin="0,6,0,0"/>
                   <TextBlock x:Name="ModdedInstallStateText" Text="Проверяем моды..." FontSize="12"
                              Foreground="#F1C9FF" Margin="0,10,0,0" TextTrimming="CharacterEllipsis"/>
@@ -314,6 +317,9 @@
                 <Button x:Name="PlayButton" Grid.Row="3" Content="▶ ИГРАТЬ" IsEnabled="False"
                         Style="{StaticResource PrimaryButton}" FontSize="17" FontWeight="Bold"
                         Height="48" Background="#981DEB" Click="PlayButton_Click"/>
+                <Button x:Name="ModdedPlanetAuditButton" Grid.Row="4" Content="Проверить файлы"
+                        Style="{StaticResource SecondaryButton}" Height="30" FontSize="12" Margin="0,4,0,0"
+                        Click="PlanetaryAudit_Click" ToolTip="Проверить установленные игровые клиенты. Повторное нажатие отменяет проверку."/>
               </Grid>
           </Grid>
 
@@ -390,8 +396,9 @@
                   <TextBlock Text="▤ НОВОСТИ SOLARIS" FontWeight="SemiBold" FontSize="11" Foreground="#E8CFFF"/>
                   <TextBlock Text="Обновления, планы и события" FontSize="11" Margin="0,5,0,0"
                              TextTrimming="CharacterEllipsis"/>
-                  <TextBlock Text="Новости проекта и сообщества" Foreground="#C0ACD3" FontSize="10"
-                             TextTrimming="CharacterEllipsis"/>
+                  <CheckBox x:Name="PlanetaryEffectsCheck" Content="Декоративные эффекты"
+                            IsChecked="True" Foreground="#C0ACD3" FontSize="11" Margin="0,5,0,0"
+                            ToolTip="Отключить вращение, свечение и движение камеры для слабого ПК."/>
                 </StackPanel>
                 <Button Grid.Column="2" Content="Читать →" Style="{StaticResource NavButton}" FontSize="11"
                         Foreground="#FFD596" Click="NewsNav_Click" Margin="7,0,0,0"/>
