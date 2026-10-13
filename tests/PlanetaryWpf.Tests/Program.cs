@@ -182,10 +182,14 @@ internal static class Program
                 fixture.Home.SetValue(PlanetaryHome.EffectsEnabledProperty, true);
                 Pump();
                 fixture.Home.SetValue(PlanetaryHome.EffectsEnabledProperty, false);
-                Pump();
+                // ClockController queues its pause/resume timing updates. Its
+                // IsPaused flag can change before the sampled angle settles.
+                WaitForRenderingFrames(2);
                 Paused(fixture);
                 var before = fixture.Find<RotateTransform>("VanillaRotation").Angle;
                 PumpFor(TimeSpan.FromMilliseconds(120));
+                WaitForRenderingFrames(1);
+                Paused(fixture);
                 Equal(before, fixture.Find<RotateTransform>("VanillaRotation").Angle);
                 Pointer(fixture.Modded, Mouse.MouseEnterEvent);
                 Equal(WorldSelection.Modded, fixture.State.VisibleCardWorld);
@@ -534,6 +538,31 @@ internal static class Program
         try { Dispatcher.PushFrame(frame); }
         finally { timer.Stop(); }
         Pump();
+    }
+
+    private static void WaitForRenderingFrames(int count)
+    {
+        var frame = new DispatcherFrame();
+        var rendered = 0;
+        TimeSpan? previousTime = null;
+        EventHandler rendering = (_, args) =>
+        {
+            if (args is not RenderingEventArgs update || update.RenderingTime == previousTime) return;
+            previousTime = update.RenderingTime;
+            if (++rendered >= count) frame.Continue = false;
+        };
+        var timeout = new DispatcherTimer(DispatcherPriority.Send) { Interval = TimeSpan.FromSeconds(2) };
+        timeout.Tick += (_, _) => frame.Continue = false;
+        CompositionTarget.Rendering += rendering;
+        timeout.Start();
+        try { Dispatcher.PushFrame(frame); }
+        finally
+        {
+            timeout.Stop();
+            CompositionTarget.Rendering -= rendering;
+        }
+        Check(rendered >= count,
+            $"Windows did not deliver {count} distinct rendering frames within the 2-second animation barrier.");
     }
 
     private static void SampleFor(TimeSpan duration, Action begin, Action sample)
