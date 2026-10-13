@@ -111,12 +111,21 @@ public partial class MainWindow
             IgnitionFront is null || IgnitionPercent is null)
             return;
         double pct = Math.Clamp(Progress?.Value ?? 0, 0, 100);
+        // The loading track is an affordance, not permanent decoration.
+        // Hide it while idle and after completion, keeping a one-line status.
+        // Percentage comes from the real installer, never a fake timer.
+        bool inProgress = pct > 0.01 && pct < 99.99;
+        Visibility trackVisibility = inProgress ? Visibility.Visible : Visibility.Collapsed;
+        if (IgnitionTrack.Visibility != trackVisibility)
+            IgnitionTrack.Visibility = trackVisibility;
+        IgnitionPercent.Visibility = trackVisibility;
+
         double width = Math.Max(0, IgnitionTrack.ActualWidth - 2);
         _ignitionTargetWidth = width * pct / 100.0;
         IgnitionPercent.Text = _ignitionDetail ?? (pct >= 99.99
             ? "ГОТОВО" : pct <= 0.01 ? "ГОТОВО" : "ПОДГОТОВКА");
 
-        if (pct <= 0.01)
+        if (!inProgress)
         {
             _ignitionDisplayedWidth = 0;
             _ignitionTimer?.Stop();
