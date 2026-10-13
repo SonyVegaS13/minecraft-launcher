@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.IO;
-using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -32,6 +32,9 @@ internal static class Program
         }
         // The reusable scene resolves its resources through assembly-qualified
         // pack URIs; WPF disallows changing ResourceAssembly in a managed EXE.
+        // Real cursor hit tests must not interfere with synthetic routed events.
+        // Dispose restores the prior cursor position even if a fixture fails.
+        using var cursor = new CursorScope();
         var application = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         var cases = new (string Name, Action<Fixture> Run)[]
         {
@@ -95,7 +98,8 @@ internal static class Program
                 Equal(WorldSelection.Modded, fixture.State.HoveredWorld);
                 Equal(WorldSelection.Vanilla, fixture.Home.SelectedWorld);
                 Pointer(fixture.Modded, Mouse.MouseLeaveEvent);
-                PumpFor(TimeSpan.FromMilliseconds(300));
+                PumpUntil(() => fixture.State.HoveredWorld == WorldSelection.None,
+                    "The real leave timer did not clear the unpinned hover while preserving the pin.");
                 Equal(WorldSelection.None, fixture.State.HoveredWorld);
                 Equal(WorldSelection.Vanilla, fixture.Home.SelectedWorld);
                 Equal(Visibility.Visible, fixture.Find<Border>("DetailsPanel").Visibility);
@@ -198,50 +202,41 @@ internal static class Program
                 var scale = fixture.Find<ScaleTransform>("VanillaHover");
                 var hover = fixture.Find<Border>("HoverCard");
                 bool intermediateScale = false, intermediateOpacity = false;
-                var scaleDescriptor = DependencyPropertyDescriptor.FromProperty(ScaleTransform.ScaleXProperty, typeof(ScaleTransform));
-                var opacityDescriptor = DependencyPropertyDescriptor.FromProperty(UIElement.OpacityProperty, typeof(Border));
-                EventHandler recordScale = (_, _) => intermediateScale |= scale.ScaleX is > 1 and < 1.05;
-                EventHandler recordOpacity = (_, _) => intermediateOpacity |= hover.Opacity is > 0 and < 1;
-                scaleDescriptor.AddValueChanged(scale, recordScale);
-                opacityDescriptor.AddValueChanged(hover, recordOpacity);
-                try
+                Near(1, scale.ScaleX);
+                Near(0, hover.Opacity);
+                SampleFor(TimeSpan.FromMilliseconds(350), () => Pointer(fixture.Vanilla, Mouse.MouseEnterEvent), () =>
                 {
-                    Pointer(fixture.Vanilla, Mouse.MouseEnterEvent);
-                    PumpFor(TimeSpan.FromMilliseconds(350));
-                    Check(intermediateScale, "Hover scale jumped to its endpoint without an intermediate animated value.");
-                    Check(intermediateOpacity, "Hover card jumped to full opacity without an intermediate fade value.");
-                    Near(1.05, scale.ScaleX);
-                    Near(1.05, scale.ScaleY);
-                    Near(1, hover.Opacity);
+                    intermediateScale |= scale.ScaleX is > 1 and < 1.05;
+                    intermediateOpacity |= hover.Opacity is > 0 and < 1;
+                });
+                Check(intermediateScale, "Hover scale jumped to its endpoint without an intermediate sampled animated value.");
+                Check(intermediateOpacity, "Hover card jumped to full opacity without an intermediate sampled fade value.");
+                Near(1.05, scale.ScaleX);
+                Near(1.05, scale.ScaleY);
+                Near(1, hover.Opacity);
 
-                    fixture.Home.ResetSelection();
-                    PumpUntil(() => hover.Opacity is > 0 and < 1, "Transient close did not start its fade.");
-                    Pointer(fixture.Modded, Mouse.MouseEnterEvent);
-                    PumpFor(TimeSpan.FromMilliseconds(350));
-                    Equal(WorldSelection.Modded, fixture.State.VisibleCardWorld);
-                    Equal(Visibility.Visible, hover.Visibility);
-                    Near(1, hover.Opacity);
-                    Near(1, scale.ScaleX);
+                fixture.Home.ResetSelection();
+                PumpUntil(() => hover.Opacity is > 0 and < 1, "Transient close did not start its fade.");
+                Pointer(fixture.Modded, Mouse.MouseEnterEvent);
+                PumpFor(TimeSpan.FromMilliseconds(350));
+                Equal(WorldSelection.Modded, fixture.State.VisibleCardWorld);
+                Equal(Visibility.Visible, hover.Visibility);
+                Near(1, hover.Opacity);
+                Near(1, scale.ScaleX);
 
-                    Click(fixture.Modded);
-                    var pinned = fixture.Find<Border>("DetailsPanel");
-                    PumpFor(TimeSpan.FromMilliseconds(350));
-                    Near(1, pinned.Opacity);
-                    Click(fixture.Find<Button>("CloseCardButton"));
-                    PumpUntil(() => pinned.Opacity is > 0 and < 1, "Pinned close did not start its fade.");
-                    Click(fixture.Vanilla);
-                    PumpFor(TimeSpan.FromMilliseconds(350));
-                    Equal(WorldSelection.Vanilla, fixture.Home.SelectedWorld);
-                    Equal(Visibility.Visible, pinned.Visibility);
-                    Near(1, pinned.Opacity);
-                    Overview(fixture);
-                    Paused(fixture);
-                }
-                finally
-                {
-                    scaleDescriptor.RemoveValueChanged(scale, recordScale);
-                    opacityDescriptor.RemoveValueChanged(hover, recordOpacity);
-                }
+                Click(fixture.Modded);
+                var pinned = fixture.Find<Border>("DetailsPanel");
+                PumpFor(TimeSpan.FromMilliseconds(350));
+                Near(1, pinned.Opacity);
+                Click(fixture.Find<Button>("CloseCardButton"));
+                PumpUntil(() => pinned.Opacity is > 0 and < 1, "Pinned close did not start its fade.");
+                Click(fixture.Vanilla);
+                PumpFor(TimeSpan.FromMilliseconds(350));
+                Equal(WorldSelection.Vanilla, fixture.Home.SelectedWorld);
+                Equal(Visibility.Visible, pinned.Visibility);
+                Near(1, pinned.Opacity);
+                Overview(fixture);
+                Paused(fixture);
             }),
             ("Hidden and unloaded scene clears transient input and pauses clocks while preserving pin", fixture =>
             {
@@ -333,6 +328,7 @@ internal static class Program
                 WindowStartupLocation = WindowStartupLocation.CenterScreen,
                 ShowActivated = true
             };
+            CursorScope.Park();
             Window.Show();
             Window.Activate();
             Pump();
@@ -385,6 +381,37 @@ internal static class Program
             Window.Close();
             Pump();
         }
+    }
+
+    private sealed class CursorScope : IDisposable
+    {
+        private readonly CursorPoint _original;
+
+        public CursorScope()
+        {
+            Check(GetCursorPos(out _original), "Could not read the Windows test desktop cursor position.");
+            Park();
+        }
+
+        public static void Park() => Check(SetCursorPos(0, 0),
+            "Could not park the test desktop cursor away from the planets.");
+
+        public void Dispose()
+        {
+            if (!SetCursorPos(_original.X, _original.Y))
+                Console.Error.WriteLine("Could not restore the original test desktop cursor position.");
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct CursorPoint { public int X; public int Y; }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetCursorPos(out CursorPoint point);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SetCursorPos(int x, int y);
     }
 
     private static void CaptureStates(Fixture fixture, string directory)
@@ -507,6 +534,23 @@ internal static class Program
         try { Dispatcher.PushFrame(frame); }
         finally { timer.Stop(); }
         Pump();
+    }
+
+    private static void SampleFor(TimeSpan duration, Action begin, Action sample)
+    {
+        // Animated properties are sampled, rather than relying on descriptor
+        // notifications. Start before begin's dispatcher pump so even early
+        // animation frames are observed on a slower CI software renderer.
+        var timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(15) };
+        timer.Tick += (_, _) => sample();
+        timer.Start();
+        try
+        {
+            begin();
+            PumpFor(duration);
+            sample();
+        }
+        finally { timer.Stop(); }
     }
 
     private static void PumpUntil(Func<bool> condition, string message)
