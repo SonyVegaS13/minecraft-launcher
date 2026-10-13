@@ -406,8 +406,8 @@
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
                   <TextBlock x:Name="IgnitionPercent" Visibility="Collapsed" Foreground="#FFDD76"
                              HorizontalAlignment="Center" FontSize="11"/>
-                  <Button Content="↻ Проверить" Style="{StaticResource SecondaryButton}" Width="115" Height="34"
-                          FontSize="11" Click="ManualUpdateCheck_Click" ToolTip="Проверить обновление лаунчера"/>
+                  <Button x:Name="FileCheckButton" Content="◉ Проверить файлы" Style="{StaticResource SecondaryButton}" Width="145" Height="34"
+                          FontSize="11" Click="FileIntegrityCheck_Click" ToolTip="Проверить Minecraft, Java, Forge и моды. Ничего не удаляет."/>
                 </StackPanel>
               </Grid>
             </Border>
@@ -431,15 +431,16 @@
             </Border>
           </Grid>
 
-          <UniformGrid Grid.Row="3" Columns="5" Margin="18,0,18,9">
-            <Button Content="⚙ Настройки" Style="{StaticResource SecondaryButton}" Height="51"
-                    Background="#E7101024" FontSize="11" Margin="0,0,4,0" Click="SettingsNav_Click"/>
-            <Button Content="▣ Память и Java" Style="{StaticResource SecondaryButton}" Height="51"
-                    Background="#E7101024" FontSize="11" Margin="4,0" Click="SettingsNav_Click"/>
+          <!-- Direct shortcuts with distinct purposes: no second Settings or Community button. -->
+          <UniformGrid Grid.Row="3" Columns="4" Margin="18,0,18,9">
+            <Button Content="▣ Память Minecraft" Style="{StaticResource SecondaryButton}" Height="51"
+                    Background="#E7101024" FontSize="11" Margin="0,0,4,0" Click="SettingsNav_Click"
+                    ToolTip="Открыть параметры памяти Vanilla и Modded"/>
             <Button Content="▤ Папка игры" Style="{StaticResource SecondaryButton}" Height="51"
                     Background="#E7101024" FontSize="11" Margin="4,0" Click="OpenGameFolder_Click"/>
-            <Button Content="♧ Наше сообщество" Style="{StaticResource SecondaryButton}" Height="51"
-                    Background="#E7101024" FontSize="11" Margin="4,0" Click="NewsTelegram_Click"/>
+            <Button Content="♙ Скины и активность" Style="{StaticResource SecondaryButton}" Height="51"
+                    Background="#E7101024" FontSize="11" Margin="4,0" Click="ProfileNav_Click"
+                    ToolTip="Скины Minecraft и игровая активность"/>
             <Button Content="◎ Карта Solaris • скоро" Style="{StaticResource SecondaryButton}" Height="51"
                     Background="#E7101024" FontSize="11" Margin="4,0,0,0" IsEnabled="False"
                     ToolTip="Официальная карта появится позже"/>

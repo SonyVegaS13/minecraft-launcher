@@ -8,13 +8,6 @@ namespace SolarisLauncher;
 // Actions for the selected two-world Solaris dashboard.
 public partial class MainWindow
 {
-    private async void ManualUpdateCheck_Click(object sender, RoutedEventArgs e)
-    {
-        // Use the existing verified safe update flow; auto-update behaviour is unchanged.
-        if (_updateOperationRunning || _installingLauncherUpdate) return;
-        await CheckForUpdatesAsync();
-    }
-
     private void OpenGameFolder_Click(object sender, RoutedEventArgs e)
     {
         try

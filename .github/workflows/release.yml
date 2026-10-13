@@ -148,14 +148,10 @@ jobs:
           $version = '${{ steps.version.outputs.version }}'
           $revision = $env:GITHUB_RUN_NUMBER
           $tag = "neon-dev-v$version.$revision"
-          $stableTag = "neon-v$version.$revision"
-          # Exactly the same SHA256-verified EXE for both legacy updater
-          # audiences. Existing stable and DEV launchers jump straight to
-          # this same unified build, then use a single installation and icon.
-          gh release create $tag "artifacts/publish/SolarisLauncher.exe" "artifacts/SHA256SUMS.txt" --target "$env:GITHUB_SHA" --title "Solaris $version.$revision" --notes "Unified Solaris Launcher: one EXE, server-specific Update/Play, safe migration of existing installs." --prerelease
-          if ($LASTEXITCODE -ne 0) { throw 'Failed to publish Solaris updater tag.' }
-          gh release create $stableTag "artifacts/publish/SolarisLauncher.exe" "artifacts/SHA256SUMS.txt" --target "$env:GITHUB_SHA" --title "Solaris $version.$revision" --notes "Same executable as the automatic Solaris update, compatible with existing stable installations." --prerelease
-          if ($LASTEXITCODE -ne 0) { throw 'Failed to publish stable-bridge Solaris update tag.' }
+          # DEV builds are never published under neon-v*.
+          # Stable users receive only explicitly promoted and tested 'release:' builds.
+          gh release create $tag "artifacts/publish/SolarisLauncher.exe" "artifacts/SHA256SUMS.txt" --target "$env:GITHUB_SHA" --title "Solaris DEV $version.$revision" --notes "DEV test build: independent update channel, no stable publication." --prerelease
+          if ($LASTEXITCODE -ne 0) { throw 'Failed to publish Solaris DEV updater tag.' }
 
       # A release: commit publishes the verified EXE to a durable GitHub
       # prerelease. Subsequent versions update in place through this channel.

@@ -72,6 +72,12 @@ public partial class MainWindow
         if (_launchCancellation is not null && ReferenceEquals(button, _activeLaunchButton))
             return; // Preserve the working CANCEL button until the operation finishes.
 
+        if (_fileCheckRunning)
+        {
+            button.IsEnabled = false;
+            return;
+        }
+
         if (_installingLauncherUpdate || (_launchCancellation is not null &&
             !ReferenceEquals(button, _activeLaunchButton)))
         {
@@ -174,7 +180,7 @@ public partial class MainWindow
 
     private async Task RefreshServerStatesAsync()
     {
-        if (_serverStateRefreshRunning || _launchCancellation is not null || _installingLauncherUpdate)
+        if (_serverStateRefreshRunning || _launchCancellation is not null || _installingLauncherUpdate || _fileCheckRunning)
             return;
         _serverStateRefreshRunning = true;
         try

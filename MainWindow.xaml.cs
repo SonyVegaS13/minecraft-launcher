@@ -563,6 +563,13 @@ public partial class MainWindow : Window
 
     private bool TryBeginLaunch(Button button, string playText, out CancellationTokenSource? cancellation, out CancellationToken token)
     {
+        if (_fileCheckRunning)
+        {
+            StatusText.Text = "Дождитесь окончания проверки файлов либо нажмите «Отмена».";
+            cancellation = null;
+            token = CancellationToken.None;
+            return false;
+        }
         if (_installingLauncherUpdate)
         {
             StatusText.Text = "Solaris обновляется. Дождись перезапуска лаунчера.";
@@ -614,6 +621,7 @@ public partial class MainWindow : Window
 
     private async void VanillaPlayButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_fileCheckRunning) return;
         if (sender is not Button vanillaButton || _vanillaClientState == ServerClientState.Checking)
             return;
         if (_vanillaClientState == ServerClientState.CheckFailed)
@@ -714,6 +722,7 @@ public partial class MainWindow : Window
 
     private async void PlayButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_fileCheckRunning) return;
         if (_moddedClientState == ServerClientState.Checking) return;
         if (_moddedClientState == ServerClientState.CheckFailed)
         {
