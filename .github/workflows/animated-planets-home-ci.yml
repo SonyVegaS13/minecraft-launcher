@@ -59,4 +59,3 @@ jobs:
           name: SolarisLauncher-animated-planets-preview
           path: artifacts/animated-planets-preview/
           if-no-files-found: error
-
