@@ -1,0 +1,29 @@
+name: Solaris Neon 3 Bottom Layout CI
+
+on:
+  push:
+    branches:
+      - fix/neon3-fill-empty-bottom
+  pull_request:
+    branches:
+      - solaris-2.2-dev
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Prepare approved artwork
+        run: |
+          python -m pip install --disable-pip-version-check Pillow
+          python scripts/generate_icon.py
+          python scripts/prepare_neon_art.py
+          python scripts/prepare_card_art.py
+      - name: Build WPF without publishing
+        run: dotnet build SolarisLauncher.csproj -c Release
