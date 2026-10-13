@@ -120,8 +120,9 @@ public partial class MainWindow
         await using Stream data = await response.Content.ReadAsStreamAsync();
         using JsonDocument document = await JsonDocument.ParseAsync(data);
 
-        if (!Version.TryParse(LauncherVersion, out Version? current))
-            throw new InvalidOperationException("Неверная версия Solaris.");
+        // Compare the full installed file revision, not the three-part product version.
+        // Otherwise an installed r170 can repeatedly offer the same r170 release.
+        Version current = InstalledFileVersion();
 
         NeonUpdate? best = null;
         foreach (JsonElement release in document.RootElement.EnumerateArray())
