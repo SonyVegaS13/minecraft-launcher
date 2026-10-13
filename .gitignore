@@ -7,3 +7,5 @@ obj/
 publish/
 release/
 artifacts/
+__pycache__/
+Assets/Planetary/Prepared/

@@ -33,6 +33,7 @@
   <ItemGroup>
     <Compile Remove="backend\**\*.cs" />
     <Compile Remove="vendor\**\*.cs" />
+    <Compile Remove="tests\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,6 +46,20 @@
     <Resource Include="Assets\SolarisModded.png" Condition="Exists('Assets\SolarisModded.png')" />
     <Resource Include="Assets\SolarisVanillaCard.png" Condition="Exists('Assets\SolarisVanillaCard.png')" />
     <Resource Include="Assets\SolarisModdedCard.png" Condition="Exists('Assets\SolarisModdedCard.png')" />
+    <!-- Optional native WPF layers. Prepared outputs are preferred; a direct
+         approved PNG also works without a Python preparation step. Never embed
+         the original and prepared copy of the same layer twice. -->
+    <Resource Include="Assets\Planetary\Prepared\*.png" />
+    <Resource Include="Assets\Planetary\space-background.png" Condition="Exists('Assets\Planetary\space-background.png') and !Exists('Assets\Planetary\Prepared\space-background.png')" />
+    <Resource Include="Assets\Planetary\bridge-foreground.png" Condition="Exists('Assets\Planetary\bridge-foreground.png') and !Exists('Assets\Planetary\Prepared\bridge-foreground.png')" />
+    <Resource Include="Assets\Planetary\operator-body.png" Condition="Exists('Assets\Planetary\operator-body.png') and !Exists('Assets\Planetary\Prepared\operator-body.png')" />
+    <Resource Include="Assets\Planetary\operator-head.png" Condition="Exists('Assets\Planetary\operator-head.png') and !Exists('Assets\Planetary\Prepared\operator-head.png')" />
+    <Resource Include="Assets\Planetary\vanilla-surface.png" Condition="Exists('Assets\Planetary\vanilla-surface.png') and !Exists('Assets\Planetary\Prepared\vanilla-surface.png')" />
+    <Resource Include="Assets\Planetary\vanilla-atmosphere.png" Condition="Exists('Assets\Planetary\vanilla-atmosphere.png') and !Exists('Assets\Planetary\Prepared\vanilla-atmosphere.png')" />
+    <Resource Include="Assets\Planetary\modded-surface.png" Condition="Exists('Assets\Planetary\modded-surface.png') and !Exists('Assets\Planetary\Prepared\modded-surface.png')" />
+    <Resource Include="Assets\Planetary\modded-atmosphere.png" Condition="Exists('Assets\Planetary\modded-atmosphere.png') and !Exists('Assets\Planetary\Prepared\modded-atmosphere.png')" />
+    <Resource Include="Assets\Planetary\modded-rings-back.png" Condition="Exists('Assets\Planetary\modded-rings-back.png') and !Exists('Assets\Planetary\Prepared\modded-rings-back.png')" />
+    <Resource Include="Assets\Planetary\modded-rings-front.png" Condition="Exists('Assets\Planetary\modded-rings-front.png') and !Exists('Assets\Planetary\Prepared\modded-rings-front.png')" />
   </ItemGroup>
 
   <ItemGroup>
