@@ -227,7 +227,7 @@
             </Grid>
 
         <!-- Non-scrolling, responsive worlds view. All action buttons stay visible. -->
-        <Grid Grid.Row="1" Margin="0,12,0,10">
+        <Grid Grid.Row="1" Margin="0,8,0,6" MaxWidth="1160" HorizontalAlignment="Center">
                 <Grid>
                     <!-- Profile statistics live in Profile, not alongside the server cards. -->
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="0"/><ColumnDefinition Width="0"/></Grid.ColumnDefinitions>
@@ -245,14 +245,14 @@
                         </Grid>
 
                         <!-- Balanced banner heights, centered with a hard cap. -->
-                        <Grid Grid.Row="1" VerticalAlignment="Center" MaxHeight="448">
+                        <Grid Grid.Row="1" VerticalAlignment="Center" MaxHeight="342">
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="*" MinHeight="155" MaxHeight="218"/>
+                                <RowDefinition Height="*" MinHeight="135" MaxHeight="165"/>
                                 <RowDefinition Height="12"/>
-                                <RowDefinition Height="*" MinHeight="155" MaxHeight="218"/>
+                                <RowDefinition Height="*" MinHeight="135" MaxHeight="165"/>
                             </Grid.RowDefinitions>
                         <Border x:Name="VanillaCard" Grid.Row="0" Background="#161023" BorderBrush="#FF9A50" BorderThickness="1.5" CornerRadius="15" MouseEnter="VanillaCard_MouseEnter" MouseLeave="VanillaCard_MouseLeave">
-                            <Grid MinHeight="155" ClipToBounds="True">
+                            <Grid MinHeight="135" ClipToBounds="True">
                                 <Border CornerRadius="18" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#351742" Offset="0"/><GradientStop Color="#934177" Offset="0.52"/><GradientStop Color="#FF943F" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                                 <Image x:Name="VanillaArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0.94" IsHitTestVisible="False" CacheMode="BitmapCache" RenderOptions.BitmapScalingMode="Fant"/>
                                 <Image x:Name="VanillaArtworkSharp" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0" IsHitTestVisible="False" CacheMode="BitmapCache"/>
@@ -276,7 +276,7 @@
                         </Border>
 
         <Border x:Name="ModdedCard" Grid.Row="2" Background="#150D26" BorderBrush="#9E49D8" BorderThickness="1.5" CornerRadius="15" MouseEnter="ModdedCard_MouseEnter" MouseLeave="ModdedCard_MouseLeave">
-                            <Grid MinHeight="155" ClipToBounds="True">
+                            <Grid MinHeight="135" ClipToBounds="True">
                                 <Border CornerRadius="18" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5"><GradientStop Color="#210B31" Offset="0"/><GradientStop Color="#58258E" Offset="0.6"/><GradientStop Color="#871DA0" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                                 <Image x:Name="ModdedArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0.90" IsHitTestVisible="False" CacheMode="BitmapCache" RenderOptions.BitmapScalingMode="Fant"/>
                                 <Image x:Name="ModdedArtworkSharp" Source="pack://application:,,,/Assets/SolarisEmber.bmp" Stretch="UniformToFill" Opacity="0" IsHitTestVisible="False" CacheMode="BitmapCache"/>
