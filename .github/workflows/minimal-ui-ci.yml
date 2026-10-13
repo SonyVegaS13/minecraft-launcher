@@ -32,3 +32,40 @@ jobs:
         run: dotnet restore SolarisLauncher.csproj
       - name: Build without releasing
         run: dotnet build SolarisLauncher.csproj -c Release --no-restore
+
+      # Portable preview: --dev-test uses an isolated profile, skips launcher
+      # auto-updates and never overwrites the installed Solaris executable.
+      - name: Publish portable preview (no release)
+        shell: pwsh
+        run: |
+          dotnet publish SolarisLauncher.csproj -c Release -r win-x64 --self-contained true --no-restore -p:PublishSingleFile=true -p:PublishTrimmed=false -o preview
+          if ($LASTEXITCODE -ne 0) { throw 'Preview publish failed' }
+          if (-not (Test-Path preview/SolarisLauncher.exe)) { throw 'Preview EXE missing' }
+          @'
+          @echo off
+          cd /d "%~dp0"
+          start "" "%~dp0SolarisLauncher.exe" --dev-test
+          '@ | Set-Content -Path preview/Solaris-Neon3-Preview.cmd -Encoding ascii
+          @'
+          SOLARIS NEON 3.0 — PREVIEW
+          Запуск: двойной щелчок по Solaris-Neon3-Preview.cmd.
+          ВАЖНО: не запускайте SolarisLauncher.exe напрямую из этого архива.
+          Режим --dev-test не заменяет установленный лаунчер и не проверяет обновления EXE.
+          Игровые и учётные данные в тестовом режиме хранятся отдельно.
+          После проверки можно закрыть окно; рабочий Solaris не изменён.
+          '@ | Set-Content -Path preview/README-preview.txt -Encoding utf8
+          Get-FileHash preview/SolarisLauncher.exe -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash)  SolarisLauncher.exe" } |
+            Set-Content preview/SHA256SUMS.txt
+
+      - name: Upload portable preview for manual review
+        uses: actions/upload-artifact@v4
+        with:
+          name: Solaris-Neon3-Preview
+          path: |
+            preview/SolarisLauncher.exe
+            preview/Solaris-Neon3-Preview.cmd
+            preview/README-preview.txt
+            preview/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
