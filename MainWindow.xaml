@@ -267,13 +267,26 @@
                     BorderThickness="2" CornerRadius="16" ClipToBounds="True"
                     MouseEnter="VanillaCard_MouseEnter" MouseLeave="VanillaCard_MouseLeave">
               <Grid ClipToBounds="True">
-                <Image x:Name="VanillaArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp"
-                       Stretch="UniformToFill" Opacity="0.9" CacheMode="BitmapCache" IsHitTestVisible="False"/>
-                <Image x:Name="VanillaArtworkSharp" Source="pack://application:,,,/Assets/SolarisEmber.bmp"
-                       Stretch="UniformToFill" Opacity="0" CacheMode="BitmapCache" IsHitTestVisible="False"/>
+                <!-- The soft backdrop fills the tall tile; only this intentionally cropped layer is blurred. -->
+                <Image x:Name="VanillaArtwork" Source="pack://application:,,,/Assets/SolarisVanillaCard.png"
+                       Stretch="UniformToFill" Opacity="0.78" CacheMode="BitmapCache" IsHitTestVisible="False">
+                  <Image.Effect><BlurEffect Radius="9"/></Image.Effect>
+                </Image>
+                <!-- Original 3:1 banner: fit its entire width above the details. Never crop the approved art. -->
+                <Image x:Name="VanillaArtworkSharp" Source="pack://application:,,,/Assets/SolarisVanillaCard.png"
+                       Stretch="Uniform" VerticalAlignment="Top" HorizontalAlignment="Stretch"
+                       Opacity="0" CacheMode="BitmapCache" IsHitTestVisible="False" RenderOptions.BitmapScalingMode="HighQuality">
+                  <Image.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                      <GradientStop Color="White" Offset="0"/>
+                      <GradientStop Color="White" Offset="0.75"/>
+                      <GradientStop Color="Transparent" Offset="1"/>
+                    </LinearGradientBrush>
+                  </Image.OpacityMask>
+                </Image>
                 <Border IsHitTestVisible="False">
                   <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="#D90E0715" Offset="0"/><GradientStop Color="#360E0715" Offset="0.42"/>
+                    <GradientStop Color="#770E0715" Offset="0"/><GradientStop Color="#300E0715" Offset="0.42"/>
                     <GradientStop Color="#D80B0715" Offset="0.87"/><GradientStop Color="#ED0C0613" Offset="1"/>
                   </LinearGradientBrush></Border.Background>
                 </Border>
@@ -327,13 +340,26 @@
                     BorderThickness="2" CornerRadius="16" ClipToBounds="True"
                     MouseEnter="ModdedCard_MouseEnter" MouseLeave="ModdedCard_MouseLeave">
               <Grid ClipToBounds="True">
-                <Image x:Name="ModdedArtwork" Source="pack://application:,,,/Assets/SolarisEmber.bmp"
-                       Stretch="UniformToFill" Opacity="0.9" CacheMode="BitmapCache" IsHitTestVisible="False"/>
-                <Image x:Name="ModdedArtworkSharp" Source="pack://application:,,,/Assets/SolarisEmber.bmp"
-                       Stretch="UniformToFill" Opacity="0" CacheMode="BitmapCache" IsHitTestVisible="False"/>
+                <!-- The soft backdrop fills the tall tile; only this intentionally cropped layer is blurred. -->
+                <Image x:Name="ModdedArtwork" Source="pack://application:,,,/Assets/SolarisModdedCard.png"
+                       Stretch="UniformToFill" Opacity="0.78" CacheMode="BitmapCache" IsHitTestVisible="False">
+                  <Image.Effect><BlurEffect Radius="9"/></Image.Effect>
+                </Image>
+                <!-- Original 3:1 banner: fit its entire width above the details. Never crop the approved art. -->
+                <Image x:Name="ModdedArtworkSharp" Source="pack://application:,,,/Assets/SolarisModdedCard.png"
+                       Stretch="Uniform" VerticalAlignment="Top" HorizontalAlignment="Stretch"
+                       Opacity="0" CacheMode="BitmapCache" IsHitTestVisible="False" RenderOptions.BitmapScalingMode="HighQuality">
+                  <Image.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                      <GradientStop Color="White" Offset="0"/>
+                      <GradientStop Color="White" Offset="0.75"/>
+                      <GradientStop Color="Transparent" Offset="1"/>
+                    </LinearGradientBrush>
+                  </Image.OpacityMask>
+                </Image>
                 <Border IsHitTestVisible="False">
                   <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="#DD120323" Offset="0"/><GradientStop Color="#42100328" Offset="0.42"/>
+                    <GradientStop Color="#78120323" Offset="0"/><GradientStop Color="#36100328" Offset="0.42"/>
                     <GradientStop Color="#D80B041F" Offset="0.87"/><GradientStop Color="#F00D041B" Offset="1"/>
                   </LinearGradientBrush></Border.Background>
                 </Border>
