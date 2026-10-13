@@ -44,7 +44,7 @@ internal static class PlanetaryArtwork
         {
             try
             {
-                var uri = new Uri("pack://application:,,,/Assets/Planetary/" + folder + filename,
+                var uri = new Uri("pack://application:,,,/SolarisLauncher;component/Assets/Planetary/" + folder + filename,
                     UriKind.Absolute);
                 var resource = Application.GetResourceStream(uri);
                 if (resource is null) continue;

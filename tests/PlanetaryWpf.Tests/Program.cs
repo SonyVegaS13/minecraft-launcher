@@ -30,9 +30,8 @@ internal static class Program
             Console.Error.WriteLine("Usage: PlanetaryWpf.Tests [--screenshots output-directory]");
             return 2;
         }
-        // The scene uses application pack URIs for its approved embedded assets.
-        // Resolve those inside the launcher assembly, never inside this harness.
-        Application.ResourceAssembly = typeof(PlanetaryHome).Assembly;
+        // The reusable scene resolves its resources through assembly-qualified
+        // pack URIs; WPF disallows changing ResourceAssembly in a managed EXE.
         var application = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         var cases = new (string Name, Action<Fixture> Run)[]
         {
@@ -279,6 +278,7 @@ internal static class Program
             {
                 ++failures;
                 Console.Error.WriteLine($"FAIL {name}: {error}");
+                ReportCiFailure(name, error);
             }
         }
         var total = cases.Length;
@@ -295,6 +295,7 @@ internal static class Program
             {
                 ++failures;
                 Console.Error.WriteLine($"FAIL Deterministic static-layout screenshots: {error}");
+                ReportCiFailure("Static-layout screenshots", error);
             }
         }
         application.Shutdown();
@@ -519,6 +520,16 @@ internal static class Program
     private static void Check(bool condition, string message)
     {
         if (!condition) throw new InvalidOperationException(message);
+    }
+
+    private static void ReportCiFailure(string name, Exception error)
+    {
+        if (Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != "true") return;
+        // Make the exact test failure readable through GitHub's annotations API,
+        // independently of access to the separate Actions log storage host.
+        string message = $"{name}: {error.GetBaseException().Message}"
+            .Replace("%", "%25").Replace("\r", "%0D").Replace("\n", "%0A");
+        Console.Error.WriteLine($"::error title=Planetary WPF check::{message}");
     }
 
     private static void Equal<T>(T expected, T actual) => Check(

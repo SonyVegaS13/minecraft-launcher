@@ -191,7 +191,7 @@
                 <Path Stroke="#A96632" StrokeThickness="2" Data="M33,68 L25,96 M118,68 L126,96 M49,61 L48,91 M101,61 L102,91"/>
                 <Path Fill="#0C111C" Stroke="#57432D" StrokeThickness="2" Data="M41,87 L109,87 119,151 31,151z"/>
                 <Path Stroke="#E59B45" StrokeThickness="2" Data="M54,100 L96,100 M52,138 L75,117 98,138"/>
-                <Image Source="pack://application:,,,/Assets/SolarisOfficialLogo.png" Width="28" Height="28" Canvas.Left="61" Canvas.Top="111"/>
+                    <Image Source="pack://application:,,,/SolarisLauncher;component/Assets/SolarisOfficialLogo.png" Width="28" Height="28" Canvas.Left="61" Canvas.Top="111"/>
                 </Canvas>
                 <Image x:Name="OperatorBodyImage" Width="150" Height="151" Stretch="Fill"/>
                 <Grid x:Name="OperatorHead" Width="54" Height="53" Canvas.Left="48" Canvas.Top="0" RenderTransformOrigin="0.5,0.78">
