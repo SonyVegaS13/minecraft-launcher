@@ -190,18 +190,15 @@
           <Border Grid.RowSpan="4" Background="#36060819" IsHitTestVisible="False"/>
           <Grid Grid.Row="0" Margin="16,8,16,4">
             <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="44"/></Grid.RowDefinitions>
-            <!-- Centered Solaris brand; the official mark remains on the Vanilla card. -->
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
-              <TextBlock Text="SOLARIS" FontSize="60" FontWeight="Black" HorizontalAlignment="Center">
-                <TextBlock.Foreground><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                  <GradientStop Color="#FF962C" Offset="0"/><GradientStop Color="#FFF7D8" Offset="0.45"/>
-                  <GradientStop Color="#78C9FF" Offset="0.76"/><GradientStop Color="#FFAF4A" Offset="1"/>
-                </LinearGradientBrush></TextBlock.Foreground>
-                <TextBlock.Effect><DropShadowEffect Color="#EA741B" BlurRadius="13" ShadowDepth="0" Opacity="0.85"/></TextBlock.Effect>
-              </TextBlock>
-              <TextBlock Text="БОЛЬШЕ ЧЕМ MINECRAFT" HorizontalAlignment="Center" Margin="0,1,0,0"
+            <!-- Only the central title is changed; all navigation and server UI stays intact. -->
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Stretch" Width="590" IsHitTestVisible="False">
+              <Image Source="pack://application:,,,/Assets/SolarisCosmicTitle.png"
+                     Stretch="Uniform" Margin="0,-4,0,18"
+                     RenderOptions.BitmapScalingMode="HighQuality"/>
+              <TextBlock Text="БОЛЬШЕ ЧЕМ MINECRAFT" HorizontalAlignment="Center"
+                         VerticalAlignment="Bottom" Margin="0,0,0,1"
                          FontSize="12" FontWeight="SemiBold" Foreground="#FFF0D9"/>
-            </StackPanel>
+            </Grid>
             <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0">
               <Border Background="#EA100E22" BorderBrush="#8D679D" BorderThickness="1" CornerRadius="10" Padding="7">
                 <StackPanel Orientation="Horizontal">

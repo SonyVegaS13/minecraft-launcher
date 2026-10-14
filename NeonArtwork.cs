@@ -116,6 +116,8 @@ public partial class MainWindow
         // ZIP imports may still customize login/home, but they must not silently
         // restore the old portal background over the official Vanilla/Modded cards.
         TryApplyOfficialCardArt(report);
+        // Keep approved server artwork intact; only the home-screen backdrop changes.
+        TryApplyCosmicHomeBackground(report);
 
         if (ArtworkDiagnosticText is not null)
         {
@@ -141,6 +143,26 @@ public partial class MainWindow
         if (!loaded) report.AppendLine("RESULT: approved artwork unavailable; legacy fallback remains.");
         WriteArtworkLog(report.ToString());
         return loaded;
+    }
+
+    // The owner-supplied cosmic video contributes ONE fixed still to the ordinary home page.
+    // Login, approved Vanilla/Modded card banners, server state, and navigation remain unchanged.
+    private void TryApplyCosmicHomeBackground(StringBuilder report)
+    {
+        try
+        {
+            BitmapImage backdrop = LoadEmbeddedNeonImage("SolarisCosmicHome.jpg");
+            MainView.Background = new ImageBrush(backdrop)
+            {
+                Stretch = Stretch.UniformToFill,
+                Opacity = 1.0
+            };
+            report.AppendLine("OFFICIAL COSMIC HOME: Assets/SolarisCosmicHome.jpg");
+        }
+        catch (Exception ex)
+        {
+            report.AppendLine("Cosmic home fallback: " + ex.Message);
+        }
     }
 
     // These PNG files are WPF Resource items compiled directly into the EXE.

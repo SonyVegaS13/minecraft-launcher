@@ -38,6 +38,9 @@
   <ItemGroup>
     <Resource Include="Assets\SolarisEmber.bmp" />
     <Resource Include="Assets\SolarisOfficialLogo.png" />
+    <!-- Static cosmic background and exact title from the approved user video. -->
+    <Resource Include="Assets\SolarisCosmicHome.jpg" />
+    <Resource Include="Assets\SolarisCosmicTitle.png" />
     <!-- Approved compact icon for the Solaris Modded server tile. -->
     <Resource Include="Assets\SolarisModdedIcon.png" />
     <!-- These files are extracted and SHA256-verified from the approved ZIP before CI build. -->
