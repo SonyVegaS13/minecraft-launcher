@@ -10,6 +10,7 @@ using CmlLib.Core;
 using CmlLib.Core.Auth;
 using CmlLib.Core.Installer.Forge;
 using CmlLib.Core.ProcessBuilder;
+using CmlLib.Core.VersionLoader;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -659,6 +660,29 @@ public partial class MainWindow : Window
         cancellation.Dispose();
     }
 
+    // Play must work with already-installed game files even when Mojang is unreachable.
+    // CmlLib's default MojangJsonVersionLoaderV2 requests the remote version index
+    // during BuildProcessAsync; the local loader avoids that request entirely.
+    private static async Task<Process> BuildInstalledMinecraftProcessAsync(
+        string gameDirectory, string versionName, MLaunchOption options, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        var path = new MinecraftPath(gameDirectory);
+        var parameters = MinecraftLauncherParameters.CreateDefault(path);
+        parameters.VersionLoader = new LocalJsonVersionLoader(path);
+        var launcher = new MinecraftLauncher(parameters);
+        try
+        {
+            return await launcher.BuildProcessAsync(versionName, options, token);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            throw new InvalidDataException(
+                $"Локальная версия '{versionName}' или её базовая версия не найдена в папке игры. " +
+                "Для восстановления отсутствующих файлов потребуется подключение к интернету и кнопка «Обновить».", ex);
+        }
+    }
+
     private async void VanillaPlayButton_Click(object sender, RoutedEventArgs e)
     {
         if (_fileCheckRunning) return;
@@ -710,7 +734,6 @@ public partial class MainWindow : Window
             string vanillaDir = Path.Combine(_stateDir, "vanilla");
             string javaPath = FindJavaForMode(vanillaDir, 25);
             int ram = GetRamForMode("vanilla");
-            var launcher = new MinecraftLauncher(new MinecraftPath(vanillaDir));
             var options = new MLaunchOption
             {
                 Session = MSession.CreateOfflineSession(nickname),
@@ -721,7 +744,7 @@ public partial class MainWindow : Window
             };
             StatusText.Text = "Solaris Vanilla: запускаем Minecraft...";
             Progress.Value = 96;
-            var process = await launcher.BuildProcessAsync(version, options);
+            var process = await BuildInstalledMinecraftProcessAsync(vanillaDir, version, options, token);
             token.ThrowIfCancellationRequested();
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
@@ -841,13 +864,13 @@ public partial class MainWindow : Window
     private async Task LaunchMinecraftAsync(string versionName, string nick, string serverHost, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        var launcher = new MinecraftLauncher(new MinecraftPath(_gameDir));
         string javaPath = await EnsureJavaForModeAsync(_gameDir, 17, 90, 96, token);
         int ram = GetRamForMode("modded");
         var options = new MLaunchOption { Session = MSession.CreateOfflineSession(nick), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
         if (!string.IsNullOrWhiteSpace(serverHost)) { options.ServerIp = serverHost; options.ServerPort = ServerPort; }
         token.ThrowIfCancellationRequested();
-        var process = await launcher.BuildProcessAsync(versionName, options); token.ThrowIfCancellationRequested(); process.StartInfo.UseShellExecute = false;
+        var process = await BuildInstalledMinecraftProcessAsync(_gameDir, versionName, options, token);
+        token.ThrowIfCancellationRequested(); process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
             process.Start();
