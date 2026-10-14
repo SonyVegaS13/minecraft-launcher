@@ -181,22 +181,24 @@
         <!-- The approved no-character cosmic UI. Fixed footer and two equal columns; never scroll. -->
         <Grid x:Name="MainView" Visibility="Collapsed" ClipToBounds="True" Background="#0A0619">
           <Grid.RowDefinitions>
-            <RowDefinition Height="1.5*" MinHeight="125"/>
+            <RowDefinition Height="1.35*" MinHeight="120"/>
             <RowDefinition Height="4*" MinHeight="290"/>
             <RowDefinition Height="88"/>
             <RowDefinition Height="64"/>
+            <!-- Reserve space at the bottom for visible footer buttons on short desktops. -->
+            <RowDefinition Height="40"/>
           </Grid.RowDefinitions>
           <!-- Existing approved world images replace this brush in NeonArtwork.cs -->
-          <Border Grid.RowSpan="4" Background="#36060819" IsHitTestVisible="False"/>
+          <Border Grid.RowSpan="5" Background="#36060819" IsHitTestVisible="False"/>
           <Grid Grid.Row="0" Margin="16,8,16,4">
             <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="44"/></Grid.RowDefinitions>
             <!-- Only the central title is changed; all navigation and server UI stays intact. -->
             <Grid HorizontalAlignment="Center" VerticalAlignment="Stretch" Width="590" IsHitTestVisible="False">
               <Image Source="pack://application:,,,/Assets/SolarisCosmicTitle.png"
-                     Stretch="Uniform" Margin="0,-4,0,18"
+                     Stretch="Uniform" Margin="0,-12,0,32"
                      RenderOptions.BitmapScalingMode="HighQuality"/>
               <TextBlock Text="БОЛЬШЕ ЧЕМ MINECRAFT" HorizontalAlignment="Center"
-                         VerticalAlignment="Bottom" Margin="0,0,0,1"
+                         VerticalAlignment="Bottom" Margin="0,0,0,7"
                          FontSize="12" FontWeight="SemiBold" Foreground="#FFF0D9"/>
             </Grid>
             <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0">
