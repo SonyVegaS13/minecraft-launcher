@@ -190,35 +190,17 @@
           <Border Grid.RowSpan="4" Background="#36060819" IsHitTestVisible="False"/>
           <Grid Grid.Row="0" Margin="16,8,16,4">
             <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="44"/></Grid.RowDefinitions>
-            <!-- Two painted accretion discs: decorative Borders, not status Ellipses. -->
-            <Border Width="120" Height="120" CornerRadius="70" HorizontalAlignment="Center" Margin="-500,0,0,0"
-                    BorderBrush="#4184FF" BorderThickness="6" IsHitTestVisible="False">
-              <Border.Background><RadialGradientBrush>
-                <GradientStop Color="#00020B" Offset="0"/><GradientStop Color="#00020B" Offset="0.52"/>
-                <GradientStop Color="#0056D8" Offset="0.79"/><GradientStop Color="#090920" Offset="1"/>
-              </RadialGradientBrush></Border.Background>
-              <Border.Effect><DropShadowEffect Color="#009DFF" BlurRadius="19" ShadowDepth="0" Opacity="0.8"/></Border.Effect>
-            </Border>
-            <Border Width="120" Height="120" CornerRadius="70" HorizontalAlignment="Center" Margin="500,0,0,0"
-                    BorderBrush="#FF8A1D" BorderThickness="6" IsHitTestVisible="False">
-              <Border.Background><RadialGradientBrush>
-                <GradientStop Color="#040205" Offset="0"/><GradientStop Color="#040205" Offset="0.52"/>
-                <GradientStop Color="#CA4807" Offset="0.79"/><GradientStop Color="#270709" Offset="1"/>
-              </RadialGradientBrush></Border.Background>
-              <Border.Effect><DropShadowEffect Color="#FF6800" BlurRadius="20" ShadowDepth="0" Opacity="0.8"/></Border.Effect>
-            </Border>
-            <TextBlock Text="SOLARIS" FontSize="60" FontWeight="Black" HorizontalAlignment="Center"
-                       VerticalAlignment="Center" IsHitTestVisible="False">
-              <TextBlock.Foreground><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                <GradientStop Color="#FF962C" Offset="0"/><GradientStop Color="#FFF7D8" Offset="0.45"/>
-                <GradientStop Color="#78C9FF" Offset="0.76"/><GradientStop Color="#FFAF4A" Offset="1"/>
-              </LinearGradientBrush></TextBlock.Foreground>
-              <TextBlock.Effect><DropShadowEffect Color="#EA741B" BlurRadius="13" ShadowDepth="0" Opacity="0.85"/></TextBlock.Effect>
-            </TextBlock>
-            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center" Margin="12,0,0,0">
-              <TextBlock Text="S O L A R I S" FontSize="11" Foreground="#FFF0D9" FontWeight="Bold"/>
-              <TextBlock Text="БОЛЬШЕ" FontSize="11" Foreground="White" Margin="0,8,0,0"/>
-              <TextBlock Text="ЧЕМ MINECRAFT" FontSize="11" Foreground="White" Margin="0,2,0,0"/>
+            <!-- Centered Solaris brand; the official mark remains on the Vanilla card. -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+              <TextBlock Text="SOLARIS" FontSize="60" FontWeight="Black" HorizontalAlignment="Center">
+                <TextBlock.Foreground><LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                  <GradientStop Color="#FF962C" Offset="0"/><GradientStop Color="#FFF7D8" Offset="0.45"/>
+                  <GradientStop Color="#78C9FF" Offset="0.76"/><GradientStop Color="#FFAF4A" Offset="1"/>
+                </LinearGradientBrush></TextBlock.Foreground>
+                <TextBlock.Effect><DropShadowEffect Color="#EA741B" BlurRadius="13" ShadowDepth="0" Opacity="0.85"/></TextBlock.Effect>
+              </TextBlock>
+              <TextBlock Text="БОЛЬШЕ ЧЕМ MINECRAFT" HorizontalAlignment="Center" Margin="0,1,0,0"
+                         FontSize="12" FontWeight="SemiBold" Foreground="#FFF0D9"/>
             </StackPanel>
             <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0">
               <Border Background="#EA100E22" BorderBrush="#8D679D" BorderThickness="1" CornerRadius="10" Padding="7">
@@ -254,8 +236,6 @@
                 </Border>
                 <Button Content="⚙  Настройки" Style="{StaticResource MinimalTopNav}" Click="SettingsNav_Click"/>
                 <Button Content="▤  Новости" Style="{StaticResource MinimalTopNav}" Click="NewsNav_Click"/>
-                <Button Content="♧  Сообщество" Style="{StaticResource MinimalTopNav}"
-                        Click="NewsTelegram_Click" ToolTip="Сообщество Solaris"/>
                 <Button Content="ⓘ  О проекте" Style="{StaticResource MinimalTopNav}" Click="AboutNav_Click"/>
               </StackPanel>
             </Border>
@@ -292,7 +272,7 @@
                 </Border>
                 <Grid Margin="13,13,13,12">
                   <Grid.RowDefinitions>
-                    <RowDefinition Height="60"/><RowDefinition Height="*"/><RowDefinition Height="53"/><RowDefinition Height="57"/>
+                    <RowDefinition Height="60"/><RowDefinition Height="*"/><RowDefinition Height="57"/>
                   </Grid.RowDefinitions>
                   <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="52"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -316,21 +296,7 @@
                                Foreground="#FFE0A0" Margin="0,6,0,0" TextTrimming="CharacterEllipsis"/>
                     <TextBlock x:Name="VanillaHours" Visibility="Collapsed" FontSize="10"/>
                   </StackPanel>
-                  <UniformGrid Grid.Row="2" Columns="3" Margin="0,0,0,5">
-                    <Border Background="#D3090C18" BorderBrush="#A36A39" BorderThickness="1" CornerRadius="8" Margin="0,0,3,0" Padding="3">
-                      <TextBlock Text="⚒ Классическое выживание" FontSize="10" TextAlignment="Center"
-                                 TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    </Border>
-                    <Border Background="#D3090C18" BorderBrush="#A36A39" BorderThickness="1" CornerRadius="8" Margin="3,0" Padding="3">
-                      <TextBlock Text="▥ Экономика и кланы" FontSize="10" TextAlignment="Center"
-                                 TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    </Border>
-                    <Border Background="#D3090C18" BorderBrush="#A36A39" BorderThickness="1" CornerRadius="8" Margin="3,0,0,0" Padding="3">
-                      <TextBlock Text="♧ Сообщество" FontSize="10" TextAlignment="Center"
-                                 TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    </Border>
-                  </UniformGrid>
-                  <Button x:Name="VanillaPlayButton" Grid.Row="3" Content="▶   ИГРАТЬ   →" IsEnabled="False"
+                  <Button x:Name="VanillaPlayButton" Grid.Row="2" Content="▶   ИГРАТЬ   →" IsEnabled="False"
                           Style="{StaticResource PrimaryButton}" FontSize="18" FontWeight="Bold"
                           Height="51" Background="#F78C19" Click="VanillaPlayButton_Click"/>
                 </Grid>
@@ -365,7 +331,7 @@
                 </Border>
                 <Grid Margin="13,13,13,12">
                   <Grid.RowDefinitions>
-                    <RowDefinition Height="60"/><RowDefinition Height="*"/><RowDefinition Height="53"/><RowDefinition Height="57"/>
+                    <RowDefinition Height="60"/><RowDefinition Height="*"/><RowDefinition Height="57"/>
                   </Grid.RowDefinitions>
                   <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="52"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -389,21 +355,7 @@
                                Foreground="#F1C9FF" Margin="0,6,0,0" TextTrimming="CharacterEllipsis"/>
                     <TextBlock x:Name="ModdedHours" Visibility="Collapsed" FontSize="10"/>
                   </StackPanel>
-                  <UniformGrid Grid.Row="2" Columns="3" Margin="0,0,0,5">
-                    <Border Background="#D310081D" BorderBrush="#8F49AF" BorderThickness="1" CornerRadius="8" Margin="0,0,3,0" Padding="3">
-                      <TextBlock Text="⚙ Технические моды" FontSize="10" TextAlignment="Center"
-                                 TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    </Border>
-                    <Border Background="#D310081D" BorderBrush="#8F49AF" BorderThickness="1" CornerRadius="8" Margin="3,0" Padding="3">
-                      <TextBlock Text="✧ Магия и автоматизация" FontSize="10" TextAlignment="Center"
-                                 TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    </Border>
-                    <Border Background="#D310081D" BorderBrush="#8F49AF" BorderThickness="1" CornerRadius="8" Margin="3,0,0,0" Padding="3">
-                      <TextBlock Text="∞ Возможности" FontSize="10" TextAlignment="Center"
-                                 TextWrapping="Wrap" VerticalAlignment="Center"/>
-                    </Border>
-                  </UniformGrid>
-                  <Button x:Name="PlayButton" Grid.Row="3" Content="▶   ИГРАТЬ   →" IsEnabled="False"
+                  <Button x:Name="PlayButton" Grid.Row="2" Content="▶   ИГРАТЬ   →" IsEnabled="False"
                           Style="{StaticResource PrimaryButton}" FontSize="18" FontWeight="Bold"
                           Height="51" Background="#981DEB" Click="PlayButton_Click"/>
                 </Grid>
