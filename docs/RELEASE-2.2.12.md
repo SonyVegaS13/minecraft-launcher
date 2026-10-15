@@ -15,3 +15,7 @@ GitHub Actions WPF CI must succeed. Additional manual Windows tests must confirm
 
 ## Release
 The branch is intentionally a staging branch. Verify the PR checks before merging into `solaris-2.2-dev`, then create a `release:` commit to publish `neon-v2.2.12`. The installed Solaris updater sees this tag and should prompt to download, verify SHA256, replace its own EXE in place, and relaunch.
+
+## Release qualification
+
+Windows CI succeeded on the PR: https://github.com/SonyVegaS13/minecraft-launcher/actions/runs/38748696867 and https://github.com/SonyVegaS13/minecraft-launcher/actions/runs/38748696933 . Both launcher build and portable Windows EXE publish succeeded. This does not prove that Vanilla / Modded launched correctly on a player's Windows machine. Manual in-game verification remains pending. The exact new user-uploaded image cannot be claimed to be embedded until the binary asset is transferred to repository; the bundled existing Solaris cosmic JPEG is used at this stage.
