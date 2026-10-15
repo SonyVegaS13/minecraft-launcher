@@ -822,6 +822,7 @@ public partial class MainWindow : Window
             token.ThrowIfCancellationRequested();
             StatusText.Text = "Solaris Modded: запускаем Minecraft...";
             Progress.Value = 96;
+            await PrepareModdedLoadingScreenAsync(token);
             await LaunchMinecraftAsync(ForgeClientVersionName, nickname, ModdedServerHost, token);
             StatusText.Text = "Minecraft Modded запущен.";
         }
