@@ -1026,7 +1026,8 @@ public partial class MainWindow : Window
         {
             token.ThrowIfCancellationRequested();
             string relative = Path.GetRelativePath(destination, installed);
-            if (expected.Contains(relative)) continue;
+            if (expected.Contains(relative) ||
+                IsVerifiedSplashJarCached(installed)) continue;
             string backup = Path.Combine(backupRoot, relative);
             Directory.CreateDirectory(Path.GetDirectoryName(backup)!);
             if (File.Exists(backup))
