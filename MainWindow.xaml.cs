@@ -80,7 +80,7 @@ public partial class MainWindow : Window
     private Button? _activeLaunchButton;
     private bool _updateCheckStarted;
 
-    private const string LauncherVersion = "2.2.10";
+    private const string LauncherVersion = "2.2.11";
     // Neon versions check signed-off GitHub release assets, not the 2.1.x stable manifest.
 
     // Diagnostic only: DEV traces go into the isolated profile, never the player's
