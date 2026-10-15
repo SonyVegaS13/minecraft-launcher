@@ -80,7 +80,7 @@ public partial class MainWindow : Window
     private Button? _activeLaunchButton;
     private bool _updateCheckStarted;
 
-    private const string LauncherVersion = "2.2.12";
+    private const string LauncherVersion = "2.2.13";
     // Neon versions check signed-off GitHub release assets, not the 2.1.x stable manifest.
 
     // Diagnostic only: DEV traces go into the isolated profile, never the player's
@@ -1026,7 +1026,8 @@ public partial class MainWindow : Window
         {
             token.ThrowIfCancellationRequested();
             string relative = Path.GetRelativePath(destination, installed);
-            if (expected.Contains(relative)) continue;
+            if (expected.Contains(relative) ||
+                IsVerifiedSplashJarCached(installed)) continue;
             string backup = Path.Combine(backupRoot, relative);
             Directory.CreateDirectory(Path.GetDirectoryName(backup)!);
             if (File.Exists(backup))

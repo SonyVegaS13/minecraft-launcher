@@ -60,7 +60,9 @@ public partial class MainWindow
             modsDirectory, "*.jar", SearchOption.AllDirectories))
         {
             token.ThrowIfCancellationRequested();
-            if (!expected.Contains(Path.GetFullPath(installed))) return false;
+            if (!expected.Contains(Path.GetFullPath(installed)) &&
+                !await IsVerifiedSplashJarAsync(installed, token))
+                return false;
         }
 
         foreach (ManagedPackFile entry in manifest.Files)

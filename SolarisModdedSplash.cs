@@ -183,6 +183,8 @@ public partial class MainWindow
         {
             await File.WriteAllBytesAsync(temporary, data, token);
             File.Move(temporary, destination, overwrite: false);
+            Directory.CreateDirectory(_stateDir);
+            await File.WriteAllTextAsync(SplashTrustMarkerPath, sha512, token);
         }
         finally
         {
