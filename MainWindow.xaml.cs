@@ -60,7 +60,7 @@ public partial class MainWindow : Window
 
     // Modded is the hosted server; Vanilla currently has no hosted endpoint.
     // Confirm this existing Millida address in the host panel before a stable release.
-    private const string ModdedStatusHost = "solarisplay.millida.host";
+    private const string ModdedStatusHost = "solarismodded.millida.host";
     private const int ServerPort = 25565;
     // Configured hosted Modded capacity; some hosts report a different query max.
     private const int ModdedServerSlots = 200;
