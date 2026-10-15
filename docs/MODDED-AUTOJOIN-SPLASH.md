@@ -1,21 +1,30 @@
-# Solaris Modded autojoin and Minecraft loading screen
+# Solaris Modded — автозаход и космическая загрузка
 
-## Autojoin: implemented in this branch
+## Проверенный владельцем адрес
 
-Current configured Modded server: `solarisplay.millida.host:25565`. The launcher already performs its status checks against this host. `MainWindow.xaml.cs` now uses the same endpoint for `ModdedServerHost`, passed to `LaunchMinecraftAsync` through CmlLib `MLaunchOption.ServerIp` and `ServerPort`. On the Modded **Play** action, the client is expected to join the server rather than stay on the title screen. The **Update** action is unchanged and does not automatically start Minecraft. Vanilla remains unchanged and launches to its main menu.
+- Modded: solarismodded.millida.host:25565 (если хостинг не указывает другой порт).
+- Используется одинаково для статуса сервера и CmlLib ServerIp/ServerPort.
+- Vanilla не изменяется.
 
-This change has not been runtime-tested on a Windows client and the host address must be confirmed against the actual Modded panel before a stable release. Network errors, authentication rules, incompatible mods, or server downtime may still prevent joining.
+## Красный экран Forge
 
-## Red Mojang / Forge loading background: not implemented yet
+В новой DEV-ветке кнопка Modded Play теперь вызывает PrepareModdedLoadingScreenAsync перед запуском.
 
-If the request refers to the **Minecraft game window** rather than a Solaris Launcher WPF loading panel, the image must be integrated into the actual Minecraft 1.20.1 Forge client. Adding an image to `MainWindow.xaml` does not replace the game's red Mojang screen.
+- Для Minecraft 1.20.1 Forge 47.4.20 используется Simple Custom Early Loading v2.2.
+- Лаунчер скачивает совместимый клиентский JAR через официальный Modrinth API и проверяет SHA-512.
+- Создаёт фон и config/simple-custom-early-loading.json с изображением на весь экран и индикатором прогресса.
+- Для Forge 1.20.1 сохраняет earlyWindowProvider = fmlearlywindow по инструкции автора; НЕ заменяет на вариант NeoForge.
+- Задаёт darkMojangStudiosBackground:true в Modded options.txt, чтобы первоначальная заставка была тёмной, если появляется до модифицированного экрана.
+- При ошибке получения/инициализации изображения обычный Minecraft продолжает запуск.
 
-Candidate: a Forge 1.20.1 client loading-screen mod such as **Drippy Loading Screen** (with compatible FancyMenu and other required dependencies) or **Simple Splash Screen**, installed and configured as part of the managed Modded client pack. Choose a user-approved image, test Forge 47.4.20 compatibility and every stage of startup on Windows, and verify the actual covered loading phases. Some Forge pre-loading screens may remain uncustomizable by particular mods. Respect redistribution terms for mod JARs and ensure the pack manifest/update mechanism carries the correct licensed assets. Do not change Vanilla, built-in artwork, updater, or pre-existing files without dedicated testing.
+## Выбранное изображение
 
-## Verification checklist
+Для ТОЧНО последней утверждённой картинки положить файл solaris-loading.png в пользовательскую папку SolarisDirectories.StateDir (обычно %APPDATA%\Solaris\solaris-loading.png). При Modded Play картинка автоматически переносится в папку Forge config/simple-custom-early-loading. В этом коммите отправить сам PNG с вложения ChatGPT напрямую в GitHub не удалось, поэтому пока в проекте есть только код подключения; без выбранного файла используется уже встроенная картинка Assets/SolarisCosmicHome.jpg. Не называть эту резервную картинку точной копией последнего арта.
 
-1. Verify Modded Play builds Java command line with server IP and port 25565.
-2. Confirm direct entry into hosted Modded when reachable; test unavailable-server UX.
-3. Confirm Vanilla behavior and Update flow unaffected.
-4. After selecting approved image and a compatible splash mod, test launch from clicking Play through world login on Windows; check red background is replaced where technically possible.
-5. Run dotnet build and publish and commit verified results before any stable release.
+Если config/simple-custom-early-loading.json уже создан игроком вручную, лаунчер его не перезаписывает. После добавления своего PNG для первого включения требуется убедиться, что значение image в конфиге соответствует solaris-loading.png.
+
+Источники: https://github.com/lukaskabc/SimpleCustomEarlyLoading ; https://modrinth.com/mod/simple-custom-early-loading
+
+## Статус проверки
+
+Работа пока сохранена только в feature/modded-autojoin-splash-prep. Сборка WPF (.NET 8) и запуск на реальном Windows/Forge ещё не выполнены. Стабильный Solaris 2.2.10 и его Release не изменялись. Перед публикацией проверить dotnet build, клиентские моды, первый запуск, серверное соединение и обновления клиента. Это косметическое изменение; отдельные фазы Forge/Mojang могут мелькать при старте.
