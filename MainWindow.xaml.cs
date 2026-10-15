@@ -80,7 +80,7 @@ public partial class MainWindow : Window
     private Button? _activeLaunchButton;
     private bool _updateCheckStarted;
 
-    private const string LauncherVersion = "2.2.11";
+    private const string LauncherVersion = "2.2.12";
     // Neon versions check signed-off GitHub release assets, not the 2.1.x stable manifest.
 
     // Diagnostic only: DEV traces go into the isolated profile, never the player's
@@ -750,7 +750,7 @@ public partial class MainWindow : Window
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            process.Start();
+            StartMinecraftWithSolarisCover(process, vanillaDir);
             Progress.Value = 100;
             StatusText.Text = "Minecraft Vanilla запущен.";
             await TrackGameProcessAsync(process, nickname, "vanilla");
@@ -875,7 +875,7 @@ public partial class MainWindow : Window
         token.ThrowIfCancellationRequested(); process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            process.Start();
+            StartMinecraftWithSolarisCover(process, _gameDir);
         await TrackGameProcessAsync(process, nick, "modded");
     }
 
