@@ -750,7 +750,7 @@ public partial class MainWindow : Window
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            process.Start();
+            StartMinecraftWithSolarisCover(process, vanillaDir);
             Progress.Value = 100;
             StatusText.Text = "Minecraft Vanilla запущен.";
             await TrackGameProcessAsync(process, nickname, "vanilla");
@@ -875,7 +875,7 @@ public partial class MainWindow : Window
         token.ThrowIfCancellationRequested(); process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            process.Start();
+            StartMinecraftWithSolarisCover(process, _gameDir);
         await TrackGameProcessAsync(process, nick, "modded");
     }
 
