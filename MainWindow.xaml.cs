@@ -60,12 +60,13 @@ public partial class MainWindow : Window
 
     // Modded is the hosted server; Vanilla currently has no hosted endpoint.
     // Confirm this existing Millida address in the host panel before a stable release.
-    private const string ModdedStatusHost = "solarisplay.millida.host";
+    private const string ModdedStatusHost = "solarismodded.millida.host";
     private const int ServerPort = 25565;
     // Configured hosted Modded capacity; some hosts report a different query max.
     private const int ModdedServerSlots = 200;
-    // Status checks must not silently change the established Modded launch behavior.
-    private const string ModdedServerHost = "";
+    // Direct connect uses the same hosted Modded endpoint as the status card.
+    // Keep Vanilla offline/main-menu behavior unchanged.
+    private const string ModdedServerHost = ModdedStatusHost;
 
     private readonly DispatcherTimer _moddedStatusTimer = new() { Interval = TimeSpan.FromSeconds(60) };
     private bool _moddedStatusCheckRunning;
@@ -79,7 +80,7 @@ public partial class MainWindow : Window
     private Button? _activeLaunchButton;
     private bool _updateCheckStarted;
 
-    private const string LauncherVersion = "2.2.10";
+    private const string LauncherVersion = "2.2.11";
     // Neon versions check signed-off GitHub release assets, not the 2.1.x stable manifest.
 
     // Diagnostic only: DEV traces go into the isolated profile, never the player's
@@ -821,6 +822,7 @@ public partial class MainWindow : Window
             token.ThrowIfCancellationRequested();
             StatusText.Text = "Solaris Modded: запускаем Minecraft...";
             Progress.Value = 96;
+            await PrepareModdedLoadingScreenAsync(token);
             await LaunchMinecraftAsync(ForgeClientVersionName, nickname, ModdedServerHost, token);
             StatusText.Text = "Minecraft Modded запущен.";
         }
