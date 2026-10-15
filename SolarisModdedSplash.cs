@@ -86,6 +86,18 @@ public partial class MainWindow
                 await File.WriteAllTextAsync(configPath, JsonSerializer.Serialize(config,
                     new JsonSerializerOptions { WriteIndented = true }), token);
             }
+            else if (File.Exists(selectedArt))
+            {
+                // If the first launch used Solaris's bundled fallback, switch
+                // just that known image reference after the approved art arrives.
+                // Leave custom user JSON and all other elements untouched.
+                string currentConfig = await File.ReadAllTextAsync(configPath, token);
+                const string fallbackName = "\"image\": \"solaris-cosmic.jpg\"";
+                const string approvedName = "\"image\": \"solaris-loading.png\"";
+                if (currentConfig.Contains(fallbackName, StringComparison.Ordinal))
+                    await File.WriteAllTextAsync(configPath,
+                        currentConfig.Replace(fallbackName, approvedName, StringComparison.Ordinal), token);
+            }
 
             // The late Forge override can briefly show Mojang's original red
             // screen; make that fallback dark without touching Vanilla options.
