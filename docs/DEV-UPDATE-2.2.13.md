@@ -1,0 +1,3 @@
+# Solaris Neon 2.2.13 DEV channel
+
+The regular Solaris Neon 2.2.13 hotfix has already been published after successful Windows CI and export. This follow-up change triggers the independently versioned DEV self-update so installed Solaris DEV users also receive the fix without downloading a ZIP. The issue was an endless `ОБНОВИТЬ` loop caused by the launcher-installed verified Forge splash JAR, which was treated as a foreign mod by strict server modpack checking. The hotfix preserves the strict server modpack manifest and whitelists only the publisher-authenticated, exact client-side splash JAR, hashes verified with SHA-512 from pinned official Modrinth version. Vanilla, existing accounts and Modded autojoin remain unchanged.
