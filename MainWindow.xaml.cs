@@ -64,8 +64,9 @@ public partial class MainWindow : Window
     private const int ServerPort = 25565;
     // Configured hosted Modded capacity; some hosts report a different query max.
     private const int ModdedServerSlots = 200;
-    // Status checks must not silently change the established Modded launch behavior.
-    private const string ModdedServerHost = "";
+    // Direct connect uses the same hosted Modded endpoint as the status card.
+    // Keep Vanilla offline/main-menu behavior unchanged.
+    private const string ModdedServerHost = ModdedStatusHost;
 
     private readonly DispatcherTimer _moddedStatusTimer = new() { Interval = TimeSpan.FromSeconds(60) };
     private bool _moddedStatusCheckRunning;
