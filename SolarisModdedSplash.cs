@@ -126,21 +126,20 @@ public partial class MainWindow
             return;
         }
 
-        // Query the official Modrinth registry for Forge 1.20.1 release 2.2.
-        // Pin the version, validate HTTPS CDN and verify the publisher's SHA512.
-        const string url = "https://api.modrinth.com/v2/project/simple-custom-early-loading/version" +
-            "?loaders=%5B%22forge%22%5D&game_versions=%5B%221.20.1%22%5D";
+        // The publisher's immutable Forge 1.20.1 release ID (v2.2-forge).
+        // Never choose an untested latest release or a NeoForge package.
+        const string url = "https://api.modrinth.com/v2/version/Un816pXM";
         using HttpResponseMessage response = await _http.GetAsync(url, token);
         response.EnsureSuccessStatusCode();
-        using JsonDocument versions = JsonDocument.Parse(
+        using JsonDocument version = JsonDocument.Parse(
             await response.Content.ReadAsStringAsync(token));
 
-        JsonElement matchingVersion = versions.RootElement.EnumerateArray()
-            .FirstOrDefault(v => string.Equals(
-                v.GetProperty("version_number").GetString(), "2.2",
-                StringComparison.OrdinalIgnoreCase));
-        if (matchingVersion.ValueKind != JsonValueKind.Object)
-            throw new InvalidOperationException("Compatible Forge splash release 2.2 not found.");
+        JsonElement matchingVersion = version.RootElement;
+        if (!string.Equals(matchingVersion.GetProperty("id").GetString(), "Un816pXM",
+                StringComparison.Ordinal) ||
+            !string.Equals(matchingVersion.GetProperty("version_number").GetString(),
+                "2.2-forge", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Unexpected Forge splash version.");
 
         JsonElement jarFile = matchingVersion.GetProperty("files").EnumerateArray()
             .FirstOrDefault(f => string.Equals(
