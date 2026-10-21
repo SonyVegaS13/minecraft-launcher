@@ -118,16 +118,24 @@ public partial class MainWindow
                 await UploadCloudSkinAsync(await File.ReadAllBytesAsync(path));
                 return;
             }
-            if (!File.Exists(path))
+            // A valid local skin is only a cache. Unless there is a pending
+            // local upload, refresh it when another device changes the cloud skin.
+            byte[]? remote = await DownloadCloudSkinAsync();
+            if (remote is null || File.Exists(pending)) return;
+
+            if (File.Exists(path))
             {
-                byte[]? remote = await DownloadCloudSkinAsync();
-                if (remote is null) return;
-                // Decode before persisting to avoid poisoning the local preview.
-                DecodeSkin(remote);
-                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-                await File.WriteAllBytesAsync(path, remote);
-                await PrepareSkinPreviewAsync(username);
+                byte[] local = await File.ReadAllBytesAsync(path);
+                if (local.AsSpan().SequenceEqual(remote)) return;
             }
+
+            // Decode before persisting to avoid poisoning the local preview.
+            DecodeSkin(remote);
+            // Recheck: a user could have imported a new skin during download.
+            if (File.Exists(pending)) return;
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            await File.WriteAllBytesAsync(path, remote);
+            await PrepareSkinPreviewAsync(username);
         }
         catch { /* Best-effort cloud sync never blocks the game. */ }
     }
