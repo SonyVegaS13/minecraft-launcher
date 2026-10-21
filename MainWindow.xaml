@@ -198,7 +198,7 @@
                      Stretch="Uniform" Margin="0,-12,0,32"
                      RenderOptions.BitmapScalingMode="HighQuality"/>
               <TextBlock Text="БОЛЬШЕ ЧЕМ MINECRAFT" HorizontalAlignment="Center"
-                         VerticalAlignment="Bottom" Margin="0,0,0,7"
+                         VerticalAlignment="Bottom" Margin="0,0,0,22"
                          FontSize="12" FontWeight="SemiBold" Foreground="#FFF0D9"/>
             </Grid>
             <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0">
@@ -234,7 +234,6 @@
                   <TextBlock Text="◎  Миры" FontSize="12" FontWeight="SemiBold" Foreground="White"/>
                 </Border>
                 <Button Content="⚙  Настройки" Style="{StaticResource MinimalTopNav}" Click="SettingsNav_Click"/>
-                <Button Content="▤  Новости" Style="{StaticResource MinimalTopNav}" Click="NewsNav_Click"/>
                 <Button Content="ⓘ  О проекте" Style="{StaticResource MinimalTopNav}" Click="AboutNav_Click"/>
               </StackPanel>
             </Border>
@@ -250,6 +249,20 @@
                 <Image x:Name="VanillaArtwork" Source="pack://application:,,,/Assets/SolarisVanillaCard.png"
                        Stretch="UniformToFill" Opacity="0.78" CacheMode="BitmapCache" IsHitTestVisible="False">
                   <Image.Effect><BlurEffect Radius="9"/></Image.Effect>
+                </Image>
+                <!-- Keep the approved card clear above the green guide (~62% of the tile).
+                     Fade into the existing soft details zone; hover art remains unchanged. -->
+                <Image x:Name="VanillaArtworkClear"
+                       Source="{Binding Source, ElementName=VanillaArtworkSharp}"
+                       Stretch="UniformToFill" Opacity="1" CacheMode="BitmapCache"
+                       IsHitTestVisible="False" RenderOptions.BitmapScalingMode="HighQuality">
+                  <Image.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                      <GradientStop Color="White" Offset="0"/>
+                      <GradientStop Color="White" Offset="0.62"/>
+                      <GradientStop Color="Transparent" Offset="0.68"/>
+                    </LinearGradientBrush>
+                  </Image.OpacityMask>
                 </Image>
                 <!-- Original 3:1 banner: fit its entire width above the details. Never crop the approved art. -->
                 <Image x:Name="VanillaArtworkSharp" Source="pack://application:,,,/Assets/SolarisVanillaCard.png"
@@ -309,6 +322,20 @@
                 <Image x:Name="ModdedArtwork" Source="pack://application:,,,/Assets/SolarisModdedCard.png"
                        Stretch="UniformToFill" Opacity="0.78" CacheMode="BitmapCache" IsHitTestVisible="False">
                   <Image.Effect><BlurEffect Radius="9"/></Image.Effect>
+                </Image>
+                <!-- Keep the approved card clear above the green guide (~62% of the tile).
+                     Fade into the existing soft details zone; hover art remains unchanged. -->
+                <Image x:Name="ModdedArtworkClear"
+                       Source="{Binding Source, ElementName=ModdedArtworkSharp}"
+                       Stretch="UniformToFill" Opacity="1" CacheMode="BitmapCache"
+                       IsHitTestVisible="False" RenderOptions.BitmapScalingMode="HighQuality">
+                  <Image.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                      <GradientStop Color="White" Offset="0"/>
+                      <GradientStop Color="White" Offset="0.62"/>
+                      <GradientStop Color="Transparent" Offset="0.68"/>
+                    </LinearGradientBrush>
+                  </Image.OpacityMask>
                 </Image>
                 <!-- Original 3:1 banner: fit its entire width above the details. Never crop the approved art. -->
                 <Image x:Name="ModdedArtworkSharp" Source="pack://application:,,,/Assets/SolarisModdedCard.png"
