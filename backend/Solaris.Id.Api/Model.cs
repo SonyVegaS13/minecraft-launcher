@@ -10,6 +10,38 @@ public sealed class SolarisUser : IdentityUser
     public string NormalizedNickname { get; set; } = "";
     public DateTimeOffset CreatedUtc { get; set; } = DateTimeOffset.UtcNow;
     public bool IsBanned { get; set; }
+    public DateTimeOffset? LastActiveUtc { get; set; }
+}
+
+public sealed class SolarisNicknameReservation
+{
+    public string NormalizedNickname { get; set; } = "";
+    public string UserId { get; set; } = "";
+    public DateTimeOffset ReservedUtc { get; set; }
+}
+
+public sealed class SolarisAuthSession
+{
+    public Guid Id { get; set; }
+    public string UserId { get; set; } = "";
+    public string AccessTokenHash { get; set; } = "";
+    public DateTimeOffset AccessExpiresUtc { get; set; }
+    public DateTimeOffset RefreshExpiresUtc { get; set; }
+    public string SecurityStamp { get; set; } = "";
+    public bool MfaVerified { get; set; }
+    public DateTimeOffset CreatedUtc { get; set; }
+    public DateTimeOffset LastSeenUtc { get; set; }
+    public DateTimeOffset? RevokedUtc { get; set; }
+}
+
+public sealed class SolarisRefreshToken
+{
+    public Guid Id { get; set; }
+    public Guid SessionId { get; set; }
+    public string TokenHash { get; set; } = "";
+    public DateTimeOffset CreatedUtc { get; set; }
+    public DateTimeOffset ExpiresUtc { get; set; }
+    public DateTimeOffset? ConsumedUtc { get; set; }
 }
 
 public sealed class SolarisPlayerSession
@@ -51,6 +83,9 @@ public sealed class SolarisAuditEvent
 public sealed class SolarisDbContext(DbContextOptions<SolarisDbContext> options)
     : IdentityDbContext<SolarisUser>(options)
 {
+    public DbSet<SolarisNicknameReservation> NicknameReservations => Set<SolarisNicknameReservation>();
+    public DbSet<SolarisAuthSession> AuthSessions => Set<SolarisAuthSession>();
+    public DbSet<SolarisRefreshToken> AuthRefreshTokens => Set<SolarisRefreshToken>();
     public DbSet<SolarisPlayerSession> PlayerSessions => Set<SolarisPlayerSession>();
     public DbSet<SolarisSkin> Skins => Set<SolarisSkin>();
     public DbSet<SolarisLegacyImport> LegacyImports => Set<SolarisLegacyImport>();
@@ -59,13 +94,40 @@ public sealed class SolarisDbContext(DbContextOptions<SolarisDbContext> options)
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        GameAccess.ConfigureModel(builder);
         builder.Entity<SolarisUser>(entity =>
         {
             entity.Property(u => u.Nickname).HasMaxLength(16).IsRequired();
             entity.Property(u => u.NormalizedNickname).HasMaxLength(16).IsRequired();
             entity.HasIndex(u => u.NormalizedNickname).IsUnique();
+            entity.HasIndex(u => u.NormalizedEmail).IsUnique().HasDatabaseName("EmailIndex");
             entity.HasCheckConstraint("CK_SolarisUser_NicknameNotEmpty",
                 "char_length(\"Nickname\") BETWEEN 3 AND 16");
+        });
+        builder.Entity<SolarisNicknameReservation>(entity =>
+        {
+            entity.ToTable("NicknameReservations");
+            entity.HasKey(x => x.NormalizedNickname);
+            entity.Property(x => x.NormalizedNickname).HasMaxLength(16);
+            entity.HasOne<SolarisUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        builder.Entity<SolarisAuthSession>(entity =>
+        {
+            entity.ToTable("AuthSessions");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.AccessTokenHash).HasMaxLength(64).IsRequired();
+            entity.Property(x => x.SecurityStamp).HasMaxLength(256).IsRequired();
+            entity.HasIndex(x => x.AccessTokenHash).IsUnique();
+            entity.HasIndex(x => new { x.UserId, x.CreatedUtc });
+            entity.HasOne<SolarisUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+        builder.Entity<SolarisRefreshToken>(entity =>
+        {
+            entity.ToTable("AuthRefreshTokens");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.TokenHash).HasMaxLength(64).IsRequired();
+            entity.HasIndex(x => x.TokenHash).IsUnique();
+            entity.HasOne<SolarisAuthSession>().WithMany().HasForeignKey(x => x.SessionId).OnDelete(DeleteBehavior.Cascade);
         });
         builder.Entity<SolarisPlayerSession>(entity =>
         {

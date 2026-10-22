@@ -192,6 +192,150 @@ namespace Solaris.Id.Api.Migrations
                     b.ToTable("AuditEvents");
                 });
 
+            modelBuilder.Entity("Solaris.Id.Api.SolarisAuthSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("AccessExpiresUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("AccessTokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTimeOffset>("CreatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("LastSeenUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("MfaVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("RefreshExpiresUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("RevokedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccessTokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "CreatedUtc");
+
+                    b.ToTable("AuthSessions", (string)null);
+                });
+
+            modelBuilder.Entity("Solaris.Id.Api.SolarisGameConnection", b =>
+                {
+                    b.Property<string>("ServerId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("ConnectionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTimeOffset>("CreatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeniedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiresUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("GameSessionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Nickname")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.HasKey("ServerId", "ConnectionId");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("ExpiresUtc");
+
+                    b.HasIndex("GameSessionId")
+                        .IsUnique();
+
+                    b.ToTable("SolarisGameConnection");
+                });
+
+            modelBuilder.Entity("Solaris.Id.Api.SolarisGameTicket", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthSessionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ConsumedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiresUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Nickname")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("ServerId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthSessionId");
+
+                    b.HasIndex("ExpiresUtc");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SolarisGameTicket");
+                });
+
             modelBuilder.Entity("Solaris.Id.Api.SolarisLegacyImport", b =>
                 {
                     b.Property<string>("UserId")
@@ -213,6 +357,26 @@ namespace Solaris.Id.Api.Migrations
                     b.HasKey("UserId", "SourceId");
 
                     b.ToTable("LegacyImports");
+                });
+
+            modelBuilder.Entity("Solaris.Id.Api.SolarisNicknameReservation", b =>
+                {
+                    b.Property<string>("NormalizedNickname")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<DateTimeOffset>("ReservedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("NormalizedNickname");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("NicknameReservations", (string)null);
                 });
 
             modelBuilder.Entity("Solaris.Id.Api.SolarisPlayerSession", b =>
@@ -241,6 +405,39 @@ namespace Solaris.Id.Api.Migrations
                     b.ToTable("PlayerSessions");
                 });
 
+            modelBuilder.Entity("Solaris.Id.Api.SolarisRefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ConsumedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiresUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("AuthRefreshTokens", (string)null);
+                });
+
             modelBuilder.Entity("Solaris.Id.Api.SolarisSkin", b =>
                 {
                     b.Property<string>("UserId")
@@ -261,6 +458,69 @@ namespace Solaris.Id.Api.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("Skins");
+                });
+
+            modelBuilder.Entity("Solaris.Id.Api.SolarisTrustedGameSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthSessionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ClosedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ConnectionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("LastHeartbeatUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("LastSequence")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)");
+
+                    b.Property<string>("Nickname")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<long>("PlayedTicks")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ServerId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTimeOffset>("StartedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthSessionId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("\"ClosedUtc\" IS NULL");
+
+                    b.HasIndex("ServerId", "ConnectionId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "StartedUtc");
+
+                    b.ToTable("SolarisTrustedGameSession");
                 });
 
             modelBuilder.Entity("Solaris.Id.Api.SolarisUser", b =>
@@ -287,6 +547,9 @@ namespace Solaris.Id.Api.Migrations
 
                     b.Property<bool>("IsBanned")
                         .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LastActiveUtc")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -334,6 +597,7 @@ namespace Solaris.Id.Api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
+                        .IsUnique()
                         .HasDatabaseName("EmailIndex");
 
                     b.HasIndex("NormalizedNickname")
@@ -397,6 +661,71 @@ namespace Solaris.Id.Api.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Solaris.Id.Api.SolarisAuthSession", b =>
+                {
+                    b.HasOne("Solaris.Id.Api.SolarisUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Solaris.Id.Api.SolarisGameConnection", b =>
+                {
+                    b.HasOne("Solaris.Id.Api.SolarisTrustedGameSession", null)
+                        .WithMany()
+                        .HasForeignKey("GameSessionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Solaris.Id.Api.SolarisGameTicket", b =>
+                {
+                    b.HasOne("Solaris.Id.Api.SolarisAuthSession", null)
+                        .WithMany()
+                        .HasForeignKey("AuthSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Solaris.Id.Api.SolarisUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Solaris.Id.Api.SolarisNicknameReservation", b =>
+                {
+                    b.HasOne("Solaris.Id.Api.SolarisUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Solaris.Id.Api.SolarisRefreshToken", b =>
+                {
+                    b.HasOne("Solaris.Id.Api.SolarisAuthSession", null)
+                        .WithMany()
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Solaris.Id.Api.SolarisTrustedGameSession", b =>
+                {
+                    b.HasOne("Solaris.Id.Api.SolarisAuthSession", null)
+                        .WithMany()
+                        .HasForeignKey("AuthSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Solaris.Id.Api.SolarisUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 #pragma warning restore 612, 618
