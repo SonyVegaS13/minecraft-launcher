@@ -1,0 +1,53 @@
+plugins {
+    id 'java'
+    id 'net.minecraftforge.gradle' version '6.0.54'
+    id 'org.spongepowered.mixin' version '0.7.38'
+}
+
+version = '0.1.0'
+group = 'com.solaris.id.bridge'
+base { archivesName = 'solaris-id-forge-1.20.1' }
+layout.buildDirectory = file(providers.gradleProperty('solarisBuildDir').getOrElse('build'))
+java { toolchain.languageVersion = JavaLanguageVersion.of(17) }
+
+minecraft {
+    mappings channel: 'official', version: '1.20.1'
+    runs {
+        server {
+            workingDirectory project.file('run')
+            property 'forge.logging.console.level', 'info'
+            args '--nogui'
+            mods { solaris_id_bridge { source sourceSets.main } }
+        }
+    }
+}
+
+// One shared implementation is compiled into the server JAR. No client mod is
+// required, and no copy goes into or rebuilds the existing Solaris modpack.
+sourceSets.main.java.srcDir '../core/src/main/java'
+repositories { mavenCentral() }
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.20.1-47.4.20'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+}
+mixin {
+    add sourceSets.main, 'solaris_id_bridge.refmap.json'
+    config 'solaris_id_bridge.mixins.json'
+}
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 17
+    // Missing Mixin targets are AP warnings; they must fail this security build.
+    options.compilerArgs += ['-Werror']
+}
+tasks.named('jar', Jar).configure {
+    manifest.attributes([
+        'Specification-Title': 'solaris-id-forge-bridge',
+        'Specification-Version': project.version,
+        'Implementation-Title': project.name,
+        'Implementation-Version': project.version,
+        'MixinConfigs': 'solaris_id_bridge.mixins.json'
+    ])
+    finalizedBy 'reobfJar'
+}

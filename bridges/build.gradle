@@ -1,0 +1,11 @@
+allprojects {
+    group = 'com.solaris.id'
+    version = '1.0.0'
+    repositories { mavenCentral() }
+}
+subprojects {
+    apply plugin: 'java-library'
+    java { toolchain { languageVersion = JavaLanguageVersion.of(17) } }
+    tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8'; options.release = 17 }
+    tasks.withType(Test).configureEach { useJUnitPlatform() }
+}

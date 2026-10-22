@@ -1,0 +1,16 @@
+repositories {
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+}
+dependencies {
+    implementation project(':core')
+    compileOnly 'io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT'
+}
+processResources { inputs.property('version', project.version); filesMatching('plugin.yml') { expand(version: project.version) } }
+// Bundle only the shared protocol and Gson; the real Paper API is supplied by Paper.
+jar {
+    dependsOn project(':core').tasks.named('jar')
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    exclude 'META-INF/*.SF', 'META-INF/*.RSA', 'META-INF/*.DSA', 'module-info.class'
+    archiveBaseName = 'solaris-id-paper'
+}

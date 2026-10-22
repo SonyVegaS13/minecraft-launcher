@@ -1,0 +1,7 @@
+name: SolarisIdBridge
+version: '${version}'
+main: com.solaris.id.bridge.paper.SolarisPaperBridge
+api-version: '1.20'
+description: Server-only HTTPS Solaris ID approval and trusted session heartbeat
+author: Solaris
+load: STARTUP

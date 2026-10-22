@@ -1,0 +1,10 @@
+dependencies {
+    api 'com.google.code.gson:gson:2.10.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+}
+tasks.register('realApiProbe', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.solaris.id.bridge.RealApiProbe'
+    args providers.gradleProperty('probeConfig').getOrElse(''), providers.gradleProperty('probeDirectory').getOrElse('')
+}

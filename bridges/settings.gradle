@@ -1,0 +1,3 @@
+pluginManagement { repositories { gradlePluginPortal(); mavenCentral() } }
+rootProject.name = 'solaris-id-bridges'
+include 'core', 'paper'
