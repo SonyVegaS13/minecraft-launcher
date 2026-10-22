@@ -1,0 +1,17 @@
+{
+  "verified_utc": "2026-10-22",
+  "responses": [
+    {
+      "name": "forge",
+      "url": "https://maven.minecraftforge.net/net/minecraftforge/forge/1.20.1-47.4.20/forge-1.20.1-47.4.20.pom",
+      "status": 200,
+      "content_type": "application/xml"
+    },
+    {
+      "name": "paper",
+      "url": "https://repo.papermc.io/repository/maven-public/io/papermc/paper/paper-api/1.20.1-R0.1-SNAPSHOT/maven-metadata.xml",
+      "status": 200,
+      "content_type": "application/xml"
+    }
+  ]
+}

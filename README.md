@@ -2,6 +2,13 @@
 
 Современный WPF-лаунчер Solaris для Minecraft.
 
+Ветка `feature/solaris-id` добавляет серверный Solaris ID и Minecraft Auth Bridge.
+Результаты разработки и ограничения: [итоговый отчёт](docs/solaris-id/REPORT.md).
+Настройка сервиса: [развёртывание](deploy/solaris-id/README.md),
+[подключение лаунчера](docs/solaris-id/LAUNCHER.md),
+[сборка мостов](bridges/README.md), [локальные проверки](tests/SolarisId.Integration/README.md).
+Публикация этой ветки не выпускает обновление игрокам и не меняет рабочие серверы.
+
 ## Что уже есть
 
 - Локальная регистрация и вход.

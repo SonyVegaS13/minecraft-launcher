@@ -1,0 +1,21 @@
+{
+  "real_minecraft_clients_tested": false,
+  "suites": [
+    {
+      "name": "com.solaris.id.bridge.ConnectionCoordinatorTest",
+      "tests": "27",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.086"
+    },
+    {
+      "name": "com.solaris.id.bridge.HttpBridgeApiTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.787"
+    }
+  ]
+}

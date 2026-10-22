@@ -1,70 +1,94 @@
-name: Solaris ID API Build and Database Smoke Test
+name: Solaris ID integration and launcher build
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - solaris-2.2-dev
+    branches: [feature/solaris-id]
+  pull_request:
+    branches: [solaris-2.2-dev]
     paths:
       - 'backend/**'
+      - 'bridges/**'
+      - 'SolarisCloud*.cs'
+      - 'SolarisId*.cs'
+      - 'SolarisControlPanel.cs'
+      - 'SolarisPlaytime.cs'
+      - 'SolarisSkinPreview.cs'
+      - 'MainWindow.xaml*'
+      - 'tests/SolarisId*/**'
       - '.github/workflows/solaris-id-ci.yml'
 
 permissions:
   contents: read
 
 jobs:
-  build-and-db:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: solaris_ci
-          POSTGRES_PASSWORD: ci_only_not_production
-          POSTGRES_DB: solaris_ci
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U solaris_ci"
-          --health-interval=5s --health-timeout=5s --health-retries=12
-    env:
-      SOLARIS_ID_CONNECTION_STRING: "Host=127.0.0.1;Port=5432;Database=solaris_ci;Username=solaris_ci;Password=ci_only_not_production"
-      SOLARIS_ID_PUBLIC_ORIGIN: "https://auth.example.invalid"
+  real-api-integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare test dependencies
+        run: |
+          python -m pip install -r tests/SolarisId.Integration/requirements.txt
+          dotnet tool install dotnet-ef --version 8.0.11 --tool-path "$RUNNER_TEMP/solaris-ef"
+      - name: Preserve updater, Minecraft installation and release configuration
+        run: python tests/SolarisId.Integration/check_preserved_systems.py
+      - name: Real PostgreSQL, SMTP STARTTLS, HTTPS and security scenarios
+        run: python tests/SolarisId.Integration/run_local.py --work-dir "$RUNNER_TEMP/solaris-id-validation" --ef "$RUNNER_TEMP/solaris-ef/dotnet-ef"
+      - name: Launcher HTTP/session protocol tests
+        run: dotnet run --project tests/SolarisIdClient.Tests/SolarisIdClient.Tests.csproj -c Release
+      # No raw logs, mailbox, config, keys or binaries are uploaded. Test
+      # credentials and confirmation/reset/token material must remain private.
+
+  java-bridges:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.1.1'
+      - name: Shared lifecycle and real TLS tests, Paper 1.20.1 build
+        run: gradle -p bridges --no-daemon :core:test :paper:build
+      - name: Forge 47.4.20 compilation, Mixins and reobfuscation
+        run: gradle -p bridges/forge --no-daemon build --dependency-verification strict
+      # Build validation only: never installs bridges or changes server/client packs.
+
+  windows-compile:
+    runs-on: windows-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - name: Restore
-        run: dotnet restore backend/Solaris.Id.Api/Solaris.Id.Api.csproj
-      - name: Build
-        run: dotnet build backend/Solaris.Id.Api/Solaris.Id.Api.csproj -c Release --no-restore
-      - name: Verify EF Core migrations on PostgreSQL
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare existing approved icon resources
         run: |
-          dotnet tool install --global dotnet-ef --version 8.0.11
-          dotnet ef database update --project backend/Solaris.Id.Api/Solaris.Id.Api.csproj --startup-project backend/Solaris.Id.Api/Solaris.Id.Api.csproj
-      - name: Health and anonymous admin route smoke
-        shell: bash
+          python -m pip install Pillow
+          python scripts/generate_icon.py
+          python scripts/prepare_neon_art.py
+          python scripts/prepare_card_art.py
+      - name: Restore and compile existing WPF launcher
         run: |
-          set -euo pipefail
-          dotnet run --no-build -c Release --project backend/Solaris.Id.Api/Solaris.Id.Api.csproj --urls http://127.0.0.1:5115 > /tmp/solaris-api.log 2>&1 &
-          pid=$!
-          trap 'kill "$pid" 2>/dev/null || true' EXIT
-          ready=0
-          for i in {1..30}; do
-            if curl --silent --fail http://127.0.0.1:5115/health | grep -q '"status":"ok"'; then
-              ready=1
-              break
-            fi
-            sleep 1
-          done
-          if [ "$ready" != "1" ]; then
-            cat /tmp/solaris-api.log
-            exit 1
-          fi
-          status=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:5115/api/v1/control/audit)
-          if [ "$status" != "401" ] && [ "$status" != "403" ]; then
-            echo "Anonymous admin route must reject; got $status"
-            exit 1
-          fi
-          echo "PostgreSQL migrations, health, authorization: PASS"
+          dotnet restore SolarisLauncher.csproj
+          dotnet build SolarisLauncher.csproj -c Release --no-restore
+      - name: Validate Windows packaging without distribution
+        run: dotnet publish SolarisLauncher.csproj -c Release -r win-x64 --self-contained true --no-restore -o artifacts/solaris-id-validation
+      - name: Launcher protocol tests on Windows
+        run: dotnet run --project tests/SolarisIdClient.Tests/SolarisIdClient.Tests.csproj -c Release
+      # This feature workflow never creates tags, releases or updater manifests.

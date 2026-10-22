@@ -1,0 +1,10 @@
+{
+  "java_https_bridge_protocol": "passed",
+  "https_certificate_verification": true,
+  "real_postgresql": true,
+  "real_smtp_starttls_auth": true,
+  "immutable_user_id_verified": true,
+  "heartbeat_and_close_idempotence_verified": true,
+  "connection_cancellation_verified": true,
+  "native_minecraft_clients_tested": false
+}

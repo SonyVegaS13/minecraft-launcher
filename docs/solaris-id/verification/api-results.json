@@ -1,0 +1,157 @@
+{
+  "tests": 29,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "https_certificate_verification": true,
+  "real_postgresql": true,
+  "real_smtp_starttls_auth": true,
+  "native_minecraft_clients_tested": false,
+  "records": [
+    {
+      "test": "__main__.SolarisIdAcceptance.test_010_registration_validation_never_returns_500",
+      "status": "passed",
+      "seconds": 0.087
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_020_registration_uniqueness_case_insensitive_and_confirmation",
+      "status": "passed",
+      "seconds": 0.715
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_030_parallel_registration_has_one_owner_without_database_500",
+      "status": "passed",
+      "seconds": 0.189
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_040_password_lockout_is_real_and_does_not_issue_tokens",
+      "status": "passed",
+      "seconds": 0.757
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_050_two_computers_share_profile_and_keep_independent_sessions",
+      "status": "passed",
+      "seconds": 0.506
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_055_former_nickname_cannot_be_reassigned_after_rename",
+      "status": "passed",
+      "seconds": 0.586
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_060_logout_revokes_only_one_device_and_its_refresh",
+      "status": "passed",
+      "seconds": 0.284
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_070_refresh_is_single_use_and_replay_revokes_the_rotated_session",
+      "status": "passed",
+      "seconds": 0.231
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_080_concurrent_refresh_cannot_create_two_valid_successors",
+      "status": "passed",
+      "seconds": 0.219
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_090_session_expiry_and_owner_revocation",
+      "status": "passed",
+      "seconds": 0.506
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_095_mfa_recovery_requires_password_and_each_code_is_single_use",
+      "status": "passed",
+      "seconds": 1.623
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_100_password_reset_requires_email_code_and_revokes_old_sessions",
+      "status": "passed",
+      "seconds": 0.447
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_110_skin_sync_is_owner_only_and_rejects_corrupt_and_unbounded_data",
+      "status": "passed",
+      "seconds": 0.535
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_120_client_time_and_legacy_history_cannot_forge_trusted_statistics",
+      "status": "passed",
+      "seconds": 0.258
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_130_server_credentials_are_audience_scoped_and_not_user_credentials",
+      "status": "passed",
+      "seconds": 0.233
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_140_offline_nickname_alone_never_authenticates_a_connection",
+      "status": "passed",
+      "seconds": 0.283
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_150_game_ticket_one_use_owner_and_server_audience",
+      "status": "passed",
+      "seconds": 0.584
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_160_concurrent_ticket_consumption_and_one_active_game",
+      "status": "passed",
+      "seconds": 0.267
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_170_expired_ticket_and_connection_cannot_be_approved",
+      "status": "passed",
+      "seconds": 0.577
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_180_ticket_cannot_move_between_device_sessions_or_survive_logout",
+      "status": "passed",
+      "seconds": 0.35
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_190_both_modes_count_only_trusted_server_elapsed_time_idempotently",
+      "status": "passed",
+      "seconds": 2.67
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_200_stale_server_heartbeat_does_not_credit_unobserved_minutes",
+      "status": "passed",
+      "seconds": 0.378
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_210_user_cannot_get_admin_by_nickname_or_profile_fields",
+      "status": "passed",
+      "seconds": 0.28
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_220_real_totp_required_for_control_and_password_is_not_exposed",
+      "status": "passed",
+      "seconds": 0.133
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_230_ban_and_global_revoke_close_accounts_and_game_sessions",
+      "status": "passed",
+      "seconds": 0.409
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_235_admin_roles_require_mfa_and_are_audited_without_password_access",
+      "status": "passed",
+      "seconds": 0.659
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_237_concurrent_mfa_disable_and_admin_grant_preserve_mfa_requirement",
+      "status": "passed",
+      "seconds": 1.657
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_240_tokens_and_passwords_are_not_persisted_in_cleartext",
+      "status": "passed",
+      "seconds": 0.481
+    },
+    {
+      "test": "__main__.SolarisIdAcceptance.test_990_no_secret_material_in_api_logs",
+      "status": "passed",
+      "seconds": 0.021
+    }
+  ]
+}

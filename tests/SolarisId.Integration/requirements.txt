@@ -1,0 +1,3 @@
+aiosmtpd==1.4.6
+atpublic==9.0.0
+attrs==26.1.0

@@ -1,0 +1,23 @@
+{
+  "verified_utc": "2026-10-22",
+  "artifacts": [
+    {
+      "file": "solaris-id-paper-1.0.0.jar",
+      "bytes": 311206,
+      "sha256": "7ee8808c03a26066630e8cd5376e572b0d98d833f0bd2bc4d87b5ba3993fedf3"
+    },
+    {
+      "file": "solaris-id-forge-1.20.1-0.1.0.jar",
+      "bytes": 35793,
+      "sha256": "16ca0dd5f2ecd7cc0b35ef418ee5ccc55229950cf815271867d3c2fee903d0a6"
+    }
+  ],
+  "paper_real_api_compile": true,
+  "forge_real_api_compile_and_reobfuscation": true,
+  "forge_packet_refmap_entries": 39,
+  "forge_advancement_refmap_entries": 2,
+  "wpf_release_cross_compile": true,
+  "wpf_win_x64_publish": true,
+  "native_windows_ui_tested": false,
+  "minecraft_server_client_e2e_tested": false
+}
