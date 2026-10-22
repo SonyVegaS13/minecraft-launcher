@@ -1,0 +1,57 @@
+{
+  "tests": 11,
+  "failures": 0,
+  "completed": true,
+  "errors": 0,
+  "real_haproxy": true,
+  "real_production_api": true,
+  "frontend_and_upstream_tls_verified": true,
+  "malformed_framing_result": "connection_closed",
+  "docker_image": "haproxy:3.2-alpine@sha256:4e4d428de823155c52f1957fd3208f2b99b1dcc92dc36321752cb4edb8366301",
+  "results": [
+    {
+      "test": "real_proxy_serves_database_health_over_verified_frontend_and_upstream_tls",
+      "passed": true
+    },
+    {
+      "test": "proxy_preserves_security_headers_and_sets_hsts",
+      "passed": true
+    },
+    {
+      "test": "plaintext_cannot_spoof_https",
+      "passed": true
+    },
+    {
+      "test": "unknown_host_is_rejected",
+      "passed": true
+    },
+    {
+      "test": "invalid_authentication_is_denied_through_proxy",
+      "passed": true
+    },
+    {
+      "test": "client_forwarded_headers_cannot_bypass_production_ip_rate_limit",
+      "passed": true
+    },
+    {
+      "test": "conflicting_content_lengths_are_rejected",
+      "passed": true
+    },
+    {
+      "test": "upstream_outage_fails_closed",
+      "passed": true
+    },
+    {
+      "test": "invalid_upstream_certificate_hostname_is_not_trusted",
+      "passed": true
+    },
+    {
+      "test": "proxy_and_api_logs_do_not_contain_password_token_cookie_or_query_canaries",
+      "passed": true
+    },
+    {
+      "test": "upstream_failures_remain_observable_in_sanitized_logs",
+      "passed": true
+    }
+  ]
+}

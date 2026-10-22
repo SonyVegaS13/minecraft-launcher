@@ -1,0 +1,36 @@
+{
+  "tests": 7,
+  "failures": 0,
+  "results": [
+    {
+      "test": "production_refuses_missing_persistent_keys",
+      "passed": true
+    },
+    {
+      "test": "production_serves_verified_https",
+      "passed": true
+    },
+    {
+      "test": "production_security_response_headers",
+      "passed": true
+    },
+    {
+      "test": "production_rejects_plaintext_even_when_dev_override_is_set",
+      "passed": true
+    },
+    {
+      "test": "production_ignores_dev_rate_override_and_limits_credentials_to_10",
+      "passed": true
+    },
+    {
+      "test": "health_returns_503_for_unavailable_database",
+      "passed": true
+    },
+    {
+      "test": "request_password_body_is_not_logged",
+      "passed": true
+    }
+  ],
+  "real_production_environment": true,
+  "tls_verification": true
+}

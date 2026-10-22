@@ -152,13 +152,16 @@ def main() -> int:
             ('test_solaris_id.py', 'tests', []),
             ('test_runtime_policy.py', 'production-policy', []),
             ('test_migration_upgrade.py', 'migration-upgrade', ['--ef', args.ef]),
+            ('test_backup_restore.py', 'backup-restore', ['--ef', args.ef]),
+            ('test_reverse_proxy.py', 'reverse-proxy', []),
+            ('test_session_restart.py', 'session-restart', []),
         ]
         for script, output, extra in suites:
             command = [sys.executable,str(Path(__file__).with_name(script)),
                 '--config',str(config_file),'--output',str(folder/output),*extra]
             if subprocess.run(command,cwd=ROOT,env=env).returncode:
                 raise RuntimeError(f'{script} failed; private evidence: {folder}')
-        print(f'PASS (29 API, 7 Production policy, 10 migration checks). Evidence: {folder}. Keep integration-env.json, keys and mailbox PRIVATE; never upload them.',flush=True)
+        print(f'PASS (API, Production policy, migration, backup/restore, real reverse proxy and session restart). Evidence: {folder}. Keep integration-env.json, keys, database dumps and mailbox PRIVATE; never upload them.',flush=True)
         return 0
     except (RuntimeError,subprocess.CalledProcessError) as error:
         print(str(error),file=sys.stderr)

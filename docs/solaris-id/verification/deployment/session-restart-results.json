@@ -1,0 +1,200 @@
+{
+  "tests": 46,
+  "failures": 0,
+  "results": [
+    {
+      "test": "production_api_start_1_healthy",
+      "passed": true
+    },
+    {
+      "test": "owner_registered_over_https",
+      "passed": true
+    },
+    {
+      "test": "owner_email_confirmed_over_https",
+      "passed": true
+    },
+    {
+      "test": "device_a_password_login",
+      "passed": true
+    },
+    {
+      "test": "device_b_password_login",
+      "passed": true
+    },
+    {
+      "test": "devices_have_independent_persisted_sessions",
+      "passed": true
+    },
+    {
+      "test": "initial_owner_profile_available",
+      "passed": true
+    },
+    {
+      "test": "initial_device_b_access_accepted",
+      "passed": true
+    },
+    {
+      "test": "initial_device_b_same_confirmed_identity",
+      "passed": true
+    },
+    {
+      "test": "pending_owner_registered_over_https",
+      "passed": true
+    },
+    {
+      "test": "pending_confirmation_is_not_already_confirmed",
+      "passed": true
+    },
+    {
+      "test": "production_data_protection_key_ring_persisted",
+      "passed": true
+    },
+    {
+      "test": "reconstructed_device_a_access_accepted",
+      "passed": true
+    },
+    {
+      "test": "reconstructed_device_a_same_confirmed_identity",
+      "passed": true
+    },
+    {
+      "test": "reconstructed_device_b_access_accepted",
+      "passed": true
+    },
+    {
+      "test": "reconstructed_device_b_same_confirmed_identity",
+      "passed": true
+    },
+    {
+      "test": "stopped_api_is_transport_failure_not_success",
+      "passed": true
+    },
+    {
+      "test": "production_api_start_2_healthy",
+      "passed": true
+    },
+    {
+      "test": "first_restart_reuses_existing_data_protection_keys",
+      "passed": true
+    },
+    {
+      "test": "first_restart_device_a_access_accepted",
+      "passed": true
+    },
+    {
+      "test": "first_restart_device_a_same_confirmed_identity",
+      "passed": true
+    },
+    {
+      "test": "first_restart_device_b_access_accepted",
+      "passed": true
+    },
+    {
+      "test": "first_restart_device_b_same_confirmed_identity",
+      "passed": true
+    },
+    {
+      "test": "pre_restart_email_confirmation_link_valid_after_restart",
+      "passed": true
+    },
+    {
+      "test": "pre_restart_pending_owner_can_login_after_confirmation",
+      "passed": true
+    },
+    {
+      "test": "confirmed_pending_owner_profile_available",
+      "passed": true
+    },
+    {
+      "test": "pre_restart_device_a_refresh_accepted_after_restart",
+      "passed": true
+    },
+    {
+      "test": "device_a_refresh_preserves_device_id",
+      "passed": true
+    },
+    {
+      "test": "rotated_device_a_access_accepted",
+      "passed": true
+    },
+    {
+      "test": "rotated_device_a_same_confirmed_identity",
+      "passed": true
+    },
+    {
+      "test": "pre_restart_device_b_refresh_accepted_after_restart",
+      "passed": true
+    },
+    {
+      "test": "device_b_refresh_preserves_device_id",
+      "passed": true
+    },
+    {
+      "test": "rotated_device_b_access_accepted",
+      "passed": true
+    },
+    {
+      "test": "rotated_device_b_same_confirmed_identity",
+      "passed": true
+    },
+    {
+      "test": "device_a_logout_persisted",
+      "passed": true
+    },
+    {
+      "test": "production_api_start_3_healthy",
+      "passed": true
+    },
+    {
+      "test": "second_restart_reuses_existing_data_protection_keys",
+      "passed": true
+    },
+    {
+      "test": "logged_out_device_a_access_stays_revoked_after_restart",
+      "passed": true
+    },
+    {
+      "test": "logged_out_device_a_refresh_stays_revoked_after_restart",
+      "passed": true
+    },
+    {
+      "test": "second_restart_unaffected_device_b_access_accepted",
+      "passed": true
+    },
+    {
+      "test": "second_restart_unaffected_device_b_same_confirmed_identity",
+      "passed": true
+    },
+    {
+      "test": "unaffected_device_b_refresh_valid_after_second_restart",
+      "passed": true
+    },
+    {
+      "test": "second_restart_device_b_refresh_preserves_device_id",
+      "passed": true
+    },
+    {
+      "test": "second_restart_rotated_device_b_access_accepted",
+      "passed": true
+    },
+    {
+      "test": "second_restart_rotated_device_b_same_confirmed_identity",
+      "passed": true
+    },
+    {
+      "test": "owned_api_logs_do_not_contain_passwords_tokens_credentials_or_confirmation_codes",
+      "passed": true
+    }
+  ],
+  "production_api_process_starts": 3,
+  "real_postgresql": true,
+  "real_smtp_starttls_auth": true,
+  "email_confirmation_survives_api_restart": true,
+  "client_http_objects_recreated": true,
+  "https_certificate_verification": true,
+  "native_windows_dpapi_tested": false,
+  "native_launcher_process_restarted": false,
+  "native_minecraft_clients_tested": false,
+  "production_host_deployed": false
+}

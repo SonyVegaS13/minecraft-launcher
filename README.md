@@ -4,6 +4,8 @@
 
 Ветка `feature/solaris-id` добавляет серверный Solaris ID и Minecraft Auth Bridge.
 Результаты разработки и ограничения: [итоговый отчёт](docs/solaris-id/REPORT.md).
+Подготовка к контролируемому развёртыванию: [deployment-отчёт](docs/solaris-id/DEPLOYMENT_REPORT.md),
+[приёмка Windows/Minecraft](docs/solaris-id/ACCEPTANCE.md).
 Настройка сервиса: [развёртывание](deploy/solaris-id/README.md),
 [подключение лаунчера](docs/solaris-id/LAUNCHER.md),
 [сборка мостов](bridges/README.md), [локальные проверки](tests/SolarisId.Integration/README.md).

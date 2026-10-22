@@ -1,0 +1,3 @@
+# The owner must read and independently accept the Minecraft EULA before testing.
+# This template does not accept it: https://aka.ms/MinecraftEULA
+eula=false

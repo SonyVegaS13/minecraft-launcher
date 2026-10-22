@@ -16,4 +16,10 @@ solaris-id.json
 .env.production
 *.pfx
 *.key
+*.pem
+*.dump
+*.eml
+*.env
+.pgpass
+integration-env.json
 backend/Solaris.Id.Api/.keys/

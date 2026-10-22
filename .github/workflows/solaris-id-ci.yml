@@ -41,7 +41,7 @@ jobs:
           dotnet tool install dotnet-ef --version 8.0.11 --tool-path "$RUNNER_TEMP/solaris-ef"
       - name: Preserve updater, Minecraft installation and release configuration
         run: python tests/SolarisId.Integration/check_preserved_systems.py
-      - name: Real PostgreSQL, SMTP STARTTLS, HTTPS and security scenarios
+      - name: Real API, SMTP, HTTPS proxy, backup restore and security scenarios
         run: python tests/SolarisId.Integration/run_local.py --work-dir "$RUNNER_TEMP/solaris-id-validation" --ef "$RUNNER_TEMP/solaris-ef/dotnet-ef"
       - name: Launcher HTTP/session protocol tests
         run: dotnet run --project tests/SolarisIdClient.Tests/SolarisIdClient.Tests.csproj -c Release
@@ -96,7 +96,15 @@ jobs:
           dotnet restore SolarisLauncher.csproj
           dotnet build SolarisLauncher.csproj -c Release --no-restore
       - name: Validate Windows packaging without distribution
-        run: dotnet publish SolarisLauncher.csproj -c Release -r win-x64 --self-contained true --no-restore -o artifacts/solaris-id-validation
+        run: dotnet publish SolarisLauncher.csproj -c Release -r win-x64 --self-contained true --no-restore -p:DebugSymbols=false -p:DebugType=None -o artifacts/solaris-id-validation
+      - name: Check candidate contents and SHA-256
+        shell: pwsh
+        run: |
+          $files = @(Get-ChildItem artifacts/solaris-id-validation -File)
+          if ($files.Count -ne 1 -or $files[0].Name -cne 'SolarisLauncher.exe') {
+            throw 'Unexpected file in launcher candidate; never distribute the raw build directory.'
+          }
+          Get-FileHash artifacts/solaris-id-validation/SolarisLauncher.exe -Algorithm SHA256
       - name: Launcher protocol tests on Windows
         run: dotnet run --project tests/SolarisIdClient.Tests/SolarisIdClient.Tests.csproj -c Release
       # This feature workflow never creates tags, releases or updater manifests.

@@ -1,0 +1,7 @@
+{
+  "scenarios": 20,
+  "checks": 221,
+  "failures": 0,
+  "scripted_http": true,
+  "native_windows_dpapi_tested": false
+}

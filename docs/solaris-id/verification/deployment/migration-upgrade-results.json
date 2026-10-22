@@ -1,0 +1,48 @@
+{
+  "tests": 10,
+  "failures": 0,
+  "results": [
+    {
+      "test": "apply_existing_legacy_migrations",
+      "passed": true
+    },
+    {
+      "test": "duplicate_email_preflight_aborts_upgrade",
+      "passed": true
+    },
+    {
+      "test": "failed_upgrade_preserves_all_existing_users",
+      "passed": true
+    },
+    {
+      "test": "failed_upgrade_rolls_back_new_schema",
+      "passed": true
+    },
+    {
+      "test": "failed_upgrade_preserves_password_columns",
+      "passed": true
+    },
+    {
+      "test": "upgrade_after_explicit_fixture_duplicate_resolution",
+      "passed": true
+    },
+    {
+      "test": "successful_upgrade_preserves_both_ids",
+      "passed": true
+    },
+    {
+      "test": "successful_upgrade_preserves_password_columns",
+      "passed": true
+    },
+    {
+      "test": "permanent_nickname_ownership_backfills_existing_accounts",
+      "passed": true
+    },
+    {
+      "test": "all_four_migrations_recorded",
+      "passed": true
+    }
+  ],
+  "real_postgresql": true,
+  "fixture_rows_only": true
+}

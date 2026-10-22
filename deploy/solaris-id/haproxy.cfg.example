@@ -1,0 +1,48 @@
+# HAProxy 3.2+. Replace auth.example.invalid and certificate paths deliberately.
+# The Kestrel listener MUST be private/loopback HTTPS, not a public second entry.
+global
+    log stdout format raw local0 info
+    maxconn 512
+    ssl-default-bind-options ssl-min-ver TLSv1.2
+
+defaults
+    log global
+    mode http
+    # Do not add raw request lines, URI/query, headers, cookies or bodies here.
+    # This format records failures without exposing confirmation/reset tokens.
+    log-format "solaris_id status=%ST bytes=%B duration_ms=%Ta termination=%tsc backend=%b server=%s"
+    timeout http-request 10s
+    timeout connect 3s
+    timeout client 30s
+    timeout server 30s
+    timeout http-keep-alive 5s
+
+frontend plaintext_rejected
+    bind :80
+    http-request deny deny_status 400
+
+frontend solaris_https
+    bind :443 ssl crt /etc/solaris-id/proxy/frontend.pem
+    # No wildcard/default-host routing to this authentication API.
+    http-request deny deny_status 400 unless { hdr(host),field(1,:) -i auth.example.invalid }
+    http-request del-header Forwarded
+    http-request del-header X-Forwarded-For
+    http-request del-header X-Forwarded-Proto
+    http-request del-header X-Forwarded-Host
+    http-request del-header X-Forwarded-Prefix
+    http-request del-header X-Original-For
+    http-request del-header X-Original-Proto
+    http-request del-header X-Original-Host
+    http-request set-header X-Forwarded-For %[src]
+    http-request set-header X-Forwarded-Proto https
+    http-request set-header Host auth.example.invalid
+    http-response set-header Strict-Transport-Security max-age=31536000
+    default_backend solaris_api
+
+backend solaris_api
+    option httpchk
+    http-check send meth GET uri /health ver HTTP/1.1 hdr Host auth.example.invalid
+    http-check expect status 200
+    # Normal hostname + certificate verification on the upstream too.
+    # For public PKI use your OS CA bundle; never replace verify required with none.
+    server api 127.0.0.1:8443 ssl verify required ca-file /etc/ssl/certs/ca-certificates.crt sni str(auth.example.invalid) verifyhost auth.example.invalid check inter 2s fall 2 rise 1

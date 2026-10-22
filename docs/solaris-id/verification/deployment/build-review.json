@@ -1,0 +1,34 @@
+{
+  "observed_utc": "2026-10-22",
+  "runtime_source_commit": "192126bdd19080f53e2dd0192dd3fc07f093fd7a",
+  "artifacts": [
+    {
+      "file": "SolarisLauncher.exe",
+      "bytes": 83620147,
+      "sha256": "67db4bc9e74cecb8ace9b96e4c066ff355712153f95c8afdf6b5944a4b44cbfd"
+    },
+    {
+      "file": "solaris-id-paper-1.0.0.jar",
+      "bytes": 312836,
+      "sha256": "11102665a9cbbc325ac8e515cd4cf557e627fb0df7643348107470de298135ba"
+    },
+    {
+      "file": "solaris-id-forge-1.20.1-0.1.0.jar",
+      "bytes": 35793,
+      "sha256": "128e86cfcc74ec7953126963f7ea63821d5f4caea7727da7e4d5460993a0a3de"
+    }
+  ],
+  "launcher_version_unchanged": "2.2.15",
+  "launcher_pe_amd64": true,
+  "launcher_publish_contents": [
+    "SolarisLauncher.exe"
+  ],
+  "jar_crc_and_required_resources_verified": true,
+  "forge_refmap_entries": {
+    "packet_handlers": 39,
+    "advancement_handlers": 2
+  },
+  "native_windows_gui_dpapi_tested": false,
+  "native_minecraft_server_client_tested": false,
+  "release_published": false
+}

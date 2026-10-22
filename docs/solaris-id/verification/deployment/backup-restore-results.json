@@ -1,0 +1,103 @@
+{
+  "tests": 23,
+  "failures": 0,
+  "results": [
+    {
+      "test": "isolated_postgresql_16_fixture_only",
+      "passed": true
+    },
+    {
+      "test": "source_has_all_four_real_migrations",
+      "passed": true
+    },
+    {
+      "test": "real_custom_format_pg_dump",
+      "passed": true
+    },
+    {
+      "test": "backup_file_not_group_or_world_readable",
+      "passed": true
+    },
+    {
+      "test": "pg_restore_can_read_archive_contents",
+      "passed": true
+    },
+    {
+      "test": "restore_target_is_a_new_empty_database",
+      "passed": true
+    },
+    {
+      "test": "real_pg_restore_to_new_database",
+      "passed": true
+    },
+    {
+      "test": "all_fixture_rows_columns_and_migration_history_preserved_byte_for_byte",
+      "passed": true
+    },
+    {
+      "test": "password_hash_column_preserved_not_reset",
+      "passed": true
+    },
+    {
+      "test": "mfa_store_preserved_not_reset",
+      "passed": true
+    },
+    {
+      "test": "trusted_time_not_double_counted_during_restore",
+      "passed": true
+    },
+    {
+      "test": "restore_old_live_session_risk_demonstrated",
+      "passed": true
+    },
+    {
+      "test": "restored_access_device_sessions_revoked",
+      "passed": true
+    },
+    {
+      "test": "restored_refresh_tokens_consumed_and_expired",
+      "passed": true
+    },
+    {
+      "test": "restored_game_tickets_consumed_and_expired",
+      "passed": true
+    },
+    {
+      "test": "restored_connections_denied_and_game_sessions_closed",
+      "passed": true
+    },
+    {
+      "test": "restored_security_stamp_rotated_for_identity_token_invalidation",
+      "passed": true
+    },
+    {
+      "test": "revocation_preserves_password_columns_skin_and_playtime",
+      "passed": true
+    },
+    {
+      "test": "restricted_runtime_role_can_read_restored_identity_data",
+      "passed": true
+    },
+    {
+      "test": "restricted_runtime_role_can_perform_transactional_dml",
+      "passed": true
+    },
+    {
+      "test": "restricted_runtime_role_cannot_create_schema_objects",
+      "passed": true
+    },
+    {
+      "test": "restricted_runtime_role_cannot_grant_roles",
+      "passed": true
+    },
+    {
+      "test": "source_database_untouched_by_restore_revocation_and_permissions_tests",
+      "passed": true
+    }
+  ],
+  "real_postgresql": true,
+  "real_pg_dump_and_restore": true,
+  "fixture_rows_only": true,
+  "production_database_touched": false,
+  "native_identity_login_tested_here": false
+}
