@@ -22,3 +22,25 @@ GRADLE_USER_HOME=/tmp/solaris-id-forge-gradle \
 ```
 
 The `/tmp` paths keep caches and large generated files off the limited workspace filesystem. Future environments must restore/setup the verified JDK/Gradle and trusted platform proxy configuration first. Normal non-proxy developer machines omit these environment-specific proxy flags.
+
+## Fresh-cache and GitHub CI verification — 2026-10-22
+
+GitHub Actions [run 39719937277](https://github.com/SonyVegaS13/minecraft-launcher/actions/runs/39719937277) **passed all three jobs** for source commit `1d5dc7a240e33c27fa37c8b72466f776524189a0`: Java core/Paper/Forge (including strict-verification Forge compilation, Mixins and reobfuscation), Windows build/publish and API/client integration. This confirms the remote build; native Minecraft client/server E2E remains unrun.
+
+An earlier GitHub run exposed a missing checksum for the official `org.junit:junit-bom:5.7.2` Gradle `.module` variant. A separate, initially empty local Gradle home reproduced the additional `5.7.1` and `5.9.0` variants. Added only those three artifact SHA-256 entries to `gradle/verification-metadata.xml`, each checked against Maven Central's published `.module.sha256` file. Existing POM hashes, strict verification and the previously documented narrow locally generated Forge-output exception remain intact.
+
+After the additions, the separate fresh-cache build **passed in 1m 8s with 11 executed tasks**, including `compileJava` and `reobfJar`, using:
+
+```sh
+cd /workspace/minecraft-launcher/bridges/forge
+JAVA_HOME=/workspace/.solaris-environment/tools/jdk-17 \
+GRADLE_USER_HOME=/tmp/solaris-id-forge-fresh-ci \
+/workspace/.solaris-environment/tools/gradle-8.1.1/bin/gradle \
+  --no-daemon \
+  -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080 \
+  -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 \
+  -PsolarisBuildDir=/tmp/solaris-id-forge-fresh-ci-build \
+  build --dependency-verification strict
+```
+
+Local fresh-cache log: `/tmp/solaris-id-forge-fresh-ci-build.log`. Its review JAR `/tmp/solaris-id-forge-fresh-ci-build/libs/solaris-id-forge-1.20.1-0.1.0.jar` is 35793 bytes, SHA-256 `85b14ae9c3759b346ef0c98896174b0144c6adee3c79c4903dedafe180542224`; its packaged refmap again contains all 39 packet and 2 advancement targets. These are separate artifacts from the earlier build above; archive timestamps can change the JAR hash between builds. No review artifact was installed into a working server or client pack.

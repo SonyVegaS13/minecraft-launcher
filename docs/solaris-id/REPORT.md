@@ -8,6 +8,8 @@
 | Backend / Identity / сессии / статистика | [`0fe1f33`](https://github.com/SonyVegaS13/minecraft-launcher/commit/0fe1f33) |
 | Интеграция лаунчера | [`483c7d2`](https://github.com/SonyVegaS13/minecraft-launcher/commit/483c7d2) |
 | Paper / Forge bridges | [`1e90292`](https://github.com/SonyVegaS13/minecraft-launcher/commit/1e90292) |
+| Реальные интеграционные тесты, CI, развёртывание и отчёт | [`28dcc03`](https://github.com/SonyVegaS13/minecraft-launcher/commit/28dcc03) |
+| Полные checksums метаданных для чистого Forge CI | [`1d5dc7a`](https://github.com/SonyVegaS13/minecraft-launcher/commit/1d5dc7a) |
 
 Реализован независимый Solaris ID API с постоянными аккаунтами, отзывными сессиями устройств, профилем/скином, MFA и защищённым Control; лаунчер использует этот API; отдельные Paper/Forge-мосты получают подтверждение конкретного подключения и передают доверенные события игрового времени. Совместимый с существующим клиентом вход требует **ручного подтверждения кода в лаунчере**. Полностью автоматический игровой handshake не реализован.
 
@@ -107,7 +109,7 @@ JAR не установлен на рабочий сервер и не опуб�
 | Java shared core | **31/31**, 0 failures/errors/skips | **27** lifecycle/concurrency-сценариев и **4** настоящих Java HTTPS/TLS-теста маршрутов/headers/лимитов/отказов/сертификатов |
 | Java → действующий ASP.NET API | **Пройдено** | Реальный Java `HttpBridgeApi`, создание connection, одобрение координатором по пользовательскому HTTPS, неизменный user ID, heartbeat/close idempotence, cancellation; PostgreSQL/SMTP/TLS реальные |
 | Paper / Forge | **Сборки пройдены** | Настоящий Paper API; ForgeGradle/Mixin processing/reobfuscation и упакованный refmap. Игровые клиенты/серверы этим не тестируются |
-| WPF Release и `win-x64` self-contained publish | **Пройдены на Linux с Windows targeting** | Компиляция и упаковка приложения. Не запуск Windows GUI и не проверка DPAPI |
+| WPF Release и `win-x64` self-contained publish | **Пройдены на Linux с Windows targeting и в Windows CI** | Компиляция и упаковка приложения, C# protocol-тесты на Windows. Не запуск Windows GUI и не проверка DPAPI |
 | Защищённые прежние системы | **50/50 файлов без изменений** | Сравнение с базой; версии/каналы/зависимости сохранены |
 
 Особо проверены исправления конкурентных ошибок: один recovery-код допускает ровно один успешный вход; recovery-only сессия администратора получает owner `/me`, но **403 в Control**; при первой настройке MFA продолжает работать только доказавшая пароль enrollment-сессия, остальные устройства отозваны; после enable отзывается и она. Три конкурентные попытки «отключить MFA / выдать admin» не оставляют администратора без MFA.
@@ -118,7 +120,7 @@ JAR не установлен на рабочий сервер и не опуб�
 
 Подробные JUnit XML остаются в `bridges/core/build/test-results/test/`; локальный WPF publish log — `/workspace/solaris-id-artifacts/launcher-publish.log`, Forge log — `/tmp/solaris-id-forge-build-final.log`. Временные пути не являются долговечными артефактами. Сырые mailbox/config/key/log files с тестовыми credentials не коммитятся и не загружаются в CI artifacts.
 
-В [solaris-id-ci.yml](../../.github/workflows/solaris-id-ci.yml) добавлены изолированные API/SMTP/PostgreSQL/TLS + policy/upgrade, клиентские тесты, сравнение защищённых файлов с полной Git-историей, Java/Paper/Forge сборки и Windows compile/publish. Конфигурация workflow не равна подтверждённому удалённому GitHub Actions run; здесь отчёт о выполненных локальных проверках. Workflow не создаёт tags/releases/updater manifests.
+В [solaris-id-ci.yml](../../.github/workflows/solaris-id-ci.yml) добавлены изолированные API/SMTP/PostgreSQL/TLS + policy/upgrade, клиентские тесты, сравнение защищённых файлов с полной Git-историей, Java/Paper/Forge сборки и Windows compile/publish. Удалённый [GitHub Actions run 39719937277](https://github.com/SonyVegaS13/minecraft-launcher/actions/runs/39719937277) **успешен по всем трём задачам** (`real-api-integration`, `java-bridges`, `windows-compile`) на коммите `1d5dc7a240e33c27fa37c8b72466f776524189a0`. Подтверждены API/SMTP/HTTPS/миграции, Java Core/Paper/Forge, настоящая Windows-компиляция/publish и клиентские protocol-тесты. [Обезличенный CI-итог](verification/github-ci-results.json). Это не интерактивный запуск WPF/DPAPI или Minecraft. Workflow не создаёт tags/releases/updater manifests. После этого изменяются только документы и результаты проверок.
 
 ## G. Развёртывание, оставшаяся приёмка и результат
 
@@ -136,3 +138,9 @@ JAR не установлен на рабочий сервер и не опуб�
 Существенные границы сохраняются: Minecraft offline UUID не заменяется постоянным Solaris ID; перенос inventory/advancement и отображение облачных скинов внутри Minecraft требуют отдельной интеграции. Offline-mode может загрузить/передать playerdata до join callback и допускает отдельные transport/duplicate-nickname риски. HTTPS-одобрение не шифрует сам игровой offline-протокол. Гейты событий/пакетов не являются полной песочницей произвольного стороннего серверного мода; эти ограничения описаны в [Forge README](../../bridges/forge/README.md).
 
 Итог этапов A–G: реализация, реальные доступные локальные security-проверки, обе серверные сборки и Windows-пакетирование завершены; конфигурация CI/развёртывания подготовлена. Production-хостинг, внешняя почта, native Windows и Minecraft E2E остаются явно непроверенными. Рабочие серверы, модпак, обновления и пользовательские релизы не развёрнуты этой веткой.
+
+Список всех изменённых путей: [CHANGED_FILES.txt](CHANGED_FILES.txt).
+
+Исправление чистого CI: первый run остановился на отсутствующих SHA-256 официальных `.module` JUnit BOM. Для версий 5.7.1 / 5.7.2 / 5.9.0 сверены опубликованные Maven Central `.sha256` и добавлены точные хеши; строгая проверка не отключалась. Повторный запуск с пустым локальным кешем и итоговый GitHub CI успешны. `dotnet-ef migrations has-pending-model-changes` не обнаружил расхождения модели/миграций; NuGet не сообщил известных уязвимых backend-пакетов по использованному feed. Сохраняются неблокирующие предупреждения устаревших EF/vendor API и версий Actions.
+
+Черновик настроек Cloud дополнен проверенными командами Solaris, путями инструментов и ограничениями; для применения в следующих сессиях его требуется сохранить и опубликовать в настройках среды. Это не развёртывание Solaris ID.

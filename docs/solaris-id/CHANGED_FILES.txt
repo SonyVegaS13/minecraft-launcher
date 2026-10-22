@@ -73,6 +73,7 @@ docs/solaris-id/solaris-id.example.json
 docs/solaris-id/verification/api-results.json
 docs/solaris-id/verification/build-results.json
 docs/solaris-id/verification/client-protocol-results.json
+docs/solaris-id/verification/github-ci-results.json
 docs/solaris-id/verification/java-api-probe-results.json
 docs/solaris-id/verification/java-core-results.json
 docs/solaris-id/verification/migration-upgrade-results.json
