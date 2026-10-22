@@ -241,6 +241,7 @@ public partial class MainWindow : Window
 
     private async void AuthActionButton_Click(object sender, RoutedEventArgs e)
     {
+        if (!AuthView.IsEnabled) return;
         string login = LoginBox.Text.Trim();
         string password = CurrentPassword();
         AuthStatus.Text = "";
@@ -259,6 +260,8 @@ public partial class MainWindow : Window
             return;
         }
         AuthActionButton.IsEnabled = false; SwitchAuthButton.IsEnabled = false;
+        AuthView.IsEnabled = false;
+        LocalAuthModeButton.IsEnabled = false; CloudAuthModeButton.IsEnabled = false;
         try
         {
             if (_cloudMode) await AuthenticateCloudAsync(login, password);
@@ -266,7 +269,8 @@ public partial class MainWindow : Window
             else await LoginLocalAsync(login, password);
         }
         catch (Exception ex) { AuthStatus.Text = ex.Message; }
-        finally { AuthActionButton.IsEnabled = true; SwitchAuthButton.IsEnabled = true; }
+        finally { AuthActionButton.IsEnabled = true; SwitchAuthButton.IsEnabled = true;
+            LocalAuthModeButton.IsEnabled = true; CloudAuthModeButton.IsEnabled = true; AuthView.IsEnabled = true; }
     }
 
     private void SwitchAuthButton_Click(object sender, RoutedEventArgs e)
@@ -289,9 +293,9 @@ public partial class MainWindow : Window
     {
         if (File.Exists(_accountFile))
         {
-            var existing = await ReadAccountAsync();
-            if (existing is not null && string.Equals(existing.Username, login, StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("Этот аккаунт уже зарегистрирован на этом компьютере.");
+            // Never replace a different existing account or a corrupt file.
+            // Solaris ID registration is independent; legacy data remains intact.
+            throw new InvalidOperationException("На этом ПК уже есть локальный аккаунт. Войдите в него или создайте отдельный Solaris ID; существующие данные не перезаписываются.");
         }
         byte[] salt = RandomNumberGenerator.GetBytes(16);
         byte[] hash = HashPassword(password, salt);
@@ -315,6 +319,7 @@ public partial class MainWindow : Window
 
     private async void TryRestoreAccount()
     {
+        AuthView.IsEnabled = false;
         try
         {
             if (await TryRestoreCloudAsync()) return;
@@ -327,6 +332,7 @@ public partial class MainWindow : Window
             }
         }
         catch { /* Offline login stays available. */ }
+        finally { AuthView.IsEnabled = true; }
     }
 
     private void ShowMainView(string username)
@@ -337,14 +343,19 @@ public partial class MainWindow : Window
         WelcomeText.Text = username;
         ProfileName.Text = username;
         ProfileText.Text = _cloudSession is not null
-            ? (_cloudOffline ? "SOLARIS ID — без соединения" : "SOLARIS ID — подключён")
+            ? (_cloudOffline ? "Solaris ID без связи: локальная игра доступна; защищённый сервер требует API" : "SOLARIS ID — подключён")
             : $"Локальный аккаунт: {username}";
         FullProfileStatus.Text = ProfileText.Text;
         CloudLegacyImportPanel.Visibility = _cloudSession is null
             ? Visibility.Collapsed : Visibility.Visible;
+        CloudOnlineToolsPanel.Visibility = _cloudSession is null ? Visibility.Collapsed : Visibility.Visible;
+        CloudNicknameBox.Text = _cloudSession?.Nickname ?? "";
         OpenControlButton.Visibility = _cloudSession?.IsAdmin == true && !_cloudOffline
             ? Visibility.Visible : Visibility.Collapsed;
         FullProfileName.Text = username;
+        FullProfileSolarisId.Text = _cloudSession is { } profile ? "Solaris ID: " + profile.Id : "Локальный профиль этого компьютера";
+        FullProfileEmail.Text = _cloudSession is { } owner ? "Email: " + owner.Email : "";
+        FullProfileLastActive.Text = _cloudSession?.LastActiveUtc is { } lastActive ? "Активность: " + lastActive.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "";
         // Refresh the square Minecraft face whenever an account is opened.
         // Never display the previous user's head while the new skin loads.
         SetProfileSkinHead(null);
@@ -356,25 +367,21 @@ public partial class MainWindow : Window
 
     private async void LogoutButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_cloudLogoutRunning) return;
+        _cloudLogoutRunning = true;
+        MainView.IsEnabled = false;
+        ProfileView.IsEnabled = ControlView.IsEnabled = false;
         try
         {
-            if (_cloudSession is not null) ClearCloudSession();
+            if (_cloudSession is not null) await LogoutCloudAsync();
             else
             {
                 LocalAccount? account = await ReadAccountAsync();
                 if (account is not null) { account.RememberMe = false; await SaveAccountAsync(account); }
             }
         }
-        catch { }
-        MainView.Visibility = Visibility.Collapsed; AuthView.Visibility = Visibility.Visible;
-        NewsView.Visibility = Visibility.Collapsed;
-        SettingsView.Visibility = Visibility.Collapsed;
-        ProfileView.Visibility = Visibility.Collapsed;
-        ControlView.Visibility = Visibility.Collapsed;
-        LoginBox.Clear(); ClearPasswordFields(); ConfirmPasswordPanel.Visibility = Visibility.Collapsed;
-        RememberMeCheck.IsChecked = false; AuthStatus.Text = ""; _registerMode = false;
-        AuthTitle.Text = "Вход в аккаунт"; AuthActionButton.Content = "ВОЙТИ  ›"; SwitchAuthButton.Content = "Создать аккаунт";
-        RefreshCloudAuthLayout();
+        catch (IOException) { /* Existing local data is kept even if the remember flag cannot be saved. */ }
+        finally { ResetToAuthView(); MainView.IsEnabled = true; ProfileView.IsEnabled = ControlView.IsEnabled = true; _cloudLogoutRunning = false; }
     }
 
     private async Task<LocalAccount?> ReadAccountAsync()
@@ -730,13 +737,14 @@ public partial class MainWindow : Window
                 return;
             }
 
-            string nickname = await GetCurrentLaunchUsernameAsync();
+            string nickname = await GetCurrentLaunchUsernameAsync("vanilla");
             token.ThrowIfCancellationRequested();
             string vanillaDir = Path.Combine(_stateDir, "vanilla");
             string javaPath = FindJavaForMode(vanillaDir, 25);
             int ram = GetRamForMode("vanilla");
             var options = new MLaunchOption
             {
+                // Transport metadata only; protected servers require Solaris ID approval.
                 Session = MSession.CreateOfflineSession(nickname),
                 JavaPath = javaPath,
                 MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram),
@@ -818,7 +826,7 @@ public partial class MainWindow : Window
                 return;
             }
 
-            string nickname = await GetCurrentLaunchUsernameAsync();
+            string nickname = await GetCurrentLaunchUsernameAsync("modded");
             token.ThrowIfCancellationRequested();
             StatusText.Text = "Solaris Modded: запускаем Minecraft...";
             Progress.Value = 96;

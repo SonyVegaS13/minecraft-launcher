@@ -131,6 +131,11 @@
                                    Foreground="#D9D0E6" Margin="0,0,0,6"/>
                         <TextBox x:Name="CloudResetCodeBox" Style="{StaticResource InputBox}"/>
                     </StackPanel>
+                    <StackPanel x:Name="CloudTwoFactorPanel" Visibility="Collapsed" Margin="0,10,0,0">
+                        <TextBlock Text="Код 2FA (если включён)" FontSize="12" Foreground="#D9D0E6" Margin="0,0,0,6"/>
+                        <TextBox x:Name="CloudTwoFactorCode" Style="{StaticResource InputBox}" MaxLength="64"/>
+                        <CheckBox x:Name="CloudUseRecoveryCode" Content="Это резервный одноразовый код" Foreground="#D9D0E6" FontSize="11" Margin="0,7,0,0"/>
+                    </StackPanel>
                     <TextBlock x:Name="CapsLockWarning" Text="⚠ Включён Caps Lock" FontSize="10"
                                Foreground="#FFCB6B" Margin="0,6,0,0" Visibility="Collapsed"/>
                     <StackPanel x:Name="ConfirmPasswordPanel" Visibility="Collapsed" Margin="0,12,0,0">
@@ -545,18 +550,51 @@
                         <StackPanel>
                             <TextBlock x:Name="FullProfileName" Text="Игрок Solaris" FontSize="24" FontWeight="Bold" Foreground="#FFE1A0"/>
                             <TextBlock x:Name="FullProfileStatus" Text="Локальный аккаунт Solaris" FontSize="11" Foreground="#BAADC6" Margin="0,5,0,0"/>
+                            <TextBlock x:Name="FullProfileSolarisId" Foreground="#BAADC6" FontSize="11" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                            <TextBlock x:Name="FullProfileEmail" Foreground="#BAADC6" FontSize="11" Margin="0,5,0,0"/>
+                            <TextBlock x:Name="FullProfileLastActive" Foreground="#BAADC6" FontSize="11" Margin="0,5,0,0"/>
                             <TextBlock x:Name="FullProfileCreated" Text="Дата регистрации: неизвестна" FontSize="11" Foreground="#BAADC6" Margin="0,5,0,0"/>
                             <TextBlock x:Name="FullProfileTotal" Text="Всего в Minecraft: 0 ч 0 мин" FontSize="18" FontWeight="Bold" Foreground="#FFD16E" Margin="0,18,0,0"/>
                             <TextBlock x:Name="FullProfileVanilla" Text="Vanilla: 0 ч 0 мин" Foreground="#E5DCED" FontSize="12" Margin="0,12,0,0"/>
                             <TextBlock x:Name="FullProfileModded" Text="Modded: 0 ч 0 мин" Foreground="#E5DCED" FontSize="12" Margin="0,7,0,0"/>
+                            <StackPanel x:Name="CloudOnlineToolsPanel" Visibility="Collapsed" Margin="0,18,0,0">
+                                <TextBlock Text="SOLARIS ID — ОНЛАЙН-ПРОФИЛЬ" Foreground="#FFD582" FontWeight="SemiBold"/>
+                                <Button Content="ОБНОВИТЬ ПРОФИЛЬ И СКИН" Style="{StaticResource SecondaryButton}" Click="CloudProfileRefresh_Click" Margin="0,10,0,0"/>
+                                <TextBox x:Name="CloudNicknameBox" Style="{StaticResource InputBox}" MaxLength="16" Margin="0,10,0,0"/>
+                                <Button Content="ИЗМЕНИТЬ НИК (ПОТРЕБУЕТСЯ НОВЫЙ ВХОД)" Style="{StaticResource SecondaryButton}" Click="CloudRename_Click" Margin="0,8,0,0"/>
+                                <TextBlock Text="Двухфакторная защита (для Solaris Control обязательна)" Foreground="#D9D0E6" Margin="0,18,0,6" TextWrapping="Wrap"/>
+                                <TextBlock Text="Текущий пароль — только для настройки 2FA:" FontSize="11" Foreground="#BAADC6"/>
+                                <PasswordBox x:Name="CloudMfaPassword" Style="{StaticResource PasswordBoxStyle}" Margin="0,6,0,0"/>
+                                <Button Content="НАСТРОИТЬ ПРИЛОЖЕНИЕ-АУТЕНТИФИКАТОР" Style="{StaticResource SecondaryButton}" Click="CloudMfaSetup_Click" Margin="0,8,0,0"/>
+                                <TextBox x:Name="CloudMfaDetails" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" MaxHeight="150" VerticalScrollBarVisibility="Auto" Background="#151020" Foreground="#FFD582" Margin="0,8,0,0"/>
+                                <TextBlock Text="Код из приложения:" FontSize="11" Foreground="#BAADC6" Margin="0,8,0,0"/>
+                                <TextBox x:Name="CloudMfaCode" Style="{StaticResource InputBox}" MaxLength="12" Margin="0,6,0,0"/>
+                                <Button Content="ПОДТВЕРДИТЬ 2FA" Style="{StaticResource SecondaryButton}" Click="CloudMfaEnable_Click" Margin="0,8,0,0"/>
+                                <TextBlock Text="Активные устройства" Foreground="#D9D0E6" Margin="0,18,0,6"/>
+                                <Button Content="ПОКАЗАТЬ СЕССИИ" Style="{StaticResource SecondaryButton}" Click="CloudSessionsRefresh_Click"/>
+                                <ListBox x:Name="CloudSessionList" Height="110" Background="#0F0D1D" Foreground="#EEE5F3" Margin="0,8,0,0"/>
+                                <Button Content="ЗАВЕРШИТЬ ВЫБРАННУЮ СЕССИЮ" Style="{StaticResource SecondaryButton}" Click="CloudSessionRevoke_Click" Margin="0,8,0,0"/>
+                                <TextBlock x:Name="CloudProfileMessage" TextWrapping="Wrap" Foreground="#FFD582" FontSize="11" Margin="0,8,0,0"/>
+                                <TextBlock Text="ПОДТВЕРЖДЕНИЕ ПОДКЛЮЧЕНИЯ MINECRAFT" Foreground="#FFD582" FontWeight="SemiBold" Margin="0,20,0,6"/>
+                                <TextBlock Text="Подключитесь к защищённому серверу. Пока он показывает код, доступ к игре закрыт. Введите свой код здесь и подтвердите вход. Обычный ник не является авторизацией." TextWrapping="Wrap" Foreground="#BAADC6" FontSize="11"/>
+                                <ComboBox x:Name="CloudGameMode" SelectedIndex="0" Margin="0,8,0,0" Height="32">
+                                    <ComboBoxItem Content="Solaris Vanilla"/>
+                                    <ComboBoxItem Content="Solaris Modded"/>
+                                </ComboBox>
+                                <TextBox x:Name="CloudGameCode" Style="{StaticResource InputBox}" MaxLength="32" Margin="0,8,0,0"/>
+                                <Button Content="ПОДТВЕРДИТЬ МОЁ ПОДКЛЮЧЕНИЕ" Style="{StaticResource SecondaryButton}" Click="CloudGameApprove_Click" Margin="0,8,0,0"/>
+                                <TextBlock x:Name="CloudGameStatus" TextWrapping="Wrap" Foreground="#FFD582" FontSize="11" Margin="0,8,0,0"/>
+                                <TextBlock Text="Для Paper 1.20.1 доступен отдельный профиль ниже. Текущий Solaris Vanilla 26.2 остаётся без изменений; его клиент несовместим с сервером 1.20.1." TextWrapping="Wrap" Foreground="#BAADC6" FontSize="11" Margin="0,12,0,0"/>
+                                <Button x:Name="CloudVanilla1201Button" Content="VANILLA 1.20.1 — ОТДЕЛЬНЫЙ КЛИЕНТ" Style="{StaticResource SecondaryButton}" Click="CloudVanilla1201_Click" Margin="0,8,0,0"/>
+                            </StackPanel>
                             <StackPanel x:Name="CloudLegacyImportPanel" Visibility="Collapsed" Margin="0,17,0,0">
-                                <TextBlock Text="ПЕРЕНЕСТИ СТАРЫЙ ЛОКАЛЬНЫЙ ПРОФИЛЬ"
+                                <TextBlock Text="СКОПИРОВАТЬ СКИН ЛОКАЛЬНОГО ПРОФИЛЯ"
                                            Foreground="#FFD582" FontSize="11" FontWeight="SemiBold"/>
                                 <TextBlock Text="Нужен старый локальный пароль. Данные и аккаунт на ПК сохранятся."
                                            FontSize="11" Foreground="#B4A9C0" TextWrapping="Wrap" Margin="0,6,0,9"/>
                                 <PasswordBox x:Name="LegacyPasswordBox" Style="{StaticResource PasswordBoxStyle}"
                                              ToolTip="Пароль старого локального аккаунта"/>
-                                <Button Content="Перенести игровые часы" Margin="0,9,0,0" Height="36"
+                                <Button Content="Скопировать скин; сохранить локальную историю" Margin="0,9,0,0" Height="36"
                                         Style="{StaticResource SecondaryButton}" Click="CloudLegacyImport_Click"/>
                                 <TextBlock x:Name="LegacyImportStatus" Foreground="#FFD37D" FontSize="11"
                                            TextWrapping="Wrap" Margin="0,7,0,0"/>
@@ -620,6 +658,10 @@
                                 <Button Content="ОТКЛЮЧИТЬ СЕССИИ" Tag="revoke"
                                         Margin="10,0,0,0" Width="180" Style="{StaticResource SecondaryButton}"
                                         Click="ControlAccountAction_Click"/>
+                                <Button Content="СТАТИСТИКА" Tag="stats" Width="160" Style="{StaticResource SecondaryButton}" Click="ControlStatistics_Click" Margin="0,8,0,0"/>
+                                <Button Content="НАЗНАЧИТЬ АДМИНА" Tag="grant" Width="180" Style="{StaticResource SecondaryButton}" Click="ControlRole_Click" Margin="10,8,0,0"/>
+                                <Button Content="СНЯТЬ РОЛЬ АДМИНА" Tag="revoke" Width="180" Style="{StaticResource SecondaryButton}" Click="ControlRole_Click" Margin="10,8,0,0"/>
+                                <Button Content="СОСТОЯНИЕ СЕРВИСА" Width="180" Style="{StaticResource SecondaryButton}" Click="ControlServiceStatus_Click" Margin="0,8,0,0"/>
                                 <Button Content="СБРОС ПО ПОЧТЕ" Tag="reset-password"
                                         Margin="10,0,0,0" Width="165" Style="{StaticResource SecondaryButton}"
                                         Click="ControlAccountAction_Click"/>

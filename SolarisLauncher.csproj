@@ -33,6 +33,8 @@
   <ItemGroup>
     <Compile Remove="backend\**\*.cs" />
     <Compile Remove="vendor\**\*.cs" />
+    <!-- Independent cross-platform/API test harnesses are not WPF application code. -->
+    <Compile Remove="tests\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>

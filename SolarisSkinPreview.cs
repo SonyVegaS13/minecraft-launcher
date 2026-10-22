@@ -45,7 +45,7 @@ public partial class MainWindow
                 image = DecodeSkin(await File.ReadAllBytesAsync(local));
                 hasPlayerSkin = true;
             }
-            else if (!string.IsNullOrWhiteSpace(username))
+            else if (_cloudSession is null && !string.IsNullOrWhiteSpace(username))
             {
                 // Public skins are optional. Offline/local users keep the
                 // normal fallback; network failure must never block login.
@@ -102,16 +102,32 @@ public partial class MainWindow
 
     private static BitmapSource DecodeSkin(byte[] content)
     {
-        if (content.Length > 2 * 1024 * 1024)
-            throw new InvalidDataException("Файл скина слишком большой.");
-        using var stream = new MemoryStream(content);
-        BitmapDecoder decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.None,
-            BitmapCacheOption.OnLoad);
-        BitmapSource frame = decoder.Frames[0];
-        if (frame.PixelWidth != 64 || frame.PixelHeight != 64)
+        if (content.Length > 524288)
+            throw new InvalidDataException("Файл скина слишком большой (лимит 512 КиБ).");
+        ReadOnlySpan<byte> signature = [137,80,78,71,13,10,26,10];
+        if (content.Length < 33 || !content.AsSpan(0,8).SequenceEqual(signature))
+            throw new InvalidDataException("Скин должен быть настоящим PNG-файлом.");
+        // Reject hostile dimensions before WIC allocates or decodes pixels.
+        if (System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(content.AsSpan(8,4)) != 13 ||
+            !content.AsSpan(12,4).SequenceEqual("IHDR"u8) ||
+            System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(content.AsSpan(16,4)) != 64 ||
+            System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(content.AsSpan(20,4)) != 64)
             throw new InvalidDataException("Поддерживается PNG-скин размером 64×64.");
-        frame.Freeze();
-        return frame;
+        try
+        {
+            using var stream = new MemoryStream(content);
+            BitmapDecoder decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.None,
+                BitmapCacheOption.OnLoad);
+            if (decoder is not PngBitmapDecoder || decoder.Frames.Count != 1)
+                throw new InvalidDataException("Поддерживается только один PNG-скин.");
+            BitmapSource frame = decoder.Frames[0];
+            if (frame.PixelWidth != 64 || frame.PixelHeight != 64)
+                throw new InvalidDataException("Поддерживается PNG-скин размером 64×64.");
+            frame.Freeze();
+            return frame;
+        }
+        catch (Exception ex) when (ex is IOException or NotSupportedException or FormatException or ArgumentException or System.Runtime.InteropServices.COMException)
+        { throw new InvalidDataException("PNG-скин повреждён или не поддерживается.", ex); }
     }
 
     private static BitmapSource CreateDefaultSkin()
@@ -286,11 +302,11 @@ public partial class MainWindow
             SetProfileSkinHead(image);
             Show2DSkin(image);
             Build3DSkin(image);
-            if (_cloudSession is not null)
+            if (_cloudSession is { } cloud)
             {
                 string marker = Path.Combine(Path.GetDirectoryName(destination)!, "skin-pending.flag");
                 await File.WriteAllTextAsync(marker, "pending");
-                await UploadCloudSkinAsync(data);
+                await UploadCloudSkinAsync(data, cloud);
             }
         }
         catch (Exception ex)

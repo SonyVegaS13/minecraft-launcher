@@ -20,6 +20,7 @@ public partial class MainWindow
         public long SyncedVanillaSeconds { get; set; }
         public long SyncedModdedSeconds { get; set; }
         public bool HasCloudTotals { get; set; }
+        public int TrustedTotalsVersion { get; set; }
     }
 
     private sealed class CloudGameUpload
@@ -53,13 +54,44 @@ public partial class MainWindow
         catch { return new PlayerActivity(); }
     }
 
-    private async Task SaveActivityAsync(string username, PlayerActivity activity)
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, System.Threading.SemaphoreSlim> ActivityGates = new(StringComparer.OrdinalIgnoreCase);
+
+    private static async Task SaveActivityFileAsync(string path, PlayerActivity activity, bool trustedTotalsOnly = false)
     {
-        string path = ActivityFile(username);
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        string tmp = path + ".tmp";
-        await File.WriteAllTextAsync(tmp, JsonSerializer.Serialize(activity));
-        File.Move(tmp, path, overwrite: true);
+        var gate = ActivityGates.GetOrAdd(path, _ => new System.Threading.SemaphoreSlim(1, 1));
+        await gate.WaitAsync();
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            PlayerActivity? current = null;
+            if (File.Exists(path))
+            {
+                try { current = JsonSerializer.Deserialize<PlayerActivity>(await File.ReadAllTextAsync(path)); }
+                catch (JsonException)
+                { File.Copy(path, path + ".before-recovery-" + Guid.NewGuid().ToString("N")); }
+            }
+            if (trustedTotalsOnly && current is not null)
+            {
+                current.SyncedVanillaSeconds = activity.SyncedVanillaSeconds;
+                current.SyncedModdedSeconds = activity.SyncedModdedSeconds;
+                current.HasCloudTotals = activity.HasCloudTotals;
+                current.TrustedTotalsVersion = activity.TrustedTotalsVersion;
+                activity = current;
+            }
+            else if (current is not null)
+            {
+                // Local process heartbeat must never overwrite a concurrent
+                // refresh of server-verified totals.
+                activity.SyncedVanillaSeconds = current.SyncedVanillaSeconds;
+                activity.SyncedModdedSeconds = current.SyncedModdedSeconds;
+                activity.HasCloudTotals = current.HasCloudTotals;
+                activity.TrustedTotalsVersion = current.TrustedTotalsVersion;
+            }
+            string tmp = path + ".tmp";
+            await File.WriteAllTextAsync(tmp, JsonSerializer.Serialize(activity));
+            File.Move(tmp, path, overwrite: true);
+        }
+        finally { gate.Release(); }
     }
 
     private static string DisplayDuration(long seconds) =>
@@ -68,40 +100,48 @@ public partial class MainWindow
     private async Task RefreshActivityAndProfileAsync(string username)
     {
         if (string.IsNullOrWhiteSpace(username)) return;
+        SolarisCloudSession? owner = _cloudSession;
+        string activityPath = ActivityFile(username);
         PlayerActivity activity = await ReadActivityAsync(username);
-        if (!string.Equals(WelcomeText.Text, username, StringComparison.OrdinalIgnoreCase)) return;
-        VanillaHours.Text = "В игре: " + DisplayDuration(activity.VanillaSeconds);
-        ModdedHours.Text = "В игре: " + DisplayDuration(activity.ModdedSeconds);
+        if (!string.Equals(WelcomeText.Text, username, StringComparison.OrdinalIgnoreCase) ||
+            !ReferenceEquals(owner, _cloudSession) || activityPath != ActivityFile(username)) return;
+        bool cloudProfile = _cloudSession is not null;
+        bool trustedTotals = activity.HasCloudTotals && activity.TrustedTotalsVersion == 1;
+        VanillaHours.Text = cloudProfile ? (trustedTotals ? "На сервере: " + DisplayDuration(activity.SyncedVanillaSeconds) : "Серверные часы: —") : "Локально: " + DisplayDuration(activity.VanillaSeconds);
+        ModdedHours.Text = cloudProfile ? (trustedTotals ? "На сервере: " + DisplayDuration(activity.SyncedModdedSeconds) : "Серверные часы: —") : "Локально: " + DisplayDuration(activity.ModdedSeconds);
         ActivityLastGame.Text = activity.LastMode switch
         {
             "vanilla" => "Solaris Vanilla",
             "modded" => "Solaris Modded",
             _ => "Вы ещё не играли"
         };
-        ActivityLastDuration.Text = DisplayDuration(activity.LastSessionSeconds);
+        ActivityLastDuration.Text = "Локальный сеанс: " + DisplayDuration(activity.LastSessionSeconds);
         ActivityLastLaunch.Text = activity.LastLaunchUtc is { } last
             ? last.ToLocalTime().ToString("dd.MM.yyyy, HH:mm") : "—";
         long vanilla = activity.VanillaSeconds;
         long modded = activity.ModdedSeconds;
-        if (_cloudSession is not null && activity.HasCloudTotals)
+        if (_cloudSession is not null && trustedTotals)
         {
-            vanilla = activity.SyncedVanillaSeconds +
-                activity.PendingCloudSessions.Where(s => s.Mode == "vanilla").Sum(s => (long)s.Seconds);
-            modded = activity.SyncedModdedSeconds +
-                activity.PendingCloudSessions.Where(s => s.Mode == "modded").Sum(s => (long)s.Seconds);
+            vanilla = activity.SyncedVanillaSeconds;
+            modded = activity.SyncedModdedSeconds;
         }
-        FullProfileTotal.Text = "Всего в Minecraft: " + DisplayDuration(vanilla + modded);
-        FullProfileVanilla.Text = "Vanilla: " + DisplayDuration(vanilla);
-        FullProfileModded.Text = "Modded: " + DisplayDuration(modded);
+        FullProfileTotal.Text = cloudProfile ? (trustedTotals ? "Подтверждено серверами: " + DisplayDuration(vanilla + modded) : "Серверная статистика пока недоступна") : "Локальное время Minecraft: " + DisplayDuration(vanilla + modded);
+        FullProfileVanilla.Text = cloudProfile && !trustedTotals ? "Vanilla: —" : "Vanilla: " + DisplayDuration(vanilla);
+        FullProfileModded.Text = cloudProfile && !trustedTotals ? "Modded: —" : "Modded: " + DisplayDuration(modded);
         FullProfileName.Text = username;
         if (_cloudSession is { } cloud)
-            FullProfileCreated.Text = "Дата регистрации: " +
-                cloud.CreatedUtc.ToLocalTime().ToString("dd.MM.yyyy");
+        {
+            FullProfileCreated.Text = "Дата регистрации: " + cloud.CreatedUtc.ToLocalTime().ToString("dd.MM.yyyy");
+            FullProfileSolarisId.Text = "Solaris ID: " + cloud.Id;
+            FullProfileEmail.Text = "Email: " + cloud.Email;
+            FullProfileLastActive.Text = cloud.LastActiveUtc is { } active ? "Активность: " + active.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "";
+        }
         else
         {
             try
             {
                 LocalAccount? account = await ReadAccountAsync();
+                if (!ReferenceEquals(owner, _cloudSession) || activityPath != ActivityFile(username)) return;
                 FullProfileCreated.Text = account?.CreatedUtc is { } created
                     ? "Дата регистрации: " + created.ToLocalTime().ToString("dd.MM.yyyy")
                     : "Дата регистрации: неизвестна (старый локальный аккаунт)";
@@ -112,16 +152,20 @@ public partial class MainWindow
 
     private async Task TrackGameProcessAsync(Process process, string username, string mode)
     {
+        string activityPath = ActivityFile(username);
+        SolarisCloudSession? owner = _cloudSession;
         PlayerActivity state = await ReadActivityAsync(username);
         state.LastMode = mode;
         state.LastLaunchUtc = DateTimeOffset.UtcNow;
         DateTimeOffset startedUtc = state.LastLaunchUtc.Value;
-        await SaveActivityAsync(username, state);
+        await SaveActivityFileAsync(activityPath, state);
 
         // Keep the lightweight launcher hidden, not terminated, to track offline
         // single-player as well as multiplayer time. Persist every 20 seconds;
         // losing Windows power discards at most the last heartbeat.
-        Hide();
+        // A protected server sends a connection code that must be approved in
+        // the launcher. Keep this window available for Alt+Tab in opt-in mode.
+        if (owner is null || _idConfiguration.ServerFor(mode) is null) Hide();
         var clock = Stopwatch.StartNew();
         long persistedSeconds = 0;
         Task exited = process.WaitForExitAsync();
@@ -136,7 +180,7 @@ public partial class MainWindow
                 if (mode == "vanilla") state.VanillaSeconds += delta;
                 else state.ModdedSeconds += delta;
                 persistedSeconds = elapsed;
-                await SaveActivityAsync(username, state);
+                await SaveActivityFileAsync(activityPath, state);
             }
             await exited;
         }
@@ -147,16 +191,11 @@ public partial class MainWindow
             if (mode == "vanilla") state.VanillaSeconds += delta;
             else state.ModdedSeconds += delta;
             state.LastSessionSeconds = (int)Math.Min(int.MaxValue, elapsed);
-            if (_cloudSession is not null && state.LastSessionSeconds > 0)
-                state.PendingCloudSessions.Add(new CloudGameUpload
-                {
-                    Id = Guid.NewGuid(), Mode = mode, StartedUtc = startedUtc,
-                    Seconds = state.LastSessionSeconds
-                });
+            // Preserve local history only; trusted server bridges own online hours.
             try
             {
-                await SaveActivityAsync(username, state);
-                if (_cloudSession is not null && !_cloudOffline)
+                await SaveActivityFileAsync(activityPath, state);
+                if (owner is not null && ReferenceEquals(owner, _cloudSession) && !_cloudOffline)
                     await SyncCloudDataAsync(username);
             }
             catch { /* Local playtime must survive a temporary cloud outage. */ }

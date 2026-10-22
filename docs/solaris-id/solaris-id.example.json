@@ -1,0 +1,5 @@
+{
+  "ApiOrigin": "https://id.example.invalid/",
+  "VanillaServerId": "vanilla-primary",
+  "ModdedServerId": "modded-primary"
+}
