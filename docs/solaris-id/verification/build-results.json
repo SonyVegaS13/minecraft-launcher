@@ -19,5 +19,8 @@
   "wpf_release_cross_compile": true,
   "wpf_win_x64_publish": true,
   "native_windows_ui_tested": false,
-  "minecraft_server_client_e2e_tested": false
+  "minecraft_server_client_e2e_tested": false,
+  "native_windows_compile_publish_ci": true,
+  "native_windows_ci_source_commit": "28dcc037174e3e90294af403d188d43bff5d1057",
+  "native_windows_ci_run": "https://github.com/SonyVegaS13/minecraft-launcher/actions/runs/39719585025"
 }

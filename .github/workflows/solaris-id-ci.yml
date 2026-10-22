@@ -64,6 +64,14 @@ jobs:
         run: gradle -p bridges --no-daemon :core:test :paper:build
       - name: Forge 47.4.20 compilation, Mixins and reobfuscation
         run: gradle -p bridges/forge --no-daemon build --dependency-verification strict
+      - name: Preserve dependency verification diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: forge-dependency-verification
+          path: bridges/forge/build/reports/dependency-verification/
+          if-no-files-found: ignore
+          retention-days: 7
       # Build validation only: never installs bridges or changes server/client packs.
 
   windows-compile:
