@@ -17,6 +17,10 @@ internal static class SolarisDirectories
     {
         get
         {
+#if SOLARIS_ID_TEST_BUILD
+            // The test binary must never inspect/migrate an installed profile.
+            return SolarisTestEdition.StateDirectory;
+#else
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             string standard = Path.Combine(appData, "Solaris");
             string dev = Path.Combine(appData, "Solaris-Neon-Dev");
@@ -57,6 +61,7 @@ internal static class SolarisDirectories
 
             SaveProfile("stable");
             return standard;
+#endif
         }
     }
 

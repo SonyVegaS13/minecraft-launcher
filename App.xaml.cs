@@ -16,9 +16,13 @@ public partial class App : Application
     internal static bool IsDeveloperMode { get; private set; }
     internal static bool IsDevChannel { get; private set; }
     internal static bool IsLegacyUpdateHandoff { get; private set; }
+#if SOLARIS_ID_TEST_BUILD
+    private static readonly string CrashLogPath = Path.Combine(SolarisTestEdition.LogDirectory, "launcher-crash.log");
+#else
     private static readonly string CrashLogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Solaris", "logs", "launcher-crash.log");
+#endif
 
     private static void LogCrash(string source, Exception exception)
     {
@@ -33,6 +37,18 @@ public partial class App : Application
 
     private void HandleDispatcherCrash(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs args)
     {
+#if SOLARIS_ID_TEST_BUILD
+        if (SolarisTestEdition.SmokeRequested)
+        {
+            args.Handled = true;
+            if (SolarisTestEdition.Initialized)
+                try { File.WriteAllText(SolarisTestEdition.SmokeReportPath,
+                    System.Text.Json.JsonSerializer.Serialize(new { testBuild = true, smokePassed = false,
+                        errorStage = "wpf-dispatcher", errorType = args.Exception.GetType().Name })); } catch { }
+            Shutdown(5);
+            return;
+        }
+#endif
         LogCrash("WPF dispatcher", args.Exception);
         args.Handled = true;
         if (_handlingCrash) return;
@@ -51,6 +67,9 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+#if SOLARIS_ID_TEST_BUILD
+        StartIsolatedTestEdition(e);
+#else
         DispatcherUnhandledException += HandleDispatcherCrash;
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>
         {
@@ -164,7 +183,35 @@ public partial class App : Application
                 "Solaris Launcher — ошибка запуска", MessageBoxButton.OK, MessageBoxImage.Error); } catch { }
             Shutdown(-1);
         }
+#endif
     }
+
+#if SOLARIS_ID_TEST_BUILD
+    private void StartIsolatedTestEdition(StartupEventArgs e)
+    {
+        try
+        {
+            // Reject updater/migration arguments before touching any shared data.
+            SolarisTestEdition.Initialize(e.Args);
+            IsDeveloperMode = true;
+            IsDevChannel = false;
+            if (Environment.GetEnvironmentVariable("SOLARIS_SOFTWARE_RENDER") == "1")
+                System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
+            DispatcherUnhandledException += HandleDispatcherCrash;
+            _launcherMutex = new System.Threading.Mutex(true, SolarisTestEdition.MutexName, out bool first);
+            if (!first) { _launcherMutex.Dispose(); _launcherMutex = null; Shutdown(3); return; }
+            base.OnStartup(e);
+        }
+        catch (Exception ex)
+        {
+            // Never log to a rejected directory or silently fall back to AppData.
+            if (SolarisTestEdition.Initialized) LogCrash("TEST startup", ex);
+            if (!SolarisTestEdition.SmokeRequested && e.Args.Length == 0)
+                MessageBox.Show(ex.GetBaseException().Message, "Solaris ID — TEST BUILD", MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(2);
+        }
+    }
+#endif
 
     protected override void OnExit(ExitEventArgs e)
     {

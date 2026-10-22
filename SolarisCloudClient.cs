@@ -18,7 +18,11 @@ public partial class MainWindow
     // supply a non-secret per-install solaris-id.json, shown on the login screen.
     private const string OfficialApiOrigin = "";
     private readonly SolarisIdConfiguration _idConfiguration = SolarisIdConfiguration.Load(
+#if SOLARIS_ID_TEST_BUILD
+        SolarisTestEdition.ConfigFile);
+#else
         Path.Combine(AppContext.BaseDirectory, "solaris-id.json"));
+#endif
     private bool _cloudMode;
     private bool _cloudResetMode;
     private bool _cloudOffline;
@@ -35,10 +39,16 @@ public partial class MainWindow
 
     private Uri? GetCloudOrigin()
     {
+#if SOLARIS_ID_TEST_BUILD
+        // Test credentials must never follow a developer environment override
+        // or the installed launcher's normal configuration/official origin.
+        return SolarisIdConfiguration.ValidateOrigin(_idConfiguration.ApiOrigin);
+#else
         string configured = App.IsDeveloperMode
             ? Environment.GetEnvironmentVariable("SOLARIS_ID_API_ORIGIN") ?? _idConfiguration.ApiOrigin
             : string.IsNullOrWhiteSpace(OfficialApiOrigin) ? _idConfiguration.ApiOrigin : OfficialApiOrigin;
         return SolarisIdConfiguration.ValidateOrigin(configured);
+#endif
     }
 
     private void InitializeCloudMode() => RefreshCloudAuthLayout();
@@ -192,7 +202,11 @@ public partial class MainWindow
         return true;
     }
 
+#if SOLARIS_ID_TEST_BUILD
+    private static byte[] Entropy => SHA256.HashData(Encoding.UTF8.GetBytes("Solaris.ID.TestBuild.DPAPI.v1"));
+#else
     private static byte[] Entropy => SHA256.HashData(Encoding.UTF8.GetBytes("Solaris.ID.DPAPI.v1"));
+#endif
     private void StoreCloudSession(SolarisCloudSession data)
     {
         if (!data.RememberMe) return;

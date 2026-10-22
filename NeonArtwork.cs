@@ -15,12 +15,20 @@ public partial class MainWindow
 {
     // The original embedded bitmap is a fallback, NOT the approved neon design.
     // Users can import Solaris-Neon-UI.zip once; it is then cached outside the EXE folder.
+#if SOLARIS_ID_TEST_BUILD
+    private static readonly string UiDirectory = SolarisTestEdition.UiDirectory;
+#else
     private static readonly string UiDirectory = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Solaris", "UI");
+#endif
     private static readonly string CachedNeonArchive = Path.Combine(UiDirectory, "Solaris-Neon-UI.zip");
+#if SOLARIS_ID_TEST_BUILD
+    private static readonly string ArtworkLog = SolarisTestEdition.ArtworkLogPath;
+#else
     private static readonly string ArtworkLog = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Solaris", "logs", "artwork.log");
+#endif
 
     private bool TryLoadNeonArt(string? selectedPath = null, bool notify = false)
     {
@@ -251,6 +259,9 @@ public partial class MainWindow
     private static IEnumerable<string> FindArtworkCandidates()
     {
         yield return CachedNeonArchive;
+#if !SOLARIS_ID_TEST_BUILD
+        // TEST BUILD uses embedded art/private explicit imports only. It must
+        // not discover old archives in production folders, Desktop or Downloads.
         string root = AppContext.BaseDirectory;
         string? parent = Directory.GetParent(root)?.FullName;
         string downloads = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
@@ -264,6 +275,7 @@ public partial class MainWindow
             foreach (string file in Directory.EnumerateFiles(folder, "Solaris-Neon-UI*.png", SearchOption.TopDirectoryOnly))
                 yield return file;
         }
+#endif
     }
 
     private static List<ArtworkImage> ReadArtwork(string source, StringBuilder report)

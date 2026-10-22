@@ -1,0 +1,159 @@
+name: Solaris ID isolated Windows TEST ZIP
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/solaris-id-test-build]
+
+permissions:
+  contents: read
+
+jobs:
+  windows-test-zip:
+    if: github.ref == 'refs/heads/feature/solaris-id-test-build'
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.426'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify compile-time isolation and preserve production systems
+        run: |
+          python tests/check_solaris_test_isolation.py
+          dotnet run --project tests/SolarisTestEdition.Tests -c Release
+          dotnet run --project tests/SolarisTestEdition.Tests -c Release -p:SolarisTestBuild=false
+          dotnet run --project tests/SolarisIdClient.Tests -c Release
+      - name: Generate existing approved artwork and icon
+        run: |
+          python -m pip install Pillow
+          python scripts/generate_icon.py
+          python scripts/prepare_neon_art.py
+          python scripts/prepare_card_art.py
+      - name: Publish isolated self-contained Windows x64 test edition
+        shell: pwsh
+        run: |
+          $publish = Join-Path $env:RUNNER_TEMP 'solaris-id-test-publish'
+          dotnet restore SolarisLauncher.csproj -p:SolarisTestBuild=true
+          if ($LASTEXITCODE -ne 0) { throw 'Test edition restore failed.' }
+          dotnet publish SolarisLauncher.csproj -c Release -r win-x64 --self-contained true --no-restore -p:SolarisTestBuild=true -p:DebugSymbols=false -p:DebugType=None -o $publish
+          if ($LASTEXITCODE -ne 0) { throw 'Test edition publish failed.' }
+          Rename-Item (Join-Path $publish 'SolarisLauncher.IdTest.exe') 'SolarisLauncher.exe'
+      - name: Start actual packaged-name EXE and verify rendered WPF window
+        shell: pwsh
+        run: |
+          $publish = Join-Path $env:RUNNER_TEMP 'solaris-id-test-publish'
+          $exe = Join-Path $publish 'SolarisLauncher.exe'
+          # Only synthetic fixtures on this ephemeral runner. Refuse to touch a
+          # machine that already has actual Solaris data at these locations.
+          $protectedRoots = @(
+            (Join-Path $env:APPDATA 'Solaris'),
+            (Join-Path $env:APPDATA 'Solaris-Neon-Dev'),
+            (Join-Path $env:LOCALAPPDATA 'Solaris'),
+            (Join-Path $env:LOCALAPPDATA 'Solaris-Neon-Dev'),
+            (Join-Path $env:LOCALAPPDATA 'Programs/Solaris Launcher'),
+            (Join-Path $env:LOCALAPPDATA 'Programs/Solaris Launcher DEV'),
+            (Join-Path $env:LOCALAPPDATA 'Programs/SolarisLauncher')
+          )
+          foreach ($root in $protectedRoots) {
+            if (Test-Path $root) { throw 'Runner has existing Solaris data; refusing synthetic profile test.' }
+          }
+          foreach ($root in $protectedRoots) {
+            New-Item $root -ItemType Directory -Force | Out-Null
+            Set-Content (Join-Path $root 'isolation-sentinel.txt') 'RUNNER-ONLY SYNTHETIC FIXTURE' -Encoding UTF8
+          }
+          function Get-ProtectedSnapshot {
+            $records = [System.Collections.Generic.List[string]]::new()
+            foreach ($root in $protectedRoots) {
+              foreach ($item in (Get-ChildItem $root -Recurse -Force | Sort-Object FullName)) {
+                if ($item.PSIsContainer) { $records.Add("D:$($item.FullName)") }
+                else {
+                  $hash = (Get-FileHash $item.FullName -Algorithm SHA256).Hash
+                  $records.Add("F:$($item.FullName):$($item.Length):$hash")
+                }
+              }
+            }
+            return ($records | ConvertTo-Json -Compress)
+          }
+          $before = Get-ProtectedSnapshot
+          $target = Join-Path $protectedRoots[0] 'isolation-sentinel.txt'
+          foreach ($flag in @('--self-update', '--apply-update')) {
+            $arguments = @($flag, ('"'+$target+'"'), ('"'+$exe+'"'), '99.0.0', 'runner-isolation-probe')
+            $negative = Start-Process -FilePath $exe -ArgumentList $arguments -WorkingDirectory $publish -PassThru
+            if (-not $negative.WaitForExit(15000)) {
+              Stop-Process -Id $negative.Id -Force
+              throw 'Unsafe updater arguments did not fail immediately.'
+            }
+            if ($negative.ExitCode -ne 2) { throw 'TEST BUILD accepted an unsafe updater command.' }
+          }
+          foreach ($attempt in 1..2) {
+            $process = Start-Process -FilePath $exe -ArgumentList '--test-build-smoke' -WorkingDirectory $publish -PassThru
+            if (-not $process.WaitForExit(45000)) {
+              Stop-Process -Id $process.Id -Force
+              throw 'TEST BUILD WPF smoke did not finish within 45 seconds.'
+            }
+            if ($process.ExitCode -ne 0) { throw "TEST BUILD exited with code $($process.ExitCode)." }
+          }
+          $report = Join-Path $publish 'test-data/diagnostics/smoke.json'
+          if (-not (Test-Path $report)) { throw 'No test-only runtime smoke report.' }
+          $smoke = Get-Content $report -Raw | ConvertFrom-Json
+          if ($smoke.testBuild -ne $true -or $smoke.windowLoaded -ne $true -or $smoke.contentRendered -ne $true -or $smoke.smokePassed -ne $true) {
+            throw 'Runtime did not confirm the isolated WPF test edition.'
+          }
+          if ($smoke.productionUpdaterEnabled -ne $false -or $smoke.productionServerConnectionsEnabled -ne $false) {
+            throw 'Runtime did not disable production updater/server connections.'
+          }
+          if ($smoke.dpapiRoundTrip -ne $true -or $smoke.previousDpapiProbeRestored -ne $true -or $smoke.nativeModulesInTestDirectory -ne $true) {
+            throw 'Native runtime isolation / DPAPI restart probe did not pass.'
+          }
+          $normal = Start-Process -FilePath $exe -WorkingDirectory $publish -PassThru
+          $deadline = [DateTime]::UtcNow.AddSeconds(20)
+          do {
+            Start-Sleep -Milliseconds 200
+            $normal.Refresh()
+          } while (-not $normal.HasExited -and $normal.MainWindowHandle -eq [IntPtr]::Zero -and [DateTime]::UtcNow -lt $deadline)
+          if ($normal.HasExited -or $normal.MainWindowHandle -eq [IntPtr]::Zero -or $normal.MainWindowTitle -notlike '*TEST BUILD*') {
+            if (-not $normal.HasExited) { Stop-Process -Id $normal.Id -Force }
+            throw 'Normal no-argument TEST BUILD GUI did not open with test branding.'
+          }
+          if (-not $normal.CloseMainWindow() -or -not $normal.WaitForExit(15000)) {
+            if (-not $normal.HasExited) { Stop-Process -Id $normal.Id -Force }
+            throw 'Normal TEST BUILD GUI did not close cleanly.'
+          }
+          if ($normal.ExitCode -ne 0) { throw 'Normal TEST BUILD GUI returned an error.' }
+          if ((Get-ProtectedSnapshot) -cne $before) { throw 'Protected Solaris fixture changed.' }
+          @{
+            protectedProfileSentinelsUnchanged = $true
+            unsafeUpdateArgumentsRejected = $true
+            normalGuiOpened = $true
+            normalGuiClosed = $true
+            executableSha256 = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          } | ConvertTo-Json | Set-Content (Join-Path $env:RUNNER_TEMP 'solaris-id-test-isolation.json') -Encoding UTF8
+      - name: Package only explicit binaries and safe configuration templates
+        shell: pwsh
+        run: |
+          $publish = Join-Path $env:RUNNER_TEMP 'solaris-id-test-publish'
+          python scripts/package_solaris_id_test.py --publish-dir $publish --smoke-report (Join-Path $publish 'test-data/diagnostics/smoke.json') --runner-isolation-report (Join-Path $env:RUNNER_TEMP 'solaris-id-test-isolation.json') --output-dir artifacts/solaris-id-test-delivery --commit '${{ github.sha }}'
+          if ($LASTEXITCODE -ne 0) { throw 'TEST BUILD packaging/CRC/isolation validation failed.' }
+      - name: Preserve safe smoke failure details only
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Solaris-ID-TEST-smoke-failure
+          path: ${{ runner.temp }}/solaris-id-test-publish/test-data/diagnostics/smoke.json
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload downloadable TEST ZIP, checksum and package metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: Solaris-Launcher-ID-TEST-win-x64
+          path: artifacts/solaris-id-test-delivery/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+      # No release, tags, updater manifests, live servers or installed files.

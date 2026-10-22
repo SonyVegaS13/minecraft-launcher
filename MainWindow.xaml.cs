@@ -69,7 +69,9 @@ public partial class MainWindow : Window
     private const string ModdedServerHost = ModdedStatusHost;
 
     private readonly DispatcherTimer _moddedStatusTimer = new() { Interval = TimeSpan.FromSeconds(60) };
+#if !SOLARIS_ID_TEST_BUILD
     private bool _moddedStatusCheckRunning;
+#endif
 
     private readonly string _gameDir = Path.Combine(SolarisDirectories.StateDir, "game");
     private readonly string _stateDir = SolarisDirectories.StateDir;
@@ -108,10 +110,15 @@ public partial class MainWindow : Window
             TraceStartup("START " + LauncherVersion + " [RAMFIX-R2]");
             InitializeComponent();
 
+#if SOLARIS_ID_TEST_BUILD
+            InitializeTestEditionUi();
+#endif
+
             // The sliders no longer wire ValueChanged in XAML: events can
             // arrive while WPF is still constructing other named controls.
             // Subscribe only after all elements and RAM settings are ready.
             stage = "RAM slider event wiring (pending)";
+#if !SOLARIS_ID_TEST_BUILD
             if (App.IsDeveloperMode)
             {
                 if (App.IsDevChannel)
@@ -127,6 +134,7 @@ public partial class MainWindow : Window
                     Title = "Solaris Launcher - RAMFIX-R2 DEV";
                 }
             }
+#endif
 
             stage = "InitializeArtworkPreviews";
             TraceStartup(stage);
@@ -159,7 +167,11 @@ public partial class MainWindow : Window
 
             stage = "TryRestoreAccount";
             TraceStartup(stage);
+#if SOLARIS_ID_TEST_BUILD
+            if (!SolarisTestEdition.SmokeRequested) TryRestoreAccount();
+#else
             TryRestoreAccount();
+#endif
 
             stage = "UpdateServerStatusAsync";
             TraceStartup(stage);
@@ -182,6 +194,13 @@ public partial class MainWindow : Window
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+#if SOLARIS_ID_TEST_BUILD
+        if (_updateCheckStarted) return;
+        _updateCheckStarted = true;
+        StatusText.Text = "TEST BUILD · отдельные данные и клиенты · обновление лаунчера отключено";
+        if (!SolarisTestEdition.SmokeRequested) await RefreshServerStatesAsync();
+        return;
+#else
         if (_updateCheckStarted)
             return;
 
@@ -213,6 +232,7 @@ public partial class MainWindow : Window
         // A fresh launch shows UPDATE until the selected client is installed.
         if (!_installingLauncherUpdate && !Dispatcher.HasShutdownStarted)
             await RefreshServerStatesAsync();
+#endif
     }
 
     private async Task CompleteLegacyUpdateMigrationAsync()
@@ -407,6 +427,13 @@ public partial class MainWindow : Window
     // Status polling never blocks the play buttons or local client.
     private async Task UpdateServerStatusAsync()
     {
+#if SOLARIS_ID_TEST_BUILD
+        await Task.CompletedTask;
+        ModdedStatusText.Text = "TEST BUILD · подключение к рабочему серверу отключено";
+        ModdedStatusDot.Fill = Brushes.Gray;
+        ModdedStatusText.Foreground = Brushes.LightGray;
+        return;
+#else
         if (_moddedStatusCheckRunning || Dispatcher.HasShutdownStarted || ModdedStatusText is null)
             return;
 
@@ -443,6 +470,7 @@ public partial class MainWindow : Window
         {
             _moddedStatusCheckRunning = false;
         }
+#endif
     }
 
     private void ShowModdedOfflineStatus()
@@ -877,7 +905,9 @@ public partial class MainWindow : Window
         string javaPath = await EnsureJavaForModeAsync(_gameDir, 17, 90, 96, token);
         int ram = GetRamForMode("modded");
         var options = new MLaunchOption { Session = MSession.CreateOfflineSession(nick), JavaPath = javaPath, MaximumRamMb = ram, MinimumRamMb = Math.Min(2048, ram), GameLauncherName = "SolarisLauncher", GameLauncherVersion = "3.0" };
+#if !SOLARIS_ID_TEST_BUILD
         if (!string.IsNullOrWhiteSpace(serverHost)) { options.ServerIp = serverHost; options.ServerPort = ServerPort; }
+#endif
         token.ThrowIfCancellationRequested();
         var process = await BuildInstalledMinecraftProcessAsync(_gameDir, versionName, options, token);
         token.ThrowIfCancellationRequested(); process.StartInfo.UseShellExecute = false;

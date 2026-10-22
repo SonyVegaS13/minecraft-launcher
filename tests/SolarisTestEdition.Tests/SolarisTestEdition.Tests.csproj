@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <SolarisTestBuild Condition="'$(SolarisTestBuild)' == ''">true</SolarisTestBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(SolarisTestBuild)' == 'true'">
+    <DefineConstants>$(DefineConstants);SOLARIS_ID_TEST_BUILD</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../SolarisTestEdition.cs" Link="SolarisTestEdition.cs" />
+  </ItemGroup>
+</Project>

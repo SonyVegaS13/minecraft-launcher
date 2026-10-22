@@ -29,6 +29,14 @@
     <DefineConstants>$(DefineConstants);SOLARIS_DEV_DISTRIBUTION</DefineConstants>
   </PropertyGroup>
 
+  <!-- Separate artifact only. The normal release updater/channel is unchanged. -->
+  <PropertyGroup Condition="'$(SolarisTestBuild)' == 'true'">
+    <DefineConstants>$(DefineConstants);SOLARIS_ID_TEST_BUILD</DefineConstants>
+    <AssemblyName>SolarisLauncher.IdTest</AssemblyName>
+    <IncludeNativeLibrariesForSelfExtract>false</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract>false</IncludeAllContentForSelfExtract>
+  </PropertyGroup>
+
   <!-- The independent ASP.NET Core Solaris ID server has its own .csproj. -->
   <ItemGroup>
     <Compile Remove="backend\**\*.cs" />
