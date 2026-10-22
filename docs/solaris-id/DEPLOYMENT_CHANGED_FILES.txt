@@ -29,6 +29,7 @@ docs/solaris-id/DEPLOYMENT_REPORT.md
 docs/solaris-id/verification/deployment/backup-restore-results.json
 docs/solaris-id/verification/deployment/build-review.json
 docs/solaris-id/verification/deployment/client-results.json
+docs/solaris-id/verification/deployment/github-ci-results.json
 docs/solaris-id/verification/deployment/java-results.json
 docs/solaris-id/verification/deployment/migration-upgrade-results.json
 docs/solaris-id/verification/deployment/preservation-results.json

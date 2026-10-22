@@ -30,5 +30,10 @@
   },
   "native_windows_gui_dpapi_tested": false,
   "native_minecraft_server_client_tested": false,
-  "release_published": false
+  "release_published": false,
+  "local_artifact_build_host": "Linux cloud; Windows cross-publish, Java17",
+  "native_windows_ci_compile_publish_verified": true,
+  "native_windows_ci_run": "https://github.com/SonyVegaS13/minecraft-launcher/actions/runs/39762744601",
+  "ci_source_commit": "910a814c0da5615b7ad05f0a04f8a4f8cc3478c7",
+  "local_hashes_are_not_claimed_to_match_separate_ci_builds": true
 }

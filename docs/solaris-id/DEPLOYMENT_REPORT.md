@@ -56,7 +56,7 @@ API и клиентский протокол уже имели автомати�
 | Java | 38/38 | 31 shared-core/TLS + 7 новых Paper binding; выполнены повторно, без skips |
 | C# transport/configuration | 20 сценариев, 221 проверка | Refresh/replay/logout/expiry/error-paths; scripted HTTP |
 | Paper / Forge | Сборки успешны | Реальные API, Forge reobfuscation и 39+2 refmap entries |
-| Launcher | Release win-x64 publish успешен | Настоящий Windows PE AMD64; интерактивный запуск не выполнен |
+| Launcher | Release win-x64 publish успешен на Linux и в Windows CI | Настоящий Windows PE AMD64, проверка состава кандидата; интерактивный запуск не выполнен |
 | Обратная совместимость | 50/50 protected files без изменений | Updater/install/vendor/release config и version/channel/dependencies сохранены |
 
 Доказательства: [API](verification/deployment/tests-results.json),
@@ -79,6 +79,18 @@ API и клиентский протокол уже имели автомати�
 Сохранились прежние неблокирующие предупреждения obsolete/nullability vendor/EF
 и deprecated Gradle/Actions; эти защищённые компоненты не переписывались.
 
+## Сохранение в GitHub
+
+Ветка [feature/solaris-id](https://github.com/SonyVegaS13/minecraft-launcher/tree/feature/solaris-id):
+исправление Paper — `192126b`, deployment/tests —
+[`910a814`](https://github.com/SonyVegaS13/minecraft-launcher/commit/910a814).
+[GitHub Actions 39762744601](https://github.com/SonyVegaS13/minecraft-launcher/actions/runs/39762744601)
+**успешен по всем трём задачам**: реальные API/deployment/security тесты, Java/Paper/Forge,
+Windows compile/publish/packaging и клиентские тесты. [CI receipt](verification/deployment/github-ci-results.json).
+После проверенного source commit меняются только документы/результаты. Бинарные
+хеши в build-review относятся к локальным review artifacts; они не выдаются за
+совпадающие с отдельной CI-пересборкой. Релизы, merge и production rollout не выполнялись.
+
 ## Что не проверено и что требуется владельцу
 
 В Cloud отсутствуют production origin, DB/SMTP bindings и операторский
@@ -87,7 +99,9 @@ API и клиентский протокол уже имели автомати�
 
 1. Выделить staging auth-хост, домен, PostgreSQL с отдельными runtime/migration
    правами, защищённый key ring/backup vault и SMTP sender. Настроить TLS, renewal,
-   внешний мониторинг и проверенную доставку писем. Без этого внешняя доступность
+   внешний мониторинг и проверенную доставку писем. Нагрузочная проверка,
+   DDoS-защита/квоты, certificate renewal и off-host backup/PITR на хостинге не выполнены;
+   их параметры и проверку задаёт владелец. Без этого внешняя доступность
    и безопасность реальной топологии остаются непроверенными.
 2. На Windows пройти W01–W16: реальный DPAPI CurrentUser, перезапуск EXE, API outage,
    local/cloud переход, скин, MFA, launcher focus, оба клиента и отмена загрузки.
@@ -113,3 +127,7 @@ API и клиентский протокол уже имели автомати�
 Список путей этого этапа: [DEPLOYMENT_CHANGED_FILES.txt](DEPLOYMENT_CHANGED_FILES.txt).
 Итог: подготовлен проверенный комплект для **контролируемого стендового развёртывания**;
 публичный production-запуск и перечисленные ручные проверки остаются открытыми.
+
+В черновике настроек Cloud сохранены обновлённые инструкции запуска новых проверок.
+Для применения в следующих сессиях черновик требуется сохранить и опубликовать
+в настройках среды; это не запускает production-сервис.
