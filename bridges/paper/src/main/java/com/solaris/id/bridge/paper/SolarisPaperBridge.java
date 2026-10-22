@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /** Server-only Paper 1.20.1 plugin. The client remains unmodified. */
 public final class SolarisPaperBridge extends JavaPlugin implements Listener, BridgeCallbacks {
     private final ConcurrentHashMap<UUID, Quarantine> pending = new ConcurrentHashMap<>();
+    private final CurrentPlayerConnections<Player> activePlayers = new CurrentPlayerConnections<>();
     private volatile ConnectionCoordinator coordinator;
 
     @Override public void onEnable() {
@@ -54,7 +55,7 @@ public final class SolarisPaperBridge extends JavaPlugin implements Listener, Br
         getServer().getScheduler().runTaskTimer(this, () -> {
             for (Quarantine hold : pending.values()) {
                 Player player = hold.player;
-                if (!player.isOnline()) continue;
+                if (!activePlayers.isCurrent(player.getUniqueId(), player) || !player.isOnline()) continue;
                 player.setVelocity(new org.bukkit.util.Vector());
                 player.setFallDistance(0);
                 player.leaveVehicle();
@@ -75,12 +76,20 @@ public final class SolarisPaperBridge extends JavaPlugin implements Listener, Br
     /** Integration API: stable Solaris account ID, present only for this approved live connection. */
     public Optional<UUID> solarisId(Player player) {
         ConnectionCoordinator current = coordinator;
-        return current == null || restricted(player) ? Optional.empty() : current.solarisId(player.getUniqueId());
+        if (player == null || current == null || restricted(player)) return Optional.empty();
+        return activePlayers.resolve(player.getUniqueId(), player, () -> {
+            Optional<UUID> identity = current.solarisId(player.getUniqueId());
+            // A plugin may call this API off-thread. A reconnect/reload while the
+            // coordinator was queried must not return the replacement's identity.
+            return current != coordinator || restricted(player) ? Optional.empty() : identity;
+        });
     }
 
     private boolean restricted(Player player) {
         ConnectionCoordinator current = coordinator;
-        return current == null || pending.containsKey(player.getUniqueId())
+        return player == null || current == null || !player.isOnline()
+            || !activePlayers.isCurrent(player.getUniqueId(), player)
+            || pending.containsKey(player.getUniqueId())
             || !current.isAuthenticated(player.getUniqueId());
     }
     private boolean restricted(Entity entity) {
@@ -90,6 +99,9 @@ public final class SolarisPaperBridge extends JavaPlugin implements Listener, Br
     private void quarantine(Player player) {
         ConnectionCoordinator current = coordinator;
         pending.put(player.getUniqueId(), new Quarantine(player, player.getLocation().clone()));
+        // Publish quarantine first, so async guards never see a predecessor's
+        // approval through the new exact-player binding.
+        activePlayers.bind(player.getUniqueId(), player);
         player.leaveVehicle();
         player.closeInventory();
         player.setVelocity(new org.bukkit.util.Vector());
@@ -105,10 +117,10 @@ public final class SolarisPaperBridge extends JavaPlugin implements Listener, Br
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
+        // Object identity matters: Player.equals may compare a reused transport
+        // UUID, while this event can still belong to the previous connection.
+        if (!activePlayers.remove(player.getUniqueId(), player)) return;
         Quarantine hold = pending.get(player.getUniqueId());
-        // An old connection's quit must not remove a replacement connection.
-        Player online = Bukkit.getPlayer(player.getUniqueId());
-        if (online != null && online != player) return;
         if (hold != null && hold.player == player) pending.remove(player.getUniqueId(), hold);
         ConnectionCoordinator current = coordinator;
         if (current != null) current.leave(player.getUniqueId());
@@ -121,6 +133,7 @@ public final class SolarisPaperBridge extends JavaPlugin implements Listener, Br
         for (Player player : getServer().getOnlinePlayers())
             player.kickPlayer("Solaris ID остановлен. Подключитесь после запуска проверки доступа.");
         pending.clear();
+        activePlayers.clear();
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
@@ -279,12 +292,14 @@ public final class SolarisPaperBridge extends JavaPlugin implements Listener, Br
     }
     private Player pendingPlayer(UUID playerId) {
         Quarantine hold = pending.get(playerId);
-        return hold != null && hold.player == Bukkit.getPlayer(playerId) ? hold.player : null;
+        return hold != null && hold.player == Bukkit.getPlayer(playerId)
+            && activePlayers.isCurrent(playerId, hold.player) && hold.player.isOnline() ? hold.player : null;
     }
     private void disconnect(Player player) {
-        pending.remove(player.getUniqueId());
+        Quarantine hold = pending.get(player.getUniqueId());
+        if (hold != null && hold.player == player) pending.remove(player.getUniqueId(), hold);
         ConnectionCoordinator current = coordinator;
-        if (current != null) current.leave(player.getUniqueId());
+        if (activePlayers.remove(player.getUniqueId(), player) && current != null) current.leave(player.getUniqueId());
         player.kickPlayer("Solaris ID: доступ не подтверждён или сессия отозвана. Повторите вход позднее.");
     }
     private record Quarantine(Player player, Location location) {}
