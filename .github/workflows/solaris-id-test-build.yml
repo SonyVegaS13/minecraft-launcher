@@ -149,6 +149,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - name: Upload downloadable TEST ZIP, checksum and package metadata
+        id: delivery
         uses: actions/upload-artifact@v4
         with:
           name: Solaris-Launcher-ID-TEST-win-x64
@@ -156,4 +157,14 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
+      - name: Download uploaded artifact back from GitHub
+        uses: actions/download-artifact@v4
+        with:
+          name: Solaris-Launcher-ID-TEST-win-x64
+          path: ${{ runner.temp }}/verified-delivery
+      - name: Verify downloaded ZIP against original runner package
+        shell: pwsh
+        run: |
+          python scripts/verify_solaris_id_test_delivery.py --download-dir (Join-Path $env:RUNNER_TEMP 'verified-delivery') --expected-package-info artifacts/solaris-id-test-delivery/PACKAGE-INFO.json --expected-commit '${{ github.sha }}' --summary-file $env:GITHUB_STEP_SUMMARY
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub artifact round-trip SHA-256/CRC/binary verification failed.' }
       # No release, tags, updater manifests, live servers or installed files.
